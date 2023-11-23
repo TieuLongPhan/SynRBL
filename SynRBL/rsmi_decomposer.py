@@ -95,4 +95,6 @@ def decompose(smiles):
         charge = Chem.GetFormalCharge(molecule_with_Hs)
         if charge != 0:
             comp[0] = charge
+        else:
+            comp[0] = 0
         return dict(sorted(comp.items()))

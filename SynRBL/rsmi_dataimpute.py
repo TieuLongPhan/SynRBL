@@ -1,4 +1,5 @@
 from rdkit import Chem
+from SynRBL.rsmi_decomposer import decompose
 import pandas as pd
 
 class RSMIDataImpute:
@@ -16,6 +17,8 @@ class RSMIDataImpute:
         Adds a new entry to the database. Raises a ValueError if the SMILES string is invalid.
     add_entries(entries: list):
         Adds multiple entries to the database. Returns a list of invalid entries.
+    remove_entry(formula: str):
+        Removes an entry from the database based on its formula. Prints a message indicating whether the removal was successful.
     canonicalize_smiles(smiles: str) -> str:
         Returns the canonical form of the SMILES string.
     is_valid_smiles(smiles: str) -> bool:
@@ -50,6 +53,8 @@ class RSMIDataImpute:
 
         Raises:
         ValueError: If the SMILES string is invalid.
+        IndexError: If the formula already exists in the database.
+         ValueError: If the SMILES already exists in the database.
 
         Example:
         try:
@@ -61,17 +66,24 @@ class RSMIDataImpute:
         if not self.is_valid_smiles(smiles):
             raise ValueError(f"'{smiles}' is not a valid SMILES string.")
 
+         # Check if 'formula' value already exists in the database
+        if any(d['formula'] == formula for d in self.database):
+            raise IndexError(f"Entry with formula '{formula}' already exists in the database.")
+        
         # Canonicalize the smiles string
         smiles = self.canonicalize_smiles(smiles)
 
         # Check if 'smiles' value already exists in the database
         if any(d['smiles'] == smiles for d in self.database):
-            print(f"Entry with smiles '{smiles}' already exists in the database.")
-            return
+            raise ValueError(f"Entry with smiles '{smiles}' already exists in the database.")
+        
+        compisition = decompose(smiles)
 
         # If not, add the new entry
-        self.database.append({'formula': formula, 'smiles': smiles})
+        self.database.append({'formula': formula, 'smiles': smiles, 'composition': compisition})
         print(f"Entry with formula '{formula}' and smiles '{smiles}' added to the database.")
+
+    
 
     def add_entries(self, entries):
         """
@@ -97,6 +109,27 @@ class RSMIDataImpute:
                 invalid_entries.append(entry)
 
         return invalid_entries
+    
+    def remove_entry(self, formula):
+        """
+        Removes an entry from the database based on its formula.
+
+        Parameters:
+        formula (str): The formula of the compound to be removed.
+
+        Example:
+        db.remove_entry('H2O')
+        """
+        # Find the entry with the given formula
+        entry = next((d for d in self.database if d['formula'] == formula), None)
+
+        # If found, remove it from the database
+        if entry is not None:
+            self.database.remove(entry)
+            print(f"Entry with formula '{formula}' removed from the database.")
+        else:
+            print(f"No entry found with formula '{formula}'.")
+
 
     @staticmethod
     def canonicalize_smiles(smiles):
