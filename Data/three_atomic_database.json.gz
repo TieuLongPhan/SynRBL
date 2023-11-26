@@ -1,0 +1,10 @@
+[
+    {"formula": "CH3OH", "smiles": "CO", "Composition": {"Q": 0, "C": 1, "H": 4, "O": 1}},
+    {"formula": "C2H5OH", "smiles": "CCO", "Composition": {"Q": 0, "C": 2, "H": 6, "O": 1}},
+    {"formula": "CH3COO-", "smiles": "[CH3COO-]", "Composition": {"Q": -1, "C": 2, "H": 3, "O": 2}},
+    {"formula": "CH3COCH3", "smiles": "CC(=O)C", "Composition": {"Q": 0, "C": 3, "H": 6, "O": 1}},
+    {"formula": "CH2O", "smiles": "C=O", "Composition": {"Q": 0, "C": 1, "H": 2, "O": 1}},
+    {"formula": "CH3CHO", "smiles": "CC=O", "Composition": {"Q": 0, "C": 2, "H": 4, "O": 1}},
+    {"formula": "C2H6O2", "smiles": "C(CO)O", "Composition": {"Q": 0, "C": 2, "H": 6, "O": 2}},
+    {"formula": "C6H5OH", "smiles": "c1ccccc1O", "Composition": {"Q": 0, "C": 6, "H": 6, "O": 1}}
+]
