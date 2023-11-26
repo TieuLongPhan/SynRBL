@@ -1,5 +1,1 @@
-from SynRBL import rsmi_utils
-from SynRBL import rsmi_processing
-from SynRBL import rsmi_decomposer
-from SynRBL import rsmi_comparator
-from SynRBL import rsmi_dataimpute
+from .rsmi_utils import *
