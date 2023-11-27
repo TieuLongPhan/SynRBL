@@ -1,2 +1,4 @@
 from .synthetic_rule_matcher import SyntheticRuleMatcher
 from .synthetic_rule_imputer import SyntheticRuleImputer
+from .formula_similarity_finder import FormulaSimilarityFinder
+from .mcs_finder import MSCFinder
