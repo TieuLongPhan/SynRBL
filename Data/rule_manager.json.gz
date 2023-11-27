@@ -56,5 +56,6 @@
     {"formula": "CH2O", "smiles": "C=O", "Composition": {"Q": 0, "C": 1, "H": 2, "O": 1}},
     {"formula": "CH3CHO", "smiles": "CC=O", "Composition": {"Q": 0, "C": 2, "H": 4, "O": 1}},
     {"formula": "C2H6O2", "smiles": "C(CO)O", "Composition": {"Q": 0, "C": 2, "H": 6, "O": 2}},
-    {"formula": "C6H5OH", "smiles": "c1ccccc1O", "Composition": {"Q": 0, "C": 6, "H": 6, "O": 1}}
+    {"formula": "C6H5OH", "smiles": "c1ccccc1O", "Composition": {"Q": 0, "C": 6, "H": 6, "O": 1}},
+    
 ]

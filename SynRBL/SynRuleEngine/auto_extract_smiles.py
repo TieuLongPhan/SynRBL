@@ -52,6 +52,7 @@ class AutomaticSmilesExtraction:
             delayed(self.count_carbon_atoms)(smi) for smi in self.smiles_list
         )
 
+    
     def get_smiles(self, list_of_dicts):
         """
         Extract SMILES strings from a list of dictionaries containing reaction data.
@@ -71,8 +72,11 @@ class AutomaticSmilesExtraction:
         for reaction in list_of_dicts:
             reactants = reaction.get('reactants', '')
             products = reaction.get('products', '')
-            smiles_list.extend([reactants, products])
-        return smiles_list
+            # Splitting the reactants and products into individual fragments and adding them to the list
+            smiles_list.extend(reactants.split('.'))
+            smiles_list.extend(products.split('.'))
+        # Filtering out empty strings
+        return [smi for smi in smiles_list if smi]
 
     @staticmethod
     def calculate_mol_weight(smiles):

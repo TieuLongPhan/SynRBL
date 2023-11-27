@@ -11,7 +11,7 @@ class RuleImputeManager(RSMIDecomposer):
     ----------
     database : list
         A list of dictionaries representing chemical compounds. Each dictionary has keys: 
-        'formula' (str), 'smiles' (str), and 'composition' (dict).
+        'formula' (str), 'smiles' (str), and 'Composition' (dict).
 
     Methods
     -------
@@ -70,7 +70,7 @@ class RuleImputeManager(RSMIDecomposer):
             raise ValueError(f"Invalid SMILES string: {smiles}")
 
         composition = self.decompose(smiles)
-        self.database.append({'formula': formula, 'smiles': smiles, 'composition': composition})
+        self.database.append({'formula': formula, 'smiles': smiles, 'Composition': composition})
         print(f"Entry with formula '{formula}' and smiles '{smiles}' added to the database.")
 
     def add_entries(self, entries):

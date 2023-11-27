@@ -124,7 +124,7 @@ class ReactionVisualizer:
         drawer.FinishDrawing()
         return Image.open(io.BytesIO(drawer.GetDrawingText()))
 
-    def plot_reactions(self, old_reaction_str, new_reaction_str):
+    def plot_reactions(self, old_reaction_str, new_reaction_str, savefig=False, pathname = None, dpi=300):
         """
         Plot one or two chemical reactions for visualization.
 
@@ -155,5 +155,7 @@ class ReactionVisualizer:
             ax.axis('off')
             label_y_position = -0.1 if self.label_position == 'below' else 1.1
             ax.set_title('New Reaction', position=(0.5, label_y_position), weight='bold')
+        if savefig == True:
+            fig.savefig(pathname, dpi=self.dpi)
 
         plt.tight_layout()
