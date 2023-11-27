@@ -62,7 +62,8 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   ```bash
   python -m venv synrbl-env
   source synrbl-env/bin/activate  # On Windows use `synrbl-env\Scripts\activate`
-
+  ```
+  
 3. **Installing Required Packages:**
   Install the necessary packages using pip. RDKit might require additional steps to install, which you can find in the RDKit documentation.
 
