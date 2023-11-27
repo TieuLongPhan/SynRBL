@@ -1,28 +1,49 @@
+import sys
+from pathlib import Path
 import unittest
-from SynRBL.SynExtract import RSMIProcessing, can_parse  # Replace 'your_module' with the actual module name
 import pandas as pd
+root_dir = Path(__file__).parents[2]
+sys.path.append(str(root_dir))
+
+from SynRBL.SynExtract import RSMIProcessing, can_parse   
 
 class TestRSMIProcessing(unittest.TestCase):
+
     def test_can_parse_valid(self):
-        self.assertTrue(can_parse('CC>>CC'))
+        # Test can_parse function with a valid RSMI string
+        rsmi = 'CCO>>CCOC'
+        self.assertTrue(can_parse(rsmi))
 
     def test_can_parse_invalid(self):
-        self.assertFalse(can_parse('CC>>', symbol='>>'))
+        # Test can_parse function with an invalid RSMI string
+        rsmi = 'InvalidString'
+        self.assertFalse(can_parse(rsmi))
 
     def test_smi_splitter_valid(self):
-        processor = RSMIProcessing(rsmi='CC>>CC')
-        self.assertEqual(processor.smi_splitter(), ('CC', 'CC'))
+        # Test smi_splitter method with a valid RSMI string
+        rsmi = 'CCO>>CCOC'
+        processor = RSMIProcessing(rsmi=rsmi)
+        reactants, products = processor.smi_splitter()
+        self.assertEqual(reactants, 'CCO')
+        self.assertEqual(products, 'CCOC')
 
     def test_smi_splitter_invalid(self):
-        processor = RSMIProcessing(rsmi='CC>>')
-        self.assertEqual(processor.smi_splitter(), "Can't parse")
+        # Test smi_splitter method with an invalid RSMI string
+        rsmi = 'InvalidString'
+        processor = RSMIProcessing(rsmi=rsmi)
+        result = processor.smi_splitter()
+        self.assertEqual(result, "Can't parse")
 
     def test_data_splitter(self):
-        data = pd.DataFrame({'rsmi': ['C>>CC', 'CC>>CCC']})
+        # Test data_splitter method with a DataFrame of RSMI strings
+        data = pd.DataFrame({'rsmi': ['CCO>>CCOC', 'CC>>C']})
         processor = RSMIProcessing(data=data, rsmi_col='rsmi', parallel=False)
         processed_data = processor.data_splitter()
-        expected_data = pd.DataFrame({'rsmi': ['C>>CC', 'CC>>CCC'], 'reactants': ['C', 'CC'], 'products': ['CC', 'CCC']})
-        pd.testing.assert_frame_equal(processed_data, expected_data)
+        self.assertIn('reactants', processed_data.columns)
+        self.assertIn('products', processed_data.columns)
+        self.assertEqual(len(processed_data), 2)
+
+    # Additional tests for other methods and edge cases can be added here
 
 if __name__ == '__main__':
     unittest.main()

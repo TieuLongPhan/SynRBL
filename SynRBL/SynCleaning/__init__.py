@@ -1,1 +1,1 @@
-from .smies_standardizer import SMILESStandardizer
+from .smiles_standardizer import SMILESStandardizer

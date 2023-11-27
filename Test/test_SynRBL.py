@@ -4,10 +4,14 @@ from rdkit import Chem
 from rdkit import RDLogger
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.ERROR)
+import sys
+from pathlib import Path
 
-from SynRBL import rsmi_utils
-from SynRBL.rsmi_utils import is_not_none, check_keys
-from SynRBL.rsmi_decomposer import RSMIDecomposer
-from SynRBL.rsmi_comparator import RSMIComparator
-from SynRBL.rsmi_processing import RSMIProcessing
-from SynRBL.rsmi_dataimpute import RSMIDataImpute
+# Add the root directory to sys.path
+root_dir = Path(__file__).parent.parent
+sys.path.append(str(root_dir))
+
+#from SynRBL import *
+
+
+from SynRBL.rsmi_utils import load_database, save_database
