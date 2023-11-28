@@ -40,7 +40,7 @@ SynRBL is organized into several key components, each dedicated to a specific as
 
 - `License`: License document
 - `README.md`: Overview and documentation
-- `setup.py`: installation
+- `setup.py`: Installation
 - `.gitignore`: Configuration for ignoring certain files and directories
 - `Example.ipynb`: Jupyter Notebook with usage examples
 - `Deployment.ipynb`: Jupyter Notebook for deployment guidance
@@ -71,6 +71,13 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   python -m venv synrbl-env
   source synrbl-env/bin/activate  # On Windows use `synrbl-env\Scripts\activate`
   ```
+  Or Conda
+
+  ```bash
+  conda create --name synrbl-env python=3.9
+  conda activate synrbl-env
+  ```
+
 
 3. **Installing Required Packages:**
   Install the necessary packages using pip. RDKit might require additional steps to install, which you can find in the RDKit documentation.
@@ -128,8 +135,9 @@ original_smiles = [{'id': 'US05849732',
 
 new_dict_standardized_smiles = standardizer.standardize_dict_smiles(data_input=original_smiles, key='reactants', visualize=False, parallel = True, n_jobs = 4,normalizer = standardizer.normalizer, tautomer = standardizer.tautomer, salt_remover = standardizer.salt_remover)
 print("Standardized SMILES:", new_dict_standardized_smiles)
-
 ```
+[Parallel(n_jobs=-1)]: Done 50016 out of 50016 | elapsed:  7.7min finished
+
 
 ### Example 2: Processing Reaction SMILES (RSMI) Data
 ```python
