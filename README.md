@@ -135,8 +135,9 @@ original_smiles = [{'id': 'US05849732',
 
 new_dict_standardized_smiles = standardizer.standardize_dict_smiles(data_input=original_smiles, key='reactants', visualize=False, parallel = True, n_jobs = 4,normalizer = standardizer.normalizer, tautomer = standardizer.tautomer, salt_remover = standardizer.salt_remover)
 print("Standardized SMILES:", new_dict_standardized_smiles)
+>> [Parallel(n_jobs=-1)]: Done 50016 out of 50016 | elapsed:  7.7min finished
 ```
-[Parallel(n_jobs=-1)]: Done 50016 out of 50016 | elapsed:  7.7min finished
+
 
 
 ### Example 2: Processing Reaction SMILES (RSMI) Data
