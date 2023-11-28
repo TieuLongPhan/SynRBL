@@ -3,6 +3,11 @@ from rdkit import Chem
 from SynRBL.SynRuleImpute.synthetic_rule_matcher import SyntheticRuleMatcher
 import copy
 from rdkit import Chem
+from joblib import Parallel, delayed
+from rdkit import RDLogger
+lg = RDLogger.logger()
+lg.setLevel(RDLogger.ERROR)
+RDLogger.DisableLog('rdApp.info')  
 
 class SyntheticRuleImputer(SyntheticRuleMatcher):
     """
@@ -43,7 +48,9 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
         self.select = select
         self.ranking = ranking
 
-    def impute(self, missing_dict):
+
+    @staticmethod
+    def single_impute(missing_dict, rule_dict, select='best', ranking='longest'):
         """
         Impute missing chemical data based on the provided rules.
 
@@ -55,20 +62,37 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
         """
         dict_impute = copy.deepcopy(missing_dict)
 
-        for item in dict_impute:
-            matcher = SyntheticRuleMatcher(self.rule_dict, item['Diff_formula'], select=self.select, ranking=self.ranking)
-            solution = matcher.match()
+      
+        matcher = SyntheticRuleMatcher(rule_dict, dict_impute['Diff_formula'], 
+                                       select=select, ranking=ranking)
+        solution = matcher.match()
 
-            if solution:
-                valid_smiles = self.get_and_validate_smiles(solution[0]) if len(solution[0]) > 1 else solution[0][0]['smiles']
+        if solution:
+            if len(solution[0]) >0:
+                valid_smiles = SyntheticRuleImputer.get_and_validate_smiles(solution[0]) if len(solution[0]) > 1 else solution[0][0]['smiles']
 
                 if valid_smiles:
-                    key = 'products' if item['Unbalance'] == 'Products' else 'reactants'
-                    item[key] += '.' + valid_smiles
+                    key = 'products' if dict_impute['Unbalance'] == 'Products' else 'reactants'
+                    dict_impute[key] += '.' + valid_smiles
 
                     # Construct the new_reaction key
-                    item['new_reaction'] = item['reactants'] + '>>' + item['products']
+                    dict_impute['new_reaction'] = dict_impute['reactants'] + '>>' + dict_impute['products']
 
+        return dict_impute
+    
+    def parallel_impute(self, missing_dict):
+        """
+        Impute missing chemical data in parallel.
+
+        Args:
+            missing_dict (list): A list of dictionaries representing missing chemical data.
+
+        Returns:
+            list: A list of dictionaries with imputed data.
+        """
+        dict_impute = Parallel(n_jobs=-2, verbose=1)(
+            delayed(self.single_impute)(item, self.rule_dict, self.select, self.ranking) for item in missing_dict
+        )
         return dict_impute
 
     @staticmethod
@@ -89,4 +113,3 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
         if Chem.MolFromSmiles(new_smiles) is not None:
             return new_smiles
         return None
-

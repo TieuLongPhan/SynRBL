@@ -17,8 +17,8 @@
     {"formula": "C7H8", "smiles": "Cc1ccccc1", "Composition": {"Q": 0, "C": 7, "H": 8}},
     {"formula": "CO2", "smiles": "O=C=O", "Composition": {"Q": 0, "C": 1, "O": 2}},
     {"formula": "[CO3]2-", "smiles": "O=C([O-])[O-]", "Composition": {"Q": -2, "C": 1, "O": 3}},
-    {"formula": "SO4^2-", "smiles": "[SO4^2-]", "Composition": {"Q": -2, "S": 1, "O": 4}},
-    {"formula": "NO3-", "smiles": "[NO3-]", "Composition": {"Q": -1, "N": 1, "O": 3}},
-    {"formula": "PO4^3-", "smiles": "[PO4^3-]", "Composition": {"Q": -3, "P": 1, "O": 4}}
+    {"formula": "SO4^2-", "smiles": "[O-]S(=O)(=O)[O-]", "Composition": {"Q": -2, "S": 1, "O": 4}},
+    {"formula": "NO3-", "smiles": "[N+](=O)([O-])[O-]", "Composition": {"Q": -1, "N": 1, "O": 3}},
+    {"formula": "PO4^3-", "smiles": "[O-]P(=O)([O-])[O-]", "Composition": {"Q": -3, "P": 1, "O": 4}}
     
 ]
