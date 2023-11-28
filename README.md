@@ -232,7 +232,7 @@ print(dict_impute)
 ```
 
 
-### Example 5:Visualizing Reactions
+### Example 5: Visualizing Reactions
 ```python
 from SynRBL.SynVis import ReactionVisualizer
 
@@ -246,7 +246,7 @@ new_reaction = 'CC>>CC'
 visualizer.plot_reactions(old_reaction, new_reaction)
 ```
 
-### Example 6:Finding Most Similar Molecule
+### Example 6: Finding Most Similar Molecule
 ```python
 from SynRBL.SynRuleImpute import FormulaSimilarityFinder
 
