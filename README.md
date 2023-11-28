@@ -103,22 +103,32 @@ The SynRBL framework provides a comprehensive suite of tools for computational c
 ### Example 1: Standardizing SMILES Strings
 
 ```python
+import warnings
+from rdkit import RDLogger
+RDLogger.DisableLog('rdApp.*')  # Disables RDKit warnings globally
+# Alternatively, you can catch warnings in a specific part of your code
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
 from SynRBL.SynCleaning import SMILESStandardizer
 
 # Initialize the SMILESStandardizer
 standardizer = SMILESStandardizer()
 
-# Original SMILES strings for demonstration
-original_smiles = [
-    "C1=CC=CC=C1",  # Aromatic compound
-    "C1=CC=C2C(=C1)C=CC=C2",  # Tautomerizable compound
-    "CC(C)(C)C(=O)O.O",  # Compound with a salt
-    "CC[NH+](CC)CC"  # Compound with charge
-]
+# Single smiles
+smiles = 'C1=CC=CC=C1'
+standardized_smiles = standardizer.standardize_smiles(smiles)
+print(standardized_smiles)
 
-# Example of standardizing a SMILES string
-standardized_smiles = standardizer.standardize_smiles(original_smiles[0], normalize=True, tautomerize=False, visualize=True)
-print("Standardized SMILES:", standardized_smiles)
+# Dict of SMILES
+original_smiles = [{'id': 'US05849732',
+  'class': 6,
+  'reactions': 'COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O',
+  'reactants': 'COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O',
+  'products': 'COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O'},...]
+
+new_dict_standardized_smiles = standardizer.standardize_dict_smiles(data_input=original_smiles, key='reactants', visualize=False, parallel = True, n_jobs = 4,normalizer = standardizer.normalizer, tautomer = standardizer.tautomer, salt_remover = standardizer.salt_remover)
+print("Standardized SMILES:", new_dict_standardized_smiles)
+
 ```
 
 ### Example 2: Processing Reaction SMILES (RSMI) Data
