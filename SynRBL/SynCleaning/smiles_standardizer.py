@@ -189,7 +189,7 @@ class SMILESStandardizer:
         img = Draw.MolsToGridImage([before_mol, after_mol], legends=['Before', 'After'], useSVG=False)
         display(img)
 
-    def standardize_dict_smiles(self, data_input, key='reactants', visualize=False, parallel=True, n_jobs=4, **kwargs):
+    def standardize_dict_smiles(self, data_input, key=['reactants', 'products'], visualize=False, parallel=True, n_jobs=4, **kwargs):
         """
         Process a list of reaction data and standardize the SMILES strings based on the specified key.
 
@@ -215,23 +215,38 @@ class SMILESStandardizer:
         """
         if parallel:
             # Correctly use Parallel with delayed
+
+            # reactants
             standardized_smiles = Parallel(n_jobs=n_jobs, verbose=1)(
                 delayed(self.standardize_smiles)(
-                    reaction_data.get(key, ''), visualize=visualize, **kwargs
+                    reaction_data.get(key[0], ''), visualize=visualize, **kwargs
                 ) for reaction_data in data_input
             )
 
             # Update data_input with standardized SMILES strings
             for i, reaction_data in enumerate(data_input):
-                reaction_data['standardized_' + key] = standardized_smiles[i]
+                reaction_data['standardized_' + key[0]] = standardized_smiles[i]
+
+             # products
+            standardized_smiles = Parallel(n_jobs=n_jobs, verbose=1)(
+                delayed(self.standardize_smiles)(
+                    reaction_data.get(key[1], ''), visualize=visualize, **kwargs
+                ) for reaction_data in data_input
+            )
+
+            # Update data_input with standardized SMILES strings
+            for i, reaction_data in enumerate(data_input):
+                reaction_data['standardized_' + key[1]] = standardized_smiles[i]
 
 
         else:
             for reaction_data in data_input:
                 try:
-                    smiles_string = reaction_data.get(key, '')
-                    standardized_smiles = SMILESStandardizer.standardize_smiles(smiles_string, visualize=visualize)
-                    reaction_data['standardized_' + key] = standardized_smiles
+                    for i in key:
+                        smiles_string = reaction_data.get(i, '')
+                        standardized_smiles = SMILESStandardizer.standardize_smiles(smiles_string, visualize=visualize)
+                        reaction_data['standardized_' + i] = standardized_smiles
+                        
                 except Exception as e:
                     reaction_data['error'] = str(e)
         return data_input
