@@ -1,5 +1,6 @@
 import json
 from typing import List, Dict
+from rdkit import Chem
 
 def save_database(database, pathname='./Data/database.json'):
     """
@@ -171,3 +172,42 @@ def build_lookups(atomic_elements: set, database: list) -> list:
         lookup.append(lookup_dict)
 
     return lookup
+
+def calculate_net_charge(sublist):
+    """
+    Calculate the net charge from a list of molecules represented as SMILES strings.
+
+    Args:
+        sublist (list): A list of dictionaries, each with a 'smiles' string and a 'Ratio'.
+
+    Returns:
+        int: Net charge of the sublist.
+    """
+    total_charge = 0
+    for item in sublist:
+        if 'smiles' in item and 'Ratio' in item:
+            mol = Chem.MolFromSmiles(item['smiles'])
+            if mol:
+                charge = sum(abs(atom.GetFormalCharge()) for atom in mol.GetAtoms()) * item['Ratio']
+                total_charge += charge
+    return total_charge
+
+
+
+def find_shortest_sublists(solution):
+    """
+    Find all sublists of dictionaries that have the shortest length.
+
+    Args:
+        solution (list of lists): A list containing lists of dictionaries.
+
+    Returns:
+        list: A list of all sublists with the shortest length.
+    """
+    if not solution:
+        return []
+
+    min_length = min(len(sublist) for sublist in solution)
+    shortest_sublists = [sublist for sublist in solution if len(sublist) == min_length]
+
+    return shortest_sublists
