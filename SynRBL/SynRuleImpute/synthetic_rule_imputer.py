@@ -98,16 +98,21 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
     @staticmethod
     def get_and_validate_smiles(solution):
         """
-        Concatenate smiles strings and validate the smiles string using RDKit.
+        Concatenate smiles strings based on their ratios and validate the result using RDKit.
 
         Args:
-            solution (list): A list of dictionaries representing chemical solutions.
+            solution (list): A list of dictionaries representing chemical solutions,
+                            each with a 'smiles' string and a 'Ratio'.
 
         Returns:
             str or None: A validated smiles string or None if validation fails.
         """
-        # Concatenate smiles strings
-        new_smiles = '.'.join(item['smiles'] for item in solution)
+        # Concatenate smiles strings based on their ratios
+        smiles_parts = []
+        for item in solution:
+            if 'smiles' in item and 'Ratio' in item:
+                smiles_parts.extend([item['smiles']] * item['Ratio'])
+        new_smiles = '.'.join(smiles_parts)
 
         # Validate the smiles string using RDKit
         if Chem.MolFromSmiles(new_smiles) is not None:
