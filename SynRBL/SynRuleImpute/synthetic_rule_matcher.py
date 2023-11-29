@@ -1,3 +1,5 @@
+from SynRBL.rsmi_utils import calculate_net_charge, find_shortest_sublists
+
 class SyntheticRuleMatcher:
     """
     A class to match rules based on given chemical data using a depth-first search algorithm.
@@ -134,11 +136,15 @@ class SyntheticRuleMatcher:
             return sorted(solutions, key=lambda sol: -len(sol), reverse=True)
         elif ranking == 'least':
             return sorted(solutions, key=lambda sol: sum(len(item) for item in sol))
-        elif ranking == 'greatliest':
+        elif ranking == 'greatest':
             return sorted(solutions, key=lambda sol: sum(len(item) for item in sol), reverse=True)
+        elif ranking == 'ion_priority':
+            shortest_sublists = find_shortest_sublists(solutions)
+            #print(sorted(shortest_sublists, key=lambda sol: get_net_charge(sol), reverse=False))
+            return [sorted(shortest_sublists, key=calculate_net_charge, reverse = True)[0]]
+    
         else:
             return solutions  # Default case, no sorting
-
     @staticmethod
     def exit_strategy_solution(data):
         """
