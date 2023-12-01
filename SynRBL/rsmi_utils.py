@@ -340,3 +340,30 @@ def add_missing_key_to_dicts(data, dict_key, missing_key, default_value):
         updated_data.append(updated_entry)
 
     return updated_data
+
+
+def extract_results_by_key(data, key='new_reaction'):
+    """
+    Separate dictionaries from a list into two lists based on the presence of a specific key.
+
+    Args:
+        data (list of dict): A list of dictionaries to be separated.
+        key (str): The key to check for in each dictionary. Defaults to 'new_reaction'.
+
+    Returns:
+        tuple of two lists: 
+            - The first list contains dictionaries that have the specified key.
+            - The second list contains dictionaries that do not have the specified key.
+    """
+
+    with_key = []
+    without_key = []
+
+    # Separate dictionaries based on the presence of the key
+    for item in data:
+        if key in item:
+            with_key.append(item)
+        else:
+            without_key.append(item)
+
+    return with_key, without_key
