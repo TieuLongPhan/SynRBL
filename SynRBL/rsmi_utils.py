@@ -211,3 +211,132 @@ def find_shortest_sublists(solution):
     shortest_sublists = [sublist for sublist in solution if len(sublist) == min_length]
 
     return shortest_sublists
+
+
+def filter_data(data, unbalance_values=None, formula_key='Diff_formula', element_key=None, min_count=0, max_count=3):
+    """
+    Filter dictionaries based on a list of unbalance values and element count in a specified formula key.
+
+    This function filters the input list of dictionaries based on the specified list of unbalance values and
+    the count of a specific element within a given formula key. It returns dictionaries that match any of the
+    unbalance criteria and where the element count falls within the specified range.
+
+    Args:
+        data (list of dict): A list of dictionaries to be filtered.
+        unbalance_values (list of str, optional): The values to filter by in the 'Unbalance' key. If None, this criterion is ignored.
+        formula_key (str): The key in the dictionaries that contains the element counts. Defaults to 'Diff_formula'.
+        element_key (str, optional): The element to filter by in the formula key. If None, this criterion is ignored.
+        min_count (int): The minimum allowed count of the element. Defaults to 0.
+        max_count (int): The maximum allowed count of the element. Defaults to infinity.
+
+    Returns:
+        list of dict: A list of dictionaries filtered based on the criteria.
+    """
+    filtered_data = []
+    
+    for item in data:
+        # Check for unbalance condition
+        unbalance_matches = (unbalance_values is None or item.get('Unbalance') in unbalance_values)
+
+        # Check for element count condition
+        element_count = item.get(formula_key, {}).get(element_key, 0)
+        element_matches = (element_key is None or min_count <= element_count <= max_count)
+
+        if unbalance_matches and element_matches:
+            filtered_data.append(item)
+
+    return filtered_data
+
+
+
+def remove_duplicates_by_key(data, key_function):
+    """
+    Remove duplicate entries from a list based on a unique key for each entry.
+
+    Parameters:
+    data (list): A list of data entries (dictionaries, objects, etc.).
+    key_function (function): A function that takes an entry from `data` and returns a key for duplicate check.
+
+    Returns:
+    list: A list of unique entries, based on the unique keys generated.
+
+    Example:
+    >>> data = [{'name': 'Alice', 'age': 30}, {'name': 'Bob', 'age': 25}, {'name': 'Alice', 'age': 30}]
+    >>> remove_duplicates_by_key(data, lambda x: (x['name'], x['age']))
+    [{'name': 'Alice', 'age': 30}, {'name': 'Bob', 'age': 25}]
+    """
+
+    # Set to keep track of already seen keys
+    seen_keys = set()
+    unique_data = []
+
+    for entry in data:
+        # Generate a key for each entry using the provided key function
+        key = frozenset(key_function(entry))
+        # Add entry to unique_data if key hasn't been seen before
+        if key not in seen_keys:
+            seen_keys.add(key)
+            unique_data.append(entry)
+
+    return unique_data
+
+def sort_by_key_length(data, key_function):
+    """
+    Sort a list of entries based on the length of a specific key.
+
+    Parameters:
+    data (list): A list of data entries.
+    key_function (function): A function that takes an entry from `data` and returns a key whose length is to be used for sorting.
+
+    Returns:
+    list: A list of entries sorted by the length of the specified key.
+
+    Example:
+    >>> data = [{'name': 'Alice', 'skills': ['Python', 'Java']}, {'name': 'Bob', 'skills': ['HTML']}]
+    >>> sort_by_key_length(data, lambda x: x['skills'])
+    [{'name': 'Bob', 'skills': ['HTML']}, {'name': 'Alice', 'skills': ['Python', 'Java']}]
+    """
+
+    # Sorting the data based on the length of the key returned by key_function
+    return sorted(data, key=lambda x: len(key_function(x)))
+
+
+def add_missing_key_to_dicts(data, dict_key, missing_key, default_value):
+    """
+    Iterates through a list of dictionaries and adds a specified key with a default value to a specified 
+    dictionary within each main dictionary, if the key is not already present. Returns a new list with the updates.
+
+    Parameters:
+    data (list): A list of dictionaries.
+    dict_key (str): The key in the main dictionaries that points to another dictionary where the check should be done.
+    missing_key (str): The key to add if it's not present in the nested dictionary.
+    default_value: The default value to assign to the missing key.
+
+    Returns:
+    list: A new list of dictionaries with the missing key added where necessary.
+
+    Example:
+    >>> data = [{'Composition': {'A': 1, 'B': 2}}, {'Composition': {'B': 3}}]
+    >>> updated_data = add_missing_key_to_dicts(data, 'Composition', 'Q', 0)
+    >>> updated_data
+    [{'Composition': {'A': 1, 'B': 2, 'Q': 0}}, {'Composition': {'B': 3, 'Q': 0}}]
+    """
+
+    updated_data = []
+
+    for entry in data:
+        # Create a copy of the entry to avoid modifying the original data
+        updated_entry = entry.copy()
+
+        # Check if the missing key is not in the specified dictionary
+        if missing_key not in updated_entry.get(dict_key, {}):
+            # Ensure the dict_key points to a dictionary
+            if dict_key not in updated_entry:
+                updated_entry[dict_key] = {}
+
+            # Add the missing key with the default value
+            updated_entry[dict_key][missing_key] = default_value
+
+        updated_data.append(updated_entry)
+
+    return updated_data
