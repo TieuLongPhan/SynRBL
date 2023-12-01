@@ -141,7 +141,7 @@ class SyntheticRuleMatcher:
         elif ranking == 'ion_priority':
             shortest_sublists = find_shortest_sublists(solutions)
             #print(sorted(shortest_sublists, key=lambda sol: get_net_charge(sol), reverse=False))
-            return [sorted(shortest_sublists, key=calculate_net_charge, reverse = True)[0]]
+            return sorted(shortest_sublists, key=calculate_net_charge, reverse = True)
     
         else:
             return solutions  # Default case, no sorting
