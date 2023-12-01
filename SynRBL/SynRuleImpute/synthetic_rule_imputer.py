@@ -69,8 +69,7 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
 
         if solution:
             if len(solution[0]) >0:
-                valid_smiles = SyntheticRuleImputer.get_and_validate_smiles(solution[0]) if len(solution[0]) > 1 else solution[0][0]['smiles']
-
+                valid_smiles = SyntheticRuleImputer.get_and_validate_smiles(solution[0])
                 if valid_smiles:
                     key = 'products' if dict_impute['Unbalance'] == 'Products' else 'reactants'
                     dict_impute[key] += '.' + valid_smiles
