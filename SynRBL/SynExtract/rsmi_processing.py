@@ -1,7 +1,7 @@
 from joblib import Parallel, delayed
 from rdkit import Chem
 import pandas as pd
-
+from SynRBL.rsmi_utils import save_database
 def can_parse(rsmi, symbol='>>'):
     """
     Check if a RSMI string can be parsed into reactants and products.
@@ -139,10 +139,14 @@ class RSMIProcessing:
         # Assign the second part of the split (products) to another new column
         self.data['products'] = split_smiles[1]
 
+        
+
         # Check if there's a need to save the processed data to a JSON file
         if self.save_json:
+            data=self.data.to_dict(orient=self.orient)
+            save_database(data, self.save_path_name)
             # Save the DataFrame to a JSON file with specified format and compression
-            self.data.to_json(self.save_path_name, orient=self.orient, compression=self.compression)
+            #self.data.to_json(self.save_path_name, orient=self.orient, compression=self.compression)
 
         # Return the processed DataFrame with separate columns for reactants and products
         return self.data
