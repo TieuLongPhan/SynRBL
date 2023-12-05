@@ -1,9 +1,8 @@
 import numpy as np
 from rdkit import Chem
-import matplotlib.pyplot as plt
-from rdkit.Chem import Draw
 
-def plot_mols(mols, includeAtomNumbers=False):
+
+def _plot_mols(mols, includeAtomNumbers=False):
     if type(mols) is not list:
         mols = [mols]
     fig, ax = plt.subplots(1, len(mols))
@@ -18,6 +17,7 @@ def plot_mols(mols, includeAtomNumbers=False):
         a.axis('off')
         a.imshow(mol_img)
 
+
 def _remove_Hs(mol, idx, n):
     cnt = 0
     for n_atom in mol.GetAtoms()[idx].GetNeighbors():
@@ -28,8 +28,10 @@ def _remove_Hs(mol, idx, n):
                 return
     raise RuntimeError(f"Could not remove {n} neighboring H atoms.")
 
+
 def _count_H(atom):
     return len([a for a in atom.GetNeighbors() if a.GetAtomicNum() == 1])
+
 
 def _validate_bond_type(min_Hs, bond_type):
     if bond_type is None and min_Hs > 1:
@@ -54,6 +56,7 @@ def _validate_bond_type(min_Hs, bond_type):
     else:
         raise ValueError(f"Invalid bond type '{bond_type}'")
 
+
 def merge(mol1, mol2, atom_idx1, atom_idx2, bond_type=None):
     """ 
     Merge two molecules at the given atom indices. 
@@ -70,8 +73,9 @@ def merge(mol1, mol2, atom_idx1, atom_idx2, bond_type=None):
             Possible Values: [None, 'single', 'double', 'triple']
 
     Returns:
-        
+       rdkit.Chem.rdchem.Mol: Merged molecule.
     """
+
     mol1 = Chem.AddHs(mol1)
     mol2 = Chem.AddHs(mol2)
     mol1_atoms = mol1.GetAtoms()
@@ -90,15 +94,17 @@ def merge(mol1, mol2, atom_idx1, atom_idx2, bond_type=None):
     return mol 
 
 if __name__ == "__main__":
-    missing_smiles_reactant = ['CC1(C)OBOC1(C)C', 'CCC']
-    boundary_atoms_list = [{'B': 7}, {'C':1}]
-    result = 'CC1(C)OB(-C(C)C)OC1(C)C'
-    result_w = 'CC1(C)OBCCCOC1(C)C'
+    import matplotlib.pyplot as plt
+    from rdkit.Chem import Draw 
+   
+    # Used for testing
+    def _test_merge(mol1, mol2, idx1, idx2, prod, plot=False):
+        _mol1 = Chem.MolFromSmiles(mol1)
+        _mol2 = Chem.MolFromSmiles(mol2)
+        _mol_prod = Chem.RemoveHs(merge(_mol1, _mol2, idx1, idx2))
+        if plot:
+            plot_mols([_mol1, _mol2, _mol_prod], includeAtomNumbers=False)
+            plt.show()
+        assert Chem.MolToSmiles(_mol_prod) == Chem.CanonSmiles(prod)
 
-    mol1 = Chem.MolFromSmiles(missing_smiles_reactant[0])
-    mol2 = Chem.MolFromSmiles(missing_smiles_reactant[1])
-    mol_res = Chem.MolFromSmiles(result)
-
-    m_mol = Chem.RemoveHs(merge(mol1, mol2, 4, 1))
-    plot_mols([mol1, mol2, m_mol], includeAtomNumbers=False)
-    plt.show()
+    _test_merge('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 'CC1(C)OB(-C(C)C)OC1(C)C', plot=False)
