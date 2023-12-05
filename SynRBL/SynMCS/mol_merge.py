@@ -2,7 +2,7 @@ import numpy as np
 from rdkit import Chem
 
 
-def _plot_mols(mols, includeAtomNumbers=False):
+def _plot_mols(mols, includeAtomNumbers=False, titles=None):
     if type(mols) is not list:
         mols = [mols]
     fig, ax = plt.subplots(1, len(mols))
@@ -14,6 +14,8 @@ def _plot_mols(mols, includeAtomNumbers=False):
             for atom in mol.GetAtoms():
                 atom.SetProp('atomLabel', str(atom.GetIdx()))
         mol_img = Draw.MolToImage(mol)
+        if titles is not None and i < len(titles):
+            a.set_title(titles[i])
         a.axis('off')
         a.imshow(mol_img)
 
@@ -57,7 +59,28 @@ def _validate_bond_type(min_Hs, bond_type):
         raise ValueError(f"Invalid bond type '{bond_type}'")
 
 
-def merge(mol1, mol2, atom_idx1, atom_idx2, bond_type=None):
+def _rule__append_O_to_C_nextto_O_or_N(mol, idx):
+    atom = mol.GetAtoms()[idx]
+    if atom.GetSymbol() != 'C':
+        return None
+    for atom in mol.GetAtoms()[idx].GetNeighbors():
+        if atom.GetSymbol() in ['O', 'N']:
+            return {'mol': Chem.MolFromSmiles('O'), 'bound': {'O': 0}}
+    return None
+
+
+_compound_rules = [_rule__append_O_to_C_nextto_O_or_N]
+
+
+def _try_get_compound(mol, idx):
+    for rule in _compound_rules:
+        mol2 = rule(mol, idx)
+        if mol2 is not None:
+            return mol2
+    raise RuntimeError("Not able to identify second compound for merge.")
+
+
+def merge_two_mols(mol1, mol2, atom_idx1, atom_idx2, bond_type=None):
     """ 
     Merge two molecules at the given atom indices. 
     This operation neglacts the byproduct in the form of bond_type * 2H 
@@ -93,18 +116,58 @@ def merge(mol1, mol2, atom_idx1, atom_idx2, bond_type=None):
     Chem.SanitizeMol(mol)
     return mol 
 
+
+def merge_expand(mol, bounds):
+    _mmol = mol
+    for idx in bounds:
+        mol2 = _try_get_compound(mol, idx)
+        _mmol = merge_two_mols(_mmol, mol2['mol'], idx, list(mol2['bound'].values())[0])
+    return _mmol
+    
+
 if __name__ == "__main__":
+    # Used for testing
     import matplotlib.pyplot as plt
     from rdkit.Chem import Draw 
+
+    plot = True
    
-    # Used for testing
-    def _test_merge(mol1, mol2, idx1, idx2, prod, plot=False):
+    def _test_merge_two_mols(mol1, mol2, idx1, idx2, result):
         _mol1 = Chem.MolFromSmiles(mol1)
         _mol2 = Chem.MolFromSmiles(mol2)
-        _mol_prod = Chem.RemoveHs(merge(_mol1, _mol2, idx1, idx2))
+        _mmol = Chem.RemoveHs(merge_two_mols(_mol1, _mol2, idx1, idx2))
+        is_correct = Chem.MolToSmiles(_mmol) == Chem.CanonSmiles(result)
         if plot:
-            plot_mols([_mol1, _mol2, _mol_prod], includeAtomNumbers=False)
+            _plot_mols([_mol1, _mol2, _mmol], titles=['input1', 'input2', 'merged'], 
+                       includeAtomNumbers=False)
             plt.show()
-        assert Chem.MolToSmiles(_mol_prod) == Chem.CanonSmiles(prod)
+        if not is_correct:
+            _rmol = Chem.MolFromSmiles(result)
+            _plot_mols([_rmol, _mmol], titles=['expected', 'actual'], 
+                       includeAtomNumbers=False)
+            plt.show()
+        assert is_correct, (
+                f"Expected: {Chem.MolToSmiles(_mmol)} " + 
+                f"Actual: {Chem.CanonSmiles(result)}")
+    
+    def _test_merge_expand(mol, bounds, result):
+        _mol = Chem.MolFromSmiles(mol)
+        _mmol = Chem.RemoveHs(merge_expand(_mol, bounds))
+        is_correct = Chem.MolToSmiles(_mmol) == Chem.CanonSmiles(result)
+        if plot:
+            _plot_mols([_mol, _mmol], titles=['input', 'expaneded'], 
+                       includeAtomNumbers=False)
+            plt.show()
+        if not is_correct:
+            _rmol = Chem.MolFromSmiles(result)
+            _plot_mols([_rmol, _mmol], titles=['expected', 'actual'], 
+                       includeAtomNumbers=False)
+            plt.show()
+        assert is_correct, (
+                f"Expected: {Chem.MolToSmiles(_mmol)} " + 
+                f"Actual: {Chem.CanonSmiles(result)}")
 
-    _test_merge('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 'CC1(C)OB(-C(C)C)OC1(C)C', plot=False)
+    _test_merge_two_mols('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 
+                         'CC1(C)OB(-C(C)C)OC1(C)C')
+    _test_merge_expand('O=COCc1ccccc1', [1], 'O=C(O)OCc1ccccc1')
+    _test_merge_expand('O=Cc1ccccc1C=O', [1, 8], 'O=C(O)c1ccccc1C(O)=O')
