@@ -89,54 +89,44 @@ class MCSMissingGraphAnalyzer:
         return mcs_mol
 
     @staticmethod
-    def find_mcs_for_each_fragment(reactant_mol_list, product_mol_list, ringMatchesRingOnly=True, **kwargs):
+    def IterativeMCSReactionPairs(reactant_mol_list, product_mol, params=None):
         """
-        Find the MCS for each pair of reactant and product fragments.
+        Find the MCS for each reactant fragment with the product, updating the product after each step.
 
         Parameters:
-        - reactant_mol_list, product_mol_list: list of rdkit.Chem.Mol
-            Lists of RDKit molecule objects for reactants and products.
+        - reactant_mol_list: list of rdkit.Chem.Mol
+            List of RDKit molecule objects for reactants.
+        - product_mol: rdkit.Chem.Mol
+            RDKit molecule object for the product.
 
         Returns:
         - list of rdkit.Chem.Mol
             List of RDKit molecule objects representing the MCS for each reactant-product pair.
         """
         mcs_list = []
-        for reactant in reactant_mol_list:
-            for product in product_mol_list:
-                mcs_result = rdFMCS.FindMCS([reactant, product], ringMatchesRingOnly=ringMatchesRingOnly, **kwargs)
-                if mcs_result.canceled:
-                    continue
-                mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
-                mcs_list.append(mcs_mol)
-        return mcs_list
+        current_product = product_mol
 
-    @staticmethod
-    def find_missing_parts(mol, mcs_list):
-        """
-        Find the missing parts of a molecule relative to a list of MCS.
+        # Sort reactant molecules based on the number of atoms (descending order)
+        sorted_reactants = sorted(reactant_mol_list, key=lambda x: x.GetNumAtoms(), reverse=True)
 
-        Parameters:
-        - mol: rdkit.Chem.Mol
-            The RDKit molecule object to analyze.
-        - mcs_list: list of rdkit.Chem.Mol
-            List of RDKit molecule objects representing MCS.
+        for reactant in sorted_reactants:
+            mcs_result = rdFMCS.FindMCS([reactant, current_product], params)
+            if mcs_result.canceled:
+                continue
 
-        Returns:
-        - rdkit.Chem.Mol or None
-            The RDKit molecule object representing missing parts, or None if no missing parts.
-        """
-        atoms_to_remove = set()
-        for mcs_mol in mcs_list:
-            match = mol.GetSubstructMatch(mcs_mol)
-            atoms_to_remove.update(match)
-        if len(atoms_to_remove) == mol.GetNumAtoms():
-            return None
-        missing_part = Chem.RWMol(mol)
-        for idx in sorted(atoms_to_remove, reverse=True):
-            missing_part.RemoveAtom(idx)
-        Chem.SanitizeMol(missing_part)
-        return missing_part if missing_part.GetNumAtoms() > 0 else None
+            mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
+            mcs_list.append(mcs_mol)
+
+            # Update the product by removing the MCS substructure
+            current_product = Chem.DeleteSubstructs(Chem.RWMol(current_product), mcs_mol)
+            current_product = Chem.RemoveHs(current_product)
+            try:
+                Chem.SanitizeMol(current_product)
+            except:
+                pass
+
+        return mcs_list, sorted_reactants
+
     
     @staticmethod
     def add_hydrogens_to_radicals(mol):
@@ -169,7 +159,7 @@ class MCSMissingGraphAnalyzer:
             return curate_mol
 
     @staticmethod
-    def fit(reaction_dict, curate_radicals=False, ringMatchesRingOnly=True,**kwargs):
+    def fit(reaction_dict, params=None):
         """
         Process a reaction dictionary to find MCS, missing parts in reactants and products.
 
@@ -184,12 +174,8 @@ class MCSMissingGraphAnalyzer:
         """
         reactant_smiles, product_smiles = MCSMissingGraphAnalyzer.get_smiles(reaction_dict)
         reactant_mol_list = [MCSMissingGraphAnalyzer.convert_smiles_to_molecule(smiles) for smiles in reactant_smiles.split('.')]
-        product_mol_list = [MCSMissingGraphAnalyzer.convert_smiles_to_molecule(smiles) for smiles in product_smiles.split('.')]
-        mcs_list = MCSMissingGraphAnalyzer.find_mcs_for_each_fragment(reactant_mol_list, product_mol_list, ringMatchesRingOnly=ringMatchesRingOnly, **kwargs)
-        missing_parts_reactant = [MCSMissingGraphAnalyzer.find_missing_parts(frag, mcs_list) for frag in reactant_mol_list]
-        missing_part_product = [MCSMissingGraphAnalyzer.find_missing_parts(frag, mcs_list) for frag in product_mol_list]
-        if curate_radicals:
-            missing_parts_reactant = [MCSMissingGraphAnalyzer.add_hydrogens_to_radicals(frag) for frag in missing_parts_reactant]
-            missing_part_product = [MCSMissingGraphAnalyzer.add_hydrogens_to_radicals(frag) for frag in missing_part_product]
+        product_mol = MCSMissingGraphAnalyzer.convert_smiles_to_molecule(product_smiles)
 
-        return mcs_list, missing_parts_reactant, missing_part_product, reactant_mol_list, product_mol_list
+        mcs_list, sorted_reactants = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(reactant_mol_list, product_mol,  params)
+
+        return mcs_list , sorted_reactants, product_mol
