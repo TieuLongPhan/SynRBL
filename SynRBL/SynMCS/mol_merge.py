@@ -2,10 +2,13 @@ import numpy as np
 from rdkit import Chem
 
 
-def _plot_mols(mols, includeAtomNumbers=False, titles=None):
+def plot_mols(mols, includeAtomNumbers=False, titles=None, figsize=None):
+    import matplotlib.pyplot as plt
+    from rdkit.Chem import Draw
+
     if type(mols) is not list:
         mols = [mols]
-    fig, ax = plt.subplots(1, len(mols))
+    fig, ax = plt.subplots(1, len(mols), figsize=figsize)
     for i, mol in enumerate(mols):
         a = ax
         if len(mols) > 1:
@@ -20,19 +23,24 @@ def _plot_mols(mols, includeAtomNumbers=False, titles=None):
         a.imshow(mol_img)
 
 
-def _remove_Hs(mol, idx, n):
+def _remove_Hs(mol, atom, n):
     cnt = 0
-    for n_atom in mol.GetAtoms()[idx].GetNeighbors():
+    for n_atom in atom.GetNeighbors():
         if n_atom.GetAtomicNum() == 1:
             mol.RemoveAtom(n_atom.GetIdx())
             cnt += 1
             if cnt == n:
-                return
-    raise RuntimeError(f"Could not remove {n} neighboring H atoms.")
+                break
+    if cnt == n:
+        print("Removed {} H atoms.".format(cnt))
+    else:
+        raise RuntimeError(f"Could not remove {n} neighboring H atoms.")
 
-
-def _count_H(atom):
-    return len([a for a in atom.GetNeighbors() if a.GetAtomicNum() == 1])
+def _count_H(atom, include_radicals=False):
+    cnt = len([a for a in atom.GetNeighbors() if a.GetAtomicNum() == 1])
+    if include_radicals:
+        cnt += atom.GetNumRadicalElectrons()
+    return cnt 
 
 
 def _validate_bond_type(min_Hs, bond_type):
@@ -47,7 +55,7 @@ def _validate_bond_type(min_Hs, bond_type):
     elif min_Hs == 3 and bond_type not in ['single', 'double', 'triple']:
         raise ValueError(f"Invalid bond type '{bond_type}'")
     elif min_Hs == 0 or min_Hs > 3:
-        raise ValueError("Invalid number of H atoms.")
+        raise ValueError(f"Invalid number of H atoms ({min_Hs}).")
 
     if bond_type == 'single':
         return (1, Chem.rdchem.BondType.SINGLE)
@@ -59,71 +67,82 @@ def _validate_bond_type(min_Hs, bond_type):
         raise ValueError(f"Invalid bond type '{bond_type}'")
 
 
-def _rule__append_O_to_C_nextto_O_or_N(mol, idx):
+def _rule__append_O_to_C_nextto_O_or_N(mol, idx, neighbors):
     atom = mol.GetAtoms()[idx]
     if atom.GetSymbol() != 'C':
         return None
-    for atom in mol.GetAtoms()[idx].GetNeighbors():
-        if atom.GetSymbol() in ['O', 'N']:
+    for n_atom in neighbors:
+        if n_atom in ['O', 'N']:
             return {'mol': Chem.MolFromSmiles('O'), 'bound': {'O': 0}}
     return None
 
+def _rule__append_O_to_Si(mol, idx, neighbors):
+    atom = mol.GetAtoms()[idx]
+    if atom.GetSymbol() != 'Si':
+        return None
+    return {'mol': Chem.MolFromSmiles('O'), 'bound': {'O': 0}}
 
-_compound_rules = [_rule__append_O_to_C_nextto_O_or_N]
+_compound_rules = [
+        _rule__append_O_to_C_nextto_O_or_N,
+        _rule__append_O_to_Si]
 
 
-def _try_get_compound(mol, idx):
+def _try_get_compound(mol, idx, neighbors):
     for rule in _compound_rules:
-        mol2 = rule(mol, idx)
+        mol2 = rule(mol, idx, neighbors)
         if mol2 is not None:
             return mol2
     raise RuntimeError("Not able to identify second compound for merge.")
 
 
-def merge_two_mols(mol1, mol2, atom_idx1, atom_idx2, bond_type=None):
-    """ 
-    Merge two molecules at the given atom indices. 
-    This operation neglacts the byproduct in the form of bond_type * 2H 
-    in the returned molecule.
+def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
+    bond_type = Chem.rdchem.BondType.SINGLE
+    bond_nr = 1
+      
+    def _setup_track_dict(track_ids):
+        track_dict = {}
+        if track_ids is not None:
+            for id in track_ids:
+                track_dict[str(id)] = {}
+        return track_dict
 
-    Args:
-        mol1 (rdkit.Chem.rdchem.Mol): First molecule to merge
-        mol2 (rdkit.Chem.rdchem.Mol): Second molecule to merge
-        atom_idx1 (int): Merge index in first molecule.
-        atom_idx2 (int): Merge index in second molecule.
-        bond_type (str): Bond type used to merge the molecules.
-            If not set a single bond is used. 
-            Possible Values: [None, 'single', 'double', 'triple']
+    def _add_track_atoms(track_dict, mol, offset=0):
+        atoms = mol.GetAtoms()
+        for k in track_dict.keys():
+            track_dict[k]['atom'] = atoms[int(k) + offset]
 
-    Returns:
-       rdkit.Chem.rdchem.Mol: Merged molecule.
-    """
+    def _seal_track_dict(track_dict):
+        sealed_dict = {}
+        for k in track_dict.keys():
+            sealed_dict[k] = track_dict[k]['atom'].GetIdx()
+        return sealed_dict
+
+    mol1_track_dict = _setup_track_dict(mol1_track)
+    mol2_track_dict = _setup_track_dict(mol2_track)
 
     mol1 = Chem.AddHs(mol1)
     mol2 = Chem.AddHs(mol2)
-    mol1_atoms = mol1.GetAtoms()
-    mol2_atoms = mol2.GetAtoms()
-    min_Hs = np.min([
-        _count_H(mol1_atoms[atom_idx1]), 
-        _count_H(mol2_atoms[atom_idx2])
-    ])
-    bond_nr, bond_type = _validate_bond_type(min_Hs, bond_type)
-    idx1, idx2 = (atom_idx1, len(mol1_atoms) + atom_idx2 - bond_nr)
     mol = Chem.RWMol(Chem.CombineMols(mol1, mol2))
-    _remove_Hs(mol, idx1, bond_nr)
-    _remove_Hs(mol, idx2, bond_nr)
-    mol.AddBond(idx1, idx2, order=bond_type) 
+    mol2_offset = len(mol1.GetAtoms())
+    _add_track_atoms(mol1_track_dict, mol)
+    _add_track_atoms(mol2_track_dict, mol, offset=mol2_offset)
+    atom1 = mol.GetAtoms()[idx1]
+    atom2 = mol.GetAtoms()[mol2_offset + idx2]
+    _remove_Hs(mol, atom1, bond_nr - atom1.GetNumRadicalElectrons()) 
+    _remove_Hs(mol, atom2, bond_nr - atom2.GetNumRadicalElectrons())
+    mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type) 
     Chem.SanitizeMol(mol)
-    return mol 
+    return {'mol': mol, 
+            'aam1': _seal_track_dict(mol1_track_dict), 
+            'aam2': _seal_track_dict(mol2_track_dict)}
 
 
-def merge_expand(mol, bounds):
+def merge_expand(mol, bound_idx, neighbors=None):
     _mmol = mol
-    for idx in bounds:
-        mol2 = _try_get_compound(mol, idx)
-        _mmol = merge_two_mols(_mmol, mol2['mol'], idx, list(mol2['bound'].values())[0])
+    _mol2 = _try_get_compound(mol, bound_idx, neighbors)
+    _mmol = merge_two_mols(_mmol, _mol2['mol'], bound_idx, 
+                           list(_mol2['bound'].values())[0])
     return _mmol
-    
 
 if __name__ == "__main__":
     # Used for testing
@@ -132,42 +151,47 @@ if __name__ == "__main__":
 
     plot = True
    
-    def _test_merge_two_mols(mol1, mol2, idx1, idx2, result):
+    def _test_merge_mols(mol1, mol2, idx1, idx2, result):
         _mol1 = Chem.MolFromSmiles(mol1)
         _mol2 = Chem.MolFromSmiles(mol2)
-        _mmol = Chem.RemoveHs(merge_two_mols(_mol1, _mol2, idx1, idx2))
+        merge_result = merge_mols(_mol1, _mol2, idx1, idx2, 
+                                  mol1_track=[idx1], mol2_track=[idx2])
+        _mmol = Chem.RemoveHs(merge_result['mol'])
         is_correct = Chem.MolToSmiles(_mmol) == Chem.CanonSmiles(result)
         if plot:
-            _plot_mols([_mol1, _mol2, _mmol], titles=['input1', 'input2', 'merged'], 
-                       includeAtomNumbers=False)
+            plot_mols([_mol1, _mol2, _mmol], titles=['input1', 'input2', 'merged'], 
+                      includeAtomNumbers=False)
             plt.show()
         if not is_correct:
             _rmol = Chem.MolFromSmiles(result)
-            _plot_mols([_rmol, _mmol], titles=['expected', 'actual'], 
-                       includeAtomNumbers=False)
+            plot_mols([_rmol, _mmol], titles=['expected', 'actual'], 
+                      includeAtomNumbers=False)
             plt.show()
-        assert is_correct, (
-                f"Expected: {Chem.MolToSmiles(_mmol)} " + 
-                f"Actual: {Chem.CanonSmiles(result)}")
+        assert is_correct, (f"Expected: {Chem.MolToSmiles(_mmol)} " + 
+                            f"Actual: {Chem.CanonSmiles(result)}")
     
-    def _test_merge_expand(mol, bounds, result):
+    def _test_merge_expand(mol, bound_idx, neighbors, result):
         _mol = Chem.MolFromSmiles(mol)
-        _mmol = Chem.RemoveHs(merge_expand(_mol, bounds))
+        _mmol = Chem.RemoveHs(merge_expand(_mol, bound_idx, neighbors))
         is_correct = Chem.MolToSmiles(_mmol) == Chem.CanonSmiles(result)
         if plot:
-            _plot_mols([_mol, _mmol], titles=['input', 'expaneded'], 
-                       includeAtomNumbers=False)
+            plot_mols([_mol, _mmol], titles=['input', 'expaneded'], 
+                      includeAtomNumbers=False)
             plt.show()
         if not is_correct:
             _rmol = Chem.MolFromSmiles(result)
-            _plot_mols([_rmol, _mmol], titles=['expected', 'actual'], 
-                       includeAtomNumbers=False)
+            plot_mols([_rmol, _mmol], titles=['expected', 'actual'], 
+                      includeAtomNumbers=True)
             plt.show()
-        assert is_correct, (
-                f"Expected: {Chem.MolToSmiles(_mmol)} " + 
-                f"Actual: {Chem.CanonSmiles(result)}")
+        assert is_correct, (f"Expected: {Chem.MolToSmiles(_mmol)} " + 
+                            f"Actual: {Chem.CanonSmiles(result)}")
 
-    _test_merge_two_mols('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 
-                         'CC1(C)OB(-C(C)C)OC1(C)C')
-    _test_merge_expand('O=COCc1ccccc1', [1], 'O=C(O)OCc1ccccc1')
-    _test_merge_expand('O=Cc1ccccc1C=O', [1, 8], 'O=C(O)c1ccccc1C(O)=O')
+    _test_merge_mols('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 'CC1(C)OB(-C(C)C)OC1(C)C')
+
+    #_test_merge_expand('O=COCc1ccccc1', 1, ['O'], 'O=C(O)OCc1ccccc1')
+
+    #_test_merge_expand('O=Cc1ccccc1C=O', 1, ['O'], 'O=C(O)c1ccccc1C=O')
+    #_test_merge_expand('O=C(O)c1ccccc1C=O', [1, 8], [['O'], ['O']], 'O=C(O)c1ccccc1C(O)=O')
+
+    #_test_merge_expand('C[Si](C)C(C)(C)C', 1, ['O'], 'C[Si](O)(C)C(C)(C)C')
+
