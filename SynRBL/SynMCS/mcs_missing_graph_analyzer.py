@@ -88,10 +88,10 @@ class MCSMissingGraphAnalyzer:
         mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
         return mcs_mol
 
-    @staticmethod
     def IterativeMCSReactionPairs(reactant_mol_list, product_mol, params=None):
         """
         Find the MCS for each reactant fragment with the product, updating the product after each step.
+        Sorts the reactants based on the size of their MCS with the product.
 
         Parameters:
         - reactant_mol_list: list of rdkit.Chem.Mol
@@ -102,18 +102,21 @@ class MCSMissingGraphAnalyzer:
         Returns:
         - list of rdkit.Chem.Mol
             List of RDKit molecule objects representing the MCS for each reactant-product pair.
+        - list of rdkit.Chem.Mol
+            Sorted list of reactant molecule objects.
         """
+        # Calculate the MCS for each reactant with the product
+        mcs_results = [(reactant, rdFMCS.FindMCS([reactant, product_mol], params)) for reactant in reactant_mol_list]
+
+        # Filter out any canceled MCS results and sort by size of MCS
+        mcs_results = [(reactant, mcs_result) for reactant, mcs_result in mcs_results if not mcs_result.canceled]
+        sorted_reactants = sorted(mcs_results, key=lambda x: x[1].numAtoms, reverse=True)
+
         mcs_list = []
         current_product = product_mol
 
-        # Sort reactant molecules based on the number of atoms (descending order)
-        sorted_reactants = sorted(reactant_mol_list, key=lambda x: x.GetNumAtoms(), reverse=True)
-
-        for reactant in sorted_reactants:
-            mcs_result = rdFMCS.FindMCS([reactant, current_product], params)
-            if mcs_result.canceled:
-                continue
-
+        # Process the sorted reactants
+        for reactant, mcs_result in sorted_reactants:
             mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
             mcs_list.append(mcs_mol)
 
@@ -125,7 +128,10 @@ class MCSMissingGraphAnalyzer:
             except:
                 pass
 
-        return mcs_list, sorted_reactants
+        # Extract only the reactant molecules from sorted_reactants for return
+        sorted_reactant_mols = [reactant for reactant, _ in sorted_reactants]
+
+        return mcs_list, sorted_reactant_mols
 
     
     @staticmethod
