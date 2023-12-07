@@ -10,7 +10,9 @@ from SynRBL.SynMCS.mcs_missing_graph_analyzer import MCSMissingGraphAnalyzer
 from SynRBL.SynMCS.find_missing_graphs import find_missing_parts_pairs
 from SynRBL.rsmi_utils import load_database, save_database
 from rdkit import Chem
+from timeout_decorator import timeout
 
+@timeout(8)  # Apply the timeout decorator to the single_mcs function
 def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True,
                sort='MCS', remove_substructure=True):
     """
@@ -53,6 +55,7 @@ def run_and_save_conditions(data, root_dir, batch_size = 100):
         # Process data in batches
         for start in range(0, len(data), batch_size):
             end = start + batch_size
+            print(data[start:end])
             batch_results = Parallel(n_jobs=-2)(delayed(single_mcs)(data_dict, **condition) for data_dict in data[start:end])
             all_results.extend(batch_results)  # Combine batch results
 
@@ -70,7 +73,7 @@ def main():
     filtered_data = load_database(data_path)
 
     # Run and save conditions
-    run_and_save_conditions(filtered_data, root_dir, batch_size=1000)
+    run_and_save_conditions(filtered_data, root_dir, batch_size=100)
 
 # Execute main function
 if __name__ == "__main__":
