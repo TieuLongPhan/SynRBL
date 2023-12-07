@@ -1,0 +1,1 @@
+[{"mcs_results": ["O=N(O)C1:C:C:C2:C(:C:N:N:2C(C2:C:C:C:C:C:2)(C2:C:C:C:C:C:2)C2:C:C:C:C:C:2):C:1", "CC(C)C(C)C"], "sorted_reactants": ["O=[N+]([O-])c1ccc2c(c1)c(Br)nn2C(c1ccccc1)(c1ccccc1)c1ccccc1", "CC1(C)OB(c2cn[nH]c2)OC1(C)C"], "issue": []}]

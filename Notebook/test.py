@@ -40,17 +40,24 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True,
 
     return mcs_results_dict
 
-def run_and_save_conditions(data, root_dir):
+def run_and_save_conditions(data, root_dir, batch_size = 100):
     conditions = [
         {'RingMatchesRingOnly': True, 'CompleteRingsOnly': True, 'remove_substructure': True},
         {'RingMatchesRingOnly': True, 'CompleteRingsOnly': True, 'remove_substructure': False},
         {'RingMatchesRingOnly': False, 'CompleteRingsOnly': False, 'remove_substructure': True},
         {'RingMatchesRingOnly': False, 'CompleteRingsOnly': False, 'remove_substructure': False},
     ]
-
     for idx, condition in enumerate(conditions, start=1):
-        mcs_results = Parallel(n_jobs=-2)(delayed(single_mcs)(data_dict, **condition) for data_dict in data[20:21])
-        save_database(mcs_results, pathname=root_dir / f'Data/Condition_{idx}.json.gz')
+        all_results = []  # Accumulate results for each condition
+
+        # Process data in batches
+        for start in range(0, len(data), batch_size):
+            end = start + batch_size
+            batch_results = Parallel(n_jobs=-2)(delayed(single_mcs)(data_dict, **condition) for data_dict in data[start:end])
+            all_results.extend(batch_results)  # Combine batch results
+
+        # Save all results for the current condition into a single file
+        save_database(all_results, pathname=root_dir / f'Data/Condition_{idx}.json.gz')
 
 # Define the main function
 def main():
@@ -63,7 +70,7 @@ def main():
     filtered_data = load_database(data_path)
 
     # Run and save conditions
-    run_and_save_conditions(filtered_data, root_dir)
+    run_and_save_conditions(filtered_data, root_dir, batch_size=1000)
 
 # Execute main function
 if __name__ == "__main__":
