@@ -143,7 +143,7 @@ class MCSMissingGraphAnalyzer:
         return mcs_list, [reactant for reactant, _ in sorted_reactants]
 
     @staticmethod
-    def fit(reaction_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, 
+    def fit(reaction_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Timeout = 60,
             sort='MCS', remove_substructure=False, AtomCompare=False, BondTyper = False):
         """
         Process a reaction dictionary to find MCS, missing parts in reactants and products.
@@ -162,6 +162,7 @@ class MCSMissingGraphAnalyzer:
         params = rdFMCS.MCSParameters()
         #params.AtomTyper = rdFMCS.AtomCompare.CompareElements
         #params.BondTyper = rdFMCS.BondCompare.CompareOrder
+        params.Timeout = Timeout
         params.BondCompareParameters.RingMatchesRingOnly = RingMatchesRingOnly
         params.BondCompareParameters.CompleteRingsOnly = CompleteRingsOnly
 
