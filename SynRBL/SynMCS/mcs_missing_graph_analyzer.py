@@ -70,7 +70,7 @@ class MCSMissingGraphAnalyzer:
         return Chem.MolToSmarts(mol) if mol else None
 
     @staticmethod
-    def find_maximum_common_substructure(mol1, mol2, ringMatchesRingOnly=True):
+    def find_maximum_common_substructure(mol1, mol2, params=None):
         """
         Find the maximum common substructure (MCS) between two molecules.
 
@@ -82,22 +82,27 @@ class MCSMissingGraphAnalyzer:
         - rdkit.Chem.Mol or None
             The RDKit molecule object representing the MCS, or None if MCS search was canceled.
         """
-        mcs_result = rdFMCS.FindMCS([mol1, mol2], ringMatchesRingOnly=ringMatchesRingOnly)
+        mcs_result = rdFMCS.FindMCS([mol1, mol2], params=params)
         if mcs_result.canceled:
             return None
         mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
         return mcs_mol
-
-    def IterativeMCSReactionPairs(reactant_mol_list, product_mol, params=None):
+    
+    @staticmethod
+    def IterativeMCSReactionPairs(reactant_mol_list, product_mol, params=None, sort='MCS', remove_substructure=False):
         """
         Find the MCS for each reactant fragment with the product, updating the product after each step.
-        Sorts the reactants based on the size of their MCS with the product.
+        Reactants are processed based on the size of their MCS with the product at each iteration.
 
         Parameters:
         - reactant_mol_list: list of rdkit.Chem.Mol
             List of RDKit molecule objects for reactants.
         - product_mol: rdkit.Chem.Mol
             RDKit molecule object for the product.
+        - sort (str): 
+            Method of sorting reactants, either 'MCS' or 'Fragments'.
+        - remove_substructure (bool): 
+            If True, update the product by removing the MCS substructure.
 
         Returns:
         - list of rdkit.Chem.Mol
@@ -105,67 +110,41 @@ class MCSMissingGraphAnalyzer:
         - list of rdkit.Chem.Mol
             Sorted list of reactant molecule objects.
         """
-        # Calculate the MCS for each reactant with the product
-        mcs_results = [(reactant, rdFMCS.FindMCS([reactant, product_mol], params)) for reactant in reactant_mol_list]
 
-        # Filter out any canceled MCS results and sort by size of MCS
-        mcs_results = [(reactant, mcs_result) for reactant, mcs_result in mcs_results if not mcs_result.canceled]
-        sorted_reactants = sorted(mcs_results, key=lambda x: x[1].numAtoms, reverse=True)
+        # Sort reactants based on the specified method
+        if sort == 'MCS':
+            mcs_results = [(reactant, rdFMCS.FindMCS([reactant, product_mol], params)) for reactant in reactant_mol_list]
+            mcs_results = [(reactant, mcs_result) for reactant, mcs_result in mcs_results if not mcs_result.canceled]
+            sorted_reactants = sorted(mcs_results, key=lambda x: x[1].numAtoms, reverse=True)
+        elif sort == 'Fragments':
+            sorted_reactants = sorted(reactant_mol_list, key=lambda x: x.GetNumAtoms(), reverse=True)
+        else:
+            raise ValueError("Invalid sort method. Choose 'MCS' or 'Fragments'.")
 
         mcs_list = []
         current_product = product_mol
 
-        # Process the sorted reactants
-        for reactant, mcs_result in sorted_reactants:
-            mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
-            mcs_list.append(mcs_mol)
+        for reactant, _ in sorted_reactants:
+            # Calculate the MCS with the current product
+            mcs_result = rdFMCS.FindMCS([reactant, current_product], params)
 
-            # Update the product by removing the MCS substructure
-            current_product = Chem.DeleteSubstructs(Chem.RWMol(current_product), mcs_mol)
-            current_product = Chem.RemoveHs(current_product)
-            try:
-                Chem.SanitizeMol(current_product)
-            except:
-                pass
+            if not mcs_result.canceled:
+                mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
+                mcs_list.append(mcs_mol)
 
-        # Extract only the reactant molecules from sorted_reactants for return
-        sorted_reactant_mols = [reactant for reactant, _ in sorted_reactants]
+                # Conditional substructure removal
+                if remove_substructure:
+                    current_product = Chem.DeleteSubstructs(Chem.RWMol(current_product), mcs_mol)
+                    try:
+                        Chem.SanitizeMol(current_product)
+                    except:
+                        pass
 
-        return mcs_list, sorted_reactant_mols
-
-    
-    @staticmethod
-    def add_hydrogens_to_radicals(mol):
-        """
-        Add hydrogen atoms to radical sites in a molecule.
-
-        Parameters:
-        - mol: rdkit.Chem.Mol
-            RDKit molecule object.
-
-        Returns:
-        - rdkit.Chem.Mol
-            The modified molecule with added hydrogens.
-        """
-        if mol:
-            # Create a copy of the molecule
-            mol_with_h = Chem.RWMol(mol)
-
-            # Add explicit hydrogens (not necessary if they are already present in the input molecule)
-            mol_with_h = rdmolops.AddHs(mol_with_h)
-
-            # Find and process radical atoms
-            for atom in mol_with_h.GetAtoms():
-                num_radical_electrons = atom.GetNumRadicalElectrons()
-                if num_radical_electrons > 0:
-                    atom.SetNumExplicitHs(atom.GetNumExplicitHs() + num_radical_electrons)
-                    atom.SetNumRadicalElectrons(0)
-            curate_mol = Chem.RemoveHs(mol_with_h)
-            # Return the molecule with added hydrogens
-            return curate_mol
+        return mcs_list, [reactant for reactant, _ in sorted_reactants]
 
     @staticmethod
-    def fit(reaction_dict, params=None):
+    def fit(reaction_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, 
+            sort='MCS', remove_substructure=False, AtomCompare=False, BondTyper = False):
         """
         Process a reaction dictionary to find MCS, missing parts in reactants and products.
 
@@ -178,10 +157,21 @@ class MCSMissingGraphAnalyzer:
             A tuple containing lists of MCS, missing parts in reactants, missing parts in products,
             reactant molecules, and product molecules.
         """
+        
+        # define parameters
+        params = rdFMCS.MCSParameters()
+        #params.AtomTyper = rdFMCS.AtomCompare.CompareElements
+        #params.BondTyper = rdFMCS.BondCompare.CompareOrder
+        params.BondCompareParameters.RingMatchesRingOnly = RingMatchesRingOnly
+        params.BondCompareParameters.CompleteRingsOnly = CompleteRingsOnly
+
+
+        # Calculate the MCS for each reactant with the product 
         reactant_smiles, product_smiles = MCSMissingGraphAnalyzer.get_smiles(reaction_dict)
         reactant_mol_list = [MCSMissingGraphAnalyzer.convert_smiles_to_molecule(smiles) for smiles in reactant_smiles.split('.')]
         product_mol = MCSMissingGraphAnalyzer.convert_smiles_to_molecule(product_smiles)
 
-        mcs_list, sorted_reactants = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(reactant_mol_list, product_mol,  params)
+        mcs_list, sorted_reactants = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(reactant_mol_list, product_mol,  params,
+                                                                                       sort = sort, remove_substructure=remove_substructure)
 
         return mcs_list , sorted_reactants, product_mol

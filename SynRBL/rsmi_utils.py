@@ -367,3 +367,33 @@ def extract_results_by_key(data, key='new_reaction'):
             without_key.append(item)
 
     return with_key, without_key
+
+
+def add_hydrogens_to_radicals(mol):
+    """
+    Add hydrogen atoms to radical sites in a molecule.
+
+    Parameters:
+    - mol: rdkit.Chem.Mol
+        RDKit molecule object.
+
+    Returns:
+    - rdkit.Chem.Mol
+        The modified molecule with added hydrogens.
+    """
+    if mol:
+        # Create a copy of the molecule
+        mol_with_h = Chem.RWMol(mol)
+
+        # Add explicit hydrogens (not necessary if they are already present in the input molecule)
+        mol_with_h = rdmolops.AddHs(mol_with_h)
+
+        # Find and process radical atoms
+        for atom in mol_with_h.GetAtoms():
+            num_radical_electrons = atom.GetNumRadicalElectrons()
+            if num_radical_electrons > 0:
+                atom.SetNumExplicitHs(atom.GetNumExplicitHs() + num_radical_electrons)
+                atom.SetNumRadicalElectrons(0)
+        curate_mol = Chem.RemoveHs(mol_with_h)
+        # Return the molecule with added hydrogens
+        return curate_mol
