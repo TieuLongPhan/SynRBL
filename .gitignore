@@ -2,4 +2,4 @@
 *.pyc
 .vscode/launch.json
 .DS_Store
-
+.jukit/
