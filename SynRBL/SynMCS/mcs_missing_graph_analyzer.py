@@ -103,6 +103,7 @@ class MCSMissingGraphAnalyzer:
             Method of sorting reactants, either 'MCS' or 'Fragments'.
         - remove_substructure (bool): 
             If True, update the product by removing the MCS substructure.
+         - params (rdkit.Chem.rdFMCS.MCSParameters): Parameters for RDKit's rdFMCS.
 
         Returns:
         - list of rdkit.Chem.Mol
