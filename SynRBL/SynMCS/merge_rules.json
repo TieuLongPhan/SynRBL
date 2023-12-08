@@ -16,6 +16,11 @@
 		"bond": "single"
 	},
 	{
+		"name": "halogen bond restriction",
+		"condition1": {"atom": ["N", "O"]},
+		"condition2": {"atom": ["F", "Cl", "Br", "I", "At"]}
+	},
+	{
 		"name": "radical halogen exchange",
 		"condition1": {"atom": ["Sn", "Zn", "Cu", "Fl", "Mg"], "rad_e": 1, "charge": 0}, 
 		"condition2": {"atom": ["F", "Cl", "Br", "I", "At", "O", "N"], "nr_Hs": [1, 2, 3, 4], "rad_e": 0, "charge": 0},

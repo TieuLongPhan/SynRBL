@@ -301,32 +301,61 @@ import matplotlib.pyplot as plt
 
 def _normalize(impute_product_frags, boundary_atoms_products, nearest_neighbor_products):
     frags = []
-    for f in impute_product_frags:
-        x = rdmolops.GetMolFrags(f, asMols=True)
-        frags.extend(x)
-    l = len(frags)
-    if l != len(boundary_atoms_products):
-        raise ValueError('boundary_atoms_products must be of same length as fragments.')
-    if l != len(nearest_neighbor_products):
-        raise ValueError('nearest_neighbor_products must be of same length as fragments.')
-    mols = []
-    boundaries = []
-    nneighbors = []
-    for m, b, n in zip(frags, boundary_atoms_products, nearest_neighbor_products):
-        mols.append(m)
-        if len(b) != len(n):
-            raise ValueError('Boundaries and neighbors are not of same length. ' + 
-                             '(boundaries={}, neighbors={})'.format(b, n))
-        boundary = []
-        nneighbor = []
-        for bi, ni in zip(b, n):
+    boundary_atoms = []
+    neighbors = []
+    print(impute_product_frags, boundary_atoms_products)
+    assert len(impute_product_frags) == len(boundary_atoms_products)
+    assert len(impute_product_frags) == len(nearest_neighbor_products)
+    for mol, bounds, nns in zip(impute_product_frags, boundary_atoms_products, nearest_neighbor_products):
+        mol_frags = rdmolops.GetMolFrags(mol, asMols=True)
+        if len(mol_frags) != len(bounds) or len(mol_frags) != len(nns):
+            raise ValueError('Substructure mismatch.')
+        frags.extend(mol_frags)
+        _bounds= []
+        _nns = []
+        for bi, ni in zip(bounds, nns):
             assert len(bi.keys()) == 1
-            boundary.append(list(bi.values())[0]) 
-            nneighbor.append([k for k in ni.keys()])
-        boundaries.append(boundary)
-        nneighbors.append(nneighbor)
-    return mols, boundaries, nneighbors
+            _bounds.append(list(bi.values())[0]) 
+            _nns.append([k for k in ni.keys()])
+        boundary_atoms.append(_bounds)
+        neighbors.append(_nns)
+    return frags, boundary_atoms, neighbors
 
+def impute_single(frags, bounds, neighbors, verbose=False):
+    frags_len = len(frags)
+    frags, bounds, neighbors = _normalize(frags, bounds, neighbors)
+    results = []
+    if len(frags) != frags_len:
+        for f, b, n in zip(frags, bounds, neighbors):
+            results.append(impute_single([f], b, n))
+    else:
+        m1 = frags[0]
+        if verbose:
+            plot_mols([m1], includeAtomNumbers=False, figsize=(4,1))
+            plt.show()
+            print('Mol1={}'.format(Chem.MolToSmiles(m1)))
+        b1 = bounds[0]
+        n1 = neighbors[0]
+        m2 = merge_expand(m1, b1, n1)
+        if verbose:
+            plot_mols([m1, Chem.RemoveHs(m2['mol'])], includeAtomNumbers=False, figsize=(1,1))
+        results.append(m2['mol'])
+    return results
+
+def impute_double(frags, bounds, neighbors, verbose=False):
+    frags, bounds, neighbors = _normalize(frags, bounds, neighbors)
+    m1, m2 = frags[0], frags[1]
+    if verbose:
+        print('Mol1={} Mol2={}'.format(Chem.MolToSmiles(m1), Chem.MolToSmiles(m2)))
+    b1, b2 = bounds[0], bounds[1]
+    n1, n2 = neighbors[0], neighbors[1]
+    i1 = b1[0]
+    i2 = b2[0]
+    merge_result = merge_mols(m1, m2, i1, i2)
+    m3 = Chem.RemoveHs(merge_result['mol'])
+    if verbose:
+        plot_mols([m1, m2, m3], includeAtomNumbers=False, figsize=(1,1))
+        plt.show()
 
 idx = 1
 def impute(data, idx, verbose=False):
@@ -334,43 +363,17 @@ def impute(data, idx, verbose=False):
     reaction = data[idx]
     mcs_list, sorted_reactants, product_mol = analyzer.fit(reaction)
 
-    fimpute_product_frags, boundary_atoms_products, nearest_neighbor_products = find_missing_parts_pairs(
-            sorted_reactants, mcs_list)
-    if verbose:
-        print(boundary_atoms_products)
-        plot_mols([m for m in fimpute_product_frags])
-        plt.plot()
-    mols, boundaries, nneighbors = _normalize(fimpute_product_frags, boundary_atoms_products, nearest_neighbor_products)
+    frags, bounds, neighbors = find_missing_parts_pairs(sorted_reactants, mcs_list)
     if verbose:
         print('----------')
-        print("Idx={}({}) boundary={} neighbors={}".format(idx, len(mols), boundary_atoms_products, 
-                                                           nearest_neighbor_products))
+        print("Idx={}({}) boundary={} neighbors={}".format(idx, len(frags), bounds, neighbors))
+        for i, f in enumerate(frags):
+            print("  Mol {}: {}".format(i, Chem.MolToSmiles(f)))
         display_reaction(reaction)
-    if len(mols) == 1:
-        m1 = mols[0]
-        if verbose:
-            plot_mols([m1], figsize=(4,1))
-            plt.show()
-            print('Mol1={}'.format(Chem.MolToSmiles(m1)))
-        b1 = boundaries[0]
-        n1 = nneighbors[0]
-        m2 = merge_expand(m1, b1, n1)
-        if verbose:
-            plot_mols([m1, Chem.RemoveHs(m2['mol'])], includeAtomNumbers=False, figsize=(1,1))
-            plt.show()
-    elif len(mols) == 2:
-        m1, m2 = mols[0], mols[1]
-        if verbose:
-            print('Mol1={} Mol2={}'.format(Chem.MolToSmiles(m1), Chem.MolToSmiles(m2)))
-        b1, b2 = boundaries[0], boundaries[1]
-        n1, n2 = nneighbors[0], nneighbors[1]
-        i1 = b1[0]
-        i2 = b2[0]
-        merge_result = merge_mols(m1, m2, i1, i2)
-        m3 = Chem.RemoveHs(merge_result['mol'])
-        if verbose:
-            plot_mols([m1, m2, m3], includeAtomNumbers=False, figsize=(1,1))
-            plt.show()
+    if len(frags) == 1:
+        impute_single(frags, bounds, neighbors)
+    elif len(frags) == 2:
+        impute_double(frags, bounds, neighbors)
 
 s = 100
 n = 0
@@ -381,30 +384,28 @@ for i in range(n, n + s):
         impute(filtered_data, i)
         correct += 1
     except Exception as e:
-        ignore = False
-        if type(e).__name__ == 'NoCompoundError':
-            if e.boundary_atom == 'O':
-                ignore = True
-        #import traceback
-        #traceback.print_exc()
-        if not ignore:
-            print('[{}]'.format(i), e)
-            incorrect.append(i)
+        import traceback
+        traceback.print_exc()
+        print('[{}]'.format(i), e)
+        incorrect.append(i)
 print('Correct merges:', correct)
 print('Extracted incorrect:', len(incorrect))
 
 #|%%--%%| <gXEx0Epyj6|ErWqmJQDiS>
 
-indices = [90, 98] #incorrect
+indices = [1, 11, 18] #incorrect
 for i in indices:
     try:
         impute(filtered_data, i, verbose=True) 
     except Exception as e:
-        print(e)
+        #import traceback
+        #traceback.print_exc()
+        print('[{}]'.format(i), e)
 
 #|%%--%%| <ErWqmJQDiS|ibTLyHEW1q>
 from rdkit.Chem import rdmolops
 mol = Chem.MolFromSmiles('CC.O')
 plot_mols(list(rdmolops.GetMolFrags(mol, asMols = True)))
 plt.show()
+
 

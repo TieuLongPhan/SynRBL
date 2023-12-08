@@ -1,8 +1,8 @@
 import json
-import os
 from importlib.resources import files
 from rdkit import Chem
 import SynRBL.SynMCS
+from rdkit.Chem import rdmolops
 
 class NoCompoundError(Exception):
     def __init__(self, boundary_atom, nearest_neighbor):
@@ -46,7 +46,7 @@ class AtomCondition:
                         self.__atoms = []
                     self.__atoms.append(a)
 
-    def check(self, atom, neighbors=None):
+    def check(self, atom, neighbor=None):
         if self.__atoms is not None:
             found = False
             for a in self.__atoms:
@@ -66,13 +66,13 @@ class AtomCondition:
             if atom.GetFormalCharge() not in self.__charge:
                 return False
         if self.__neighbors is not None:
-            if neighbors is None:
+            if neighbor is None:
                 return False
             valid_neighbor_set = False
             for neighbor_set in self.__neighbors:
                 found_all = True
                 for n_atom in neighbor_set:
-                    if neighbors is None or n_atom not in neighbors:
+                    if neighbor is None or n_atom != neighbor:
                         found_all = False
                         break
                 if found_all:
@@ -142,7 +142,7 @@ class MergeRule:
     def __apply(self, mol, atom1, atom2):
         if not self.__can_apply(atom1, atom2):
             raise ValueError('Can not apply merge rule.')
-        print("Apply merge rule '{}'.".format(self.name))
+        #print("Apply merge rule '{}'.".format(self.name))
         self.action1(mol, atom1)
         self.action2(mol, atom2)
         bond_type = MergeRule.get_bond_type(self.bond)
@@ -189,17 +189,17 @@ class CompoundRule:
         self.cond = AtomCondition(**kwargs.get('condition', {}))
         self.compound = kwargs.get('compound', None)
     
-    def can_apply(self, atom, neighbors):
-        return self.cond.check(atom, neighbors=neighbors)
+    def can_apply(self, atom, neighbor):
+        return self.cond.check(atom, neighbor=neighbor)
 
-    def apply(self, atom, neighbors):
-        if not self.can_apply(atom, neighbors):
+    def apply(self, atom, neighbor):
+        if not self.can_apply(atom, neighbor):
             raise ValueError('Can not apply compound rule.')
         result = None
         if self.compound is not None and all(k in self.compound.keys() for k in ('smiles', 'index')):
             result = {'mol': Chem.MolFromSmiles(self.compound['smiles']), 
                     'index': self.compound['index']}
-        print("Apply compound rule '{}'.".format(self.name))
+        #print("Apply compound rule '{}'.".format(self.name))
         return result
 
 def plot_mols(mols, includeAtomNumbers=False, titles=None, figsize=None):
@@ -239,11 +239,11 @@ def get_compound_rules() -> list[CompoundRule]:
         _compound_rules = [CompoundRule(**c) for c in json.loads(json_data)]
     return _compound_rules
 
-def get_compound(atom, neighbors):
+def get_compound(atom, neighbor):
     for rule in get_compound_rules():
-        if rule.can_apply(atom, neighbors):
-            return rule.apply(atom, neighbors)
-    raise NoCompoundError(atom.GetSymbol(), neighbors)
+        if rule.can_apply(atom, neighbor):
+            return rule.apply(atom, neighbor)
+    raise NoCompoundError(atom.GetSymbol(), neighbor)
 
 def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
     mol1_tracker = AtomTracker(mol1_track)
@@ -296,6 +296,48 @@ def merge_expand(mol, bound_indices, neighbors=None):
             mol = {'mol': mol1}
     return mol
 
+def _normalize_indices(bounds):
+    indices = []
+    for bound in bounds:
+        for atom in bound:
+            indices.extend(atom.values())
+    return indices
+
+def _normalize_neighbors(neighbors):
+    symbols = []
+    for neighbor in neighbors:
+        for atom in neighbor:
+            symbols.extend(atom.keys())
+    return symbols
+
+def _split(mol):
+    return [f for f in rdmolops.GetMolFrags(mol, asMols=True)]
+
+def _check_structure(mols, indices, neighbors):
+    if len(mols) != len(indices) or len(mols) != len(neighbors):
+        raise ValueError('Substructure mismatch.')
+
+def merge(mols, bounds, neighbors):
+    indices = _normalize_indices(bounds)
+    neighbors = _normalize_neighbors(neighbors)
+    merged_mols = []
+    if len(mols) == 1:
+        mols = _split(mols[0])
+        _check_structure(mols, indices, neighbors)
+        for m, i, n in zip(mols, indices, neighbors):
+            print(m, i, n)
+            merged_mol = merge_expand(m, [i], [n])
+            merged_mols.append(merged_mol['mol'])
+    elif len(mols) == 2:
+        _check_structure(mols, indices, neighbors)
+        mol1, mol2 = mols[0], mols[1]
+        idx1, idx2 = indices[0], indices[1] 
+        merged_mol = merge_mols(mol1, mol2, idx1, idx2)
+        merged_mols.append(merged_mol['mol'])
+    else:
+        raise NotImplementedError('Merging of {} fragments is not supported.'.format(len(frags)))
+    return merged_mols
+
 if __name__ == "__main__":
     # Used for testing
     import matplotlib.pyplot as plt
@@ -339,13 +381,35 @@ if __name__ == "__main__":
         assert is_correct, (f"Expected: {Chem.MolToSmiles(_mmol)} " + 
                             f"Actual: {Chem.CanonSmiles(result)}")
 
-    if True:
+    def _test_merge(frags, bounds, neighbors, result):
+        print(frags, bounds, neighbors) 
+        mols = [Chem.MolFromSmiles(f) for f in frags]
+        _mmol = merge(mols, bounds, neighbors)
+        is_correct = Chem.MolToSmiles(_mmol) == Chem.CanonSmiles(result)
+        if plot:
+            plot_mols([_mol, _mmol], titles=['input', 'expaneded'], 
+                      includeAtomNumbers=False)
+            plt.show()
+        if not is_correct:
+            _rmol = Chem.MolFromSmiles(result)
+            plot_mols([_rmol, _mmol], titles=['expected', 'actual'], 
+                      includeAtomNumbers=True)
+            plt.show()
+        assert is_correct, (f"Expected: {Chem.MolToSmiles(_mmol)} " + 
+                            f"Actual: {Chem.CanonSmiles(result)}")
+
+    if False:
         _test_merge_mols('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 'CC1(C)OB(-C(C)C)OC1(C)C')
         _test_merge_mols('O', 'C[Si](C)C(C)(C)C', 0, 1, 'C[Si](O)(C)C(C)(C)C')
         _test_merge_mols('O', 'CC(C)[P+](c1ccccc1)c1ccccc1', 0, 3, 'CC(C)P(=O)(c1ccccc1)c1ccccc1')  
-        _test_merge_expand('O=COCc1ccccc1', [1], [['O']], 'O=C(O)OCc1ccccc1')
-        _test_merge_expand('O=Cc1ccccc1C=O', [1, 8], [['O'], ['O']], 'O=C(O)c1ccccc1C(O)=O')
-        _test_merge_expand('C[Si](C)C(C)(C)C', [1], [['O']], 'C[Si](O)(C)C(C)(C)C')
         _test_merge_mols('Cl', 'CCCC[Sn](CCCC)CCCC', 0, 4, 'CCCC[Sn+](CCCC)CCCC.[Cl-]')
+        _test_merge_expand('O=COCc1ccccc1', [1], ['O'], 'O=C(O)OCc1ccccc1')
+        _test_merge_expand('O=Cc1ccccc1C=O', [1, 8], ['O', 'O'], 'O=C(O)c1ccccc1C(O)=O')
+        _test_merge_expand('C[Si](C)C(C)(C)C', [1], ['O'], 'C[Si](O)(C)C(C)(C)C')
+        _test_merge_expand('CC(C)(C)OC(=O)O', [7], ['C'], 'CC(C)(C)OC(=O)O')
+
+    _test_merge(['CC1(C)OBOC1(C)C', 'Br'], [[{'B': 4}], [{'Br': 0}]], [[{'C': 5}], [{'C': 13}]])
+    #_test_merge(['NBr.O'], [[{'N': 1}, {'O': 0}, {'N': 1}]], [[{'C': 1}, {'C': 4}, {'C': 4}]])
+    #_test_merge(['C.O'], [[{'O': 1}, {'C': 0}]], [[{'C': 2}, {'O': 1}]])
     #plot_mols(Chem.MolFromSmiles('CCCC[Sn+](CCCC)CCCC.[Cl-]'), includeAtomNumbers=False)
     #plt.show()

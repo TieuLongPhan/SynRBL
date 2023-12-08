@@ -13,5 +13,9 @@
 		"name": "append O to C-C bond",
 		"condition": {"atom": ["C"], "neighbors": [["C"]]},
 		"compound": {"smiles": "O", "index": 0}
+	},
+	{
+		"name": "boundary O is fine",
+		"condition": {"atom": ["O"]}
 	}
 ]
