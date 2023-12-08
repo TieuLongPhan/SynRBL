@@ -1,5 +1,8 @@
-import numpy as np
+import json
+import os
+from importlib.resources import files
 from rdkit import Chem
+import SynRBL.SynMCS
 
 class NoCompoundError(Exception):
     def __init__(self, boundary_atom, nearest_neighbor):
@@ -10,6 +13,194 @@ class NoCompoundError(Exception):
                          "(Boundary Atom: {}, Nearest Neighbor: {})".format(
                              self.boundary_atom, self.nearest_neighbor))
 
+class MergeError(Exception):
+    def __init__(self, boundary_atom1, boundary_atom2, mol1, mol2):
+        super().__init__(("Not able to find merge rule for atoms '{}' and '{}'" + 
+                           " of compounds '{}' and '{}'.")
+                           .format(boundary_atom1.GetSymbol(), 
+                                   boundary_atom2.GetSymbol(), 
+                                   Chem.MolToSmiles(Chem.RemoveHs(mol1)), 
+                                   Chem.MolToSmiles(Chem.RemoveHs(mol2))))
+
+class AtomCondition:
+    def __init__(self, atom=None, rad_e=None, charge=None, neighbors=None, **kwargs):
+        atom = kwargs.get('atom', atom)
+        rad_e = kwargs.get('rad_e', rad_e)
+        charge = kwargs.get('charge', charge)
+        neighbors = kwargs.get('neighbors', neighbors)
+        atom = atom if atom is None or isinstance(atom, list) else [atom]
+        self.__rad_e = rad_e if rad_e is None or isinstance(rad_e, list) else [rad_e]
+        self.__charge = charge if charge is None or isinstance(charge, list) else [charge]
+        self.__neighbors = neighbors
+
+        self.__atoms = None
+        self.__neg_atoms = None
+        if atom is not None:
+            for a in atom:
+                if '!' in a:
+                    if self.__neg_atoms is None:
+                        self.__neg_atoms = []
+                    self.__neg_atoms.append(a.replace('!', ''))
+                else:
+                    if self.__atoms is None:
+                        self.__atoms = []
+                    self.__atoms.append(a)
+
+    def check(self, atom, neighbors=None):
+        if self.__atoms is not None:
+            found = False
+            for a in self.__atoms:
+                if a == atom.GetSymbol():
+                    found = True
+                    break
+            if not found:
+                return False
+        if self.__neg_atoms is not None:
+            for a in self.__neg_atoms:
+                if a == atom.GetSymbol():
+                    return False
+        if self.__rad_e is not None:
+            if atom.GetNumRadicalElectrons() not in self.__rad_e:
+                return False
+        if self.__charge is not None:
+            if atom.GetFormalCharge() not in self.__charge:
+                return False
+        if self.__neighbors is not None:
+            if neighbors is None:
+                return False
+            valid_neighbor_set = False
+            for neighbor_set in self.__neighbors:
+                found_all = True
+                for n_atom in neighbor_set:
+                    if neighbors is None or n_atom not in neighbors:
+                        found_all = False
+                        break
+                if found_all:
+                    valid_neighbor_set = True
+                    break
+            if not valid_neighbor_set:
+                return False
+        return True
+
+class Action:
+    def __init__(self, action=None):
+        self.__action = action if action is None or isinstance(action, list) else [action]
+    
+    @staticmethod
+    def apply(action_name, mol, atom):
+        #print('Apply action:', action_name)
+        if action_name == 'removeH':
+            found_H = False
+            for n_atom in atom.GetNeighbors():
+                if n_atom.GetAtomicNum() == 1:
+                    mol.RemoveAtom(n_atom.GetIdx())
+                    found_H = True
+                    break
+            if not found_H:
+                raise RuntimeError("Could not remove any more neighboring H atoms from {}.".format(atom.GetSymbol()))
+        elif action_name == 'removeRadE':
+            atom.SetNumRadicalElectrons(atom.GetNumRadicalElectrons() - 1) 
+        elif action_name == 'addRadE':
+            atom.SetNumRadicalElectrons(atom.GetNumRadicalElectrons() + 1) 
+        elif action_name == 'chargeNeg':
+            atom.SetFormalCharge(atom.GetFormalCharge() - 1)
+        elif action_name == 'chargePos':
+            atom.SetFormalCharge(atom.GetFormalCharge() + 1)
+        else:
+            raise NotImplementedError(f"Action '{action_name}' is not implemented.")
+        
+    def __call__(self, mol, atom):
+        if self.__action is None:
+            return
+        for a in self.__action:
+            Action.apply(a, mol, atom)
+
+class MergeRule:
+    def __init__(self, **kwargs):
+        self.name = kwargs.get('name', 'unnamed')
+        self.cond1 = AtomCondition(**kwargs.get('condition1', {}))
+        self.cond2 = AtomCondition(**kwargs.get('condition2', {}))
+        self.action1 = Action(kwargs.get('action1', []))
+        self.action2 = Action(kwargs.get('action2', []))
+        self.bond = kwargs.get('bond', None)
+        self.sym = kwargs.get('sym', True)
+    
+    @staticmethod
+    def get_bond_type(bond):
+        if bond is None:
+            return None
+        elif bond == 'single':
+            return Chem.rdchem.BondType.SINGLE
+        elif bond == 'double':
+            return Chem.rdchem.BondType.DOUBLE
+        else:
+            raise NotImplementedError(f"Bond type '{bond}' is not implemented.")
+
+    def __can_apply(self, atom1, atom2):
+        return self.cond1.check(atom1) and self.cond2.check(atom2)
+
+    def __apply(self, mol, atom1, atom2):
+        if not self.__can_apply(atom1, atom2):
+            raise ValueError('Can not apply merge rule.')
+        print("Apply merge rule '{}'.".format(self.name))
+        self.action1(mol, atom1)
+        self.action2(mol, atom2)
+        bond_type = MergeRule.get_bond_type(self.bond)
+        if bond_type is not None:
+            mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type) 
+        return mol
+
+    def can_apply(self, atom1, atom2):
+        if self.sym:
+            return self.__can_apply(atom1, atom2) or self.__can_apply(atom2, atom1)
+        else:
+            return self.__can_apply(atom1, atom2)
+
+    def apply(self, mol, atom1, atom2):
+        if self.sym:
+            if self.__can_apply(atom1, atom2):
+                return self.__apply(mol, atom1, atom2)
+            else:
+                return self.__apply(mol, atom2, atom1)
+        else:
+            return self.__apply(mol, atom1, atom2)
+
+class AtomTracker:
+    def __init__(self, ids):
+        self.__track_dict = {}
+        if ids is not None:
+            for id in ids:
+                self.__track_dict[str(id)] = {}
+
+    def add_atoms(self, mol, offset=0):
+        atoms = mol.GetAtoms()
+        for k in self.__track_dict.keys():
+            self.__track_dict[k]['atom'] = atoms[int(k) + offset]
+
+    def to_dict(self):
+        sealed_dict = {}
+        for k in self.__track_dict.keys():
+            sealed_dict[k] = self.__track_dict[k]['atom'].GetIdx()
+        return sealed_dict
+
+class CompoundRule:
+    def __init__(self, **kwargs):
+        self.name = kwargs.get('name', 'unnamed')
+        self.cond = AtomCondition(**kwargs.get('condition', {}))
+        self.compound = kwargs.get('compound', None)
+    
+    def can_apply(self, atom, neighbors):
+        return self.cond.check(atom, neighbors=neighbors)
+
+    def apply(self, atom, neighbors):
+        if not self.can_apply(atom, neighbors):
+            raise ValueError('Can not apply compound rule.')
+        result = None
+        if self.compound is not None and all(k in self.compound.keys() for k in ('smiles', 'index')):
+            result = {'mol': Chem.MolFromSmiles(self.compound['smiles']), 
+                    'index': self.compound['index']}
+        print("Apply compound rule '{}'.".format(self.name))
+        return result
 
 def plot_mols(mols, includeAtomNumbers=False, titles=None, figsize=None):
     import matplotlib.pyplot as plt
@@ -31,192 +222,55 @@ def plot_mols(mols, includeAtomNumbers=False, titles=None, figsize=None):
         a.axis('off')
         a.imshow(mol_img)
 
-def _remove_Hs(mol, atom, n):
-    cnt = 0
-    for n_atom in atom.GetNeighbors():
-        if n_atom.GetAtomicNum() == 1:
-            mol.RemoveAtom(n_atom.GetIdx())
-            cnt += 1
-            if cnt == n:
-                break
-    if cnt != n:
-        raise RuntimeError("Could not remove {} neighboring H atoms from {}.".format(n, atom.GetSymbol()))
+_merge_rules = None
+_compound_rules = None
 
-def _count_Hs(atom):
-    return len([n for n in atom.GetNeighbors() if n.GetSymbol() == 'H'])
+def get_merge_rules() -> list[MergeRule]:
+    global _merge_rules
+    if _merge_rules is None:
+        json_data = files(SynRBL.SynMCS).joinpath('merge_rules.json').read_text()
+        _merge_rules = [MergeRule(**c) for c in json.loads(json_data)]
+    return _merge_rules
 
-_append_compound_rules = [
-        {'condition': {'atom': ['!O'], 'neighbors': [['O'], ['N']]}, 
-         'result': {'smiles': 'O', 'index': 0}}, 
-        {'condition': {'atom': ['Si']}, 'result': {'smiles': 'O', 'index': 0}},
-        {'condition': {'atom': ['C'], 'neighbors': [['C']]},
-         'result': {'smiles': 'O', 'index': 0}}]
+def get_compound_rules() -> list[CompoundRule]:
+    global _compound_rules
+    if _compound_rules is None:
+        json_data = files(SynRBL.SynMCS).joinpath('compound_rules.json').read_text()
+        _compound_rules = [CompoundRule(**c) for c in json.loads(json_data)]
+    return _compound_rules
 
-def _apply_append_compound_rule(rule, mol, idx, neighbors):
-    assert isinstance(rule, dict)
-    cond = rule.get('condition')
-    result = rule['result']
-    if cond is not None:
-        cond_atom = cond.get('atom')
-        if cond_atom is not None and mol.GetAtoms()[idx].GetSymbol() not in cond_atom:
-            return None
-        cond_neighbors = cond.get('neighbors')
-        if cond_neighbors is not None:
-            valid_neighbor_set = False
-            for neighbor_set in cond_neighbors:
-                found_all = True
-                for n_atom in neighbor_set:
-                    if neighbors is None or n_atom not in neighbors:
-                        found_all = False
-                        break
-                if found_all:
-                    valid_neighbor_set = True
-                    break
-            if not valid_neighbor_set:
-                return None
-    return (Chem.MolFromSmiles(result['smiles']), result['index'])
-
-_merge_rules = [
-        {'condition1': {'atom': ['P'], 'rad_e': 1, 'charge': 1}, 
-         'condition2': {'nr_Hs': [2, 3, 4], 'rad_e': 0, 'charge': 0},
-         'action1': ['removeRadE', 'discharge'], 'action2': ['removeH', 'removeH'], 'bond': 'double'},
-        {'condition1': {'atom': ['Si'], 'rad_e': 1}, 
-         'condition2': {'nr_Hs': [1, 2, 3, 4], 'rad_e': 0}, 
-         'action1': ['removeRadE'], 'action2': ['removeH'], 'bond': 'single'},
-        {'condition1': {'atom': ['Sn', 'Zn', 'Cu', 'Fl', 'Mg'], 'rad_e': 1, 'charge': 0}, 
-         'condition2': {'atom': ['F', 'Cl', 'Br', 'I', 'At', 'O', 'N'], 'nr_Hs': [1, 2, 3, 4], 'rad_e': 0, 'charge': 0},
-         'action1': ['removeRadE', 'chargePos'], 'action2': ['removeH', 'chargeNeg']},
-        {'condition1': {'nr_Hs': [1, 2, 3, 4], 'rad_e': 0}, 'condition2': {'nr_Hs': [1, 2, 3, 4], 'rad_e': 0}, 
-         'action1': ['removeH'], 'action2': ['removeH'], 'bond': 'single'}]
-
-def _check_atom_cond(condition_atoms, atom_sym):
-    return False
-
-def _apply_merge_rule(rule, mol, atom1, atom2):
-    def _check_condition(cond, atom):
-        if cond is None:
-            return True
-        cond_atoms = cond.get('atom')
-        if cond_atoms is not None:
-            if not _check_atom_cond(cond_atoms, atom.GetSymbol()):
-                return False
-        nr_Hs = cond.get('nr_Hs')
-        if nr_Hs is not None and _count_Hs(atom) not in nr_Hs:
-            return False
-        rad_e = cond.get('rad_e')
-        if rad_e is not None and atom.GetNumRadicalElectrons() != rad_e:
-            return False
-        return True
-            
-    def _apply_action(action, mol, atom):
-        if action is None:
-            return
-        if action == 'removeH':
-            _remove_Hs(mol, atom, 1)
-        elif action == 'removeRadE':
-            atom.SetNumRadicalElectrons(atom.GetNumRadicalElectrons() - 1) 
-        elif action == 'discharge':
-            atom.SetFormalCharge(0)
-        elif action == 'chargePos':
-            atom.SetFormalCharge(1)
-        elif action == 'chargeNeg':
-            atom.SetFormalCharge(-1)
-        else:
-            raise NotImplementedError(f"Action '{action}' is not implemented.")
-
-    def _get_bond_type(bond):
-        if bond is None:
-            return None
-        elif bond == 'single':
-            return Chem.rdchem.BondType.SINGLE
-        elif bond == 'double':
-            return Chem.rdchem.BondType.DOUBLE
-        else:
-            raise NotImplementedError(f"Bond type '{bond}' is not implemented.")
-
-    cond1 = rule.get('condition1')
-    cond2 = rule.get('condition2')
-    action1 = rule.get('action1', [])
-    action2 = rule.get('action2', [])
-    bond_type = _get_bond_type(rule.get('bond'))
-    if not _check_condition(cond1, atom1) or not _check_condition(cond2, atom2):
-        return None
-    for a in action1:
-        _apply_action(a, mol, atom1)
-    for a in action2:
-        _apply_action(a, mol, atom2)
-    if bond_type is not None:
-        mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type) 
-    return mol
-
-def _apply_merge_rule_sym(rule, mol, atom1, atom2):
-    rule_result = _apply_merge_rule(rule, mol, atom1, atom2)
-    if rule_result is None:
-        #cond1 = rule.get('condition1')
-        #cond2 = rule.get('condition2')
-        #action1 = rule.get('action1', [])
-        #action2 = rule.get('action2', [])
-        #rule['condition1'] = cond2
-        #rule['condition2'] = cond1
-        #rule['action1'] = action2
-        #rule['action2'] = action1
-        rule_result = _apply_merge_rule(rule, mol, atom2, atom1)
-    return rule_result
-
-def _try_get_compound(mol, idx, neighbors):
-    for rule in _append_compound_rules:
-        mol2 = _apply_append_compound_rule(rule, mol, idx, neighbors)
-        if mol2 is not None:
-            return {'mol': mol2[0], 'bound_idx': mol2[1]}
-    raise NoCompoundError(mol.GetAtoms()[idx].GetSymbol(), neighbors)
+def get_compound(atom, neighbors):
+    for rule in get_compound_rules():
+        if rule.can_apply(atom, neighbors):
+            return rule.apply(atom, neighbors)
+    raise NoCompoundError(atom.GetSymbol(), neighbors)
 
 def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
-    def _setup_track_dict(track_ids):
-        track_dict = {}
-        if track_ids is not None:
-            for id in track_ids:
-                track_dict[str(id)] = {}
-        return track_dict
-
-    def _add_track_atoms(track_dict, mol, offset=0):
-        atoms = mol.GetAtoms()
-        for k in track_dict.keys():
-            track_dict[k]['atom'] = atoms[int(k) + offset]
-
-    def _seal_track_dict(track_dict):
-        sealed_dict = {}
-        for k in track_dict.keys():
-            sealed_dict[k] = track_dict[k]['atom'].GetIdx()
-        return sealed_dict
-
-    mol1_track_dict = _setup_track_dict(mol1_track)
-    mol2_track_dict = _setup_track_dict(mol2_track)
+    mol1_tracker = AtomTracker(mol1_track)
+    mol2_tracker = AtomTracker(mol2_track)
 
     mol1 = Chem.AddHs(mol1)
     mol2 = Chem.AddHs(mol2)
     mol = Chem.RWMol(Chem.CombineMols(mol1, mol2))
     mol2_offset = len(mol1.GetAtoms())
-    _add_track_atoms(mol1_track_dict, mol)
-    _add_track_atoms(mol2_track_dict, mol, offset=mol2_offset)
+    mol1_tracker.add_atoms(mol)
+    mol2_tracker.add_atoms(mol, offset=mol2_offset)
     atom1 = mol.GetAtoms()[idx1]
     atom2 = mol.GetAtoms()[mol2_offset + idx2]
     found_merge_rule = False
-    for rule in _merge_rules:
-        rule_result = _apply_merge_rule_sym(rule, mol, atom1, atom2)
-        if rule_result is not None:
-            found_merge_rule = True
-            break
+    for rule in get_merge_rules():
+        if not rule.can_apply(atom1, atom2):
+            continue
+        rule.apply(mol, atom1, atom2)
+        found_merge_rule = True
+        break
     if found_merge_rule:
         Chem.SanitizeMol(mol)
         return {'mol': mol, 
-                'aam1': _seal_track_dict(mol1_track_dict), 
-                'aam2': _seal_track_dict(mol2_track_dict)}
+                'aam1': mol1_tracker.to_dict(), 
+                'aam2': mol2_tracker.to_dict()}
     else:
-        raise RuntimeError(("Not able to find merge rule for atoms '{}' and '{}'" + 
-                           " of compounds '{}' and '{}'.").format(atom1.GetSymbol(), 
-                                                                 atom2.GetSymbol(), 
-                                                                 Chem.MolToSmiles(Chem.RemoveHs(mol1)), 
-                                                                 Chem.MolToSmiles(Chem.RemoveHs(mol2))))
+        raise MergeError(atom1, atom2, mol1, mol2)
 
 def merge_expand(mol, bound_indices, neighbors=None):
     if not isinstance(bound_indices, list):
@@ -226,13 +280,20 @@ def merge_expand(mol, bound_indices, neighbors=None):
         neighbors = [None for _ in range(l)]
     if len(neighbors) != l:
         raise ValueError('neighbors list must be of same length as bound_indices. ' + 
-                         '(bound_indices={}, neighbors={})'.format(bound_indices, neighbors))
+                         '(bound_indices={}, neighbors={})'.format(
+                             bound_indices, neighbors))
     mol1 = mol
     for i in range(l):
-        mol2 = _try_get_compound(mol1, bound_indices[i], neighbors[i])
-        mol = merge_mols(mol1, mol2['mol'], bound_indices[i], mol2['bound_idx'], mol1_track=bound_indices)
-        bound_indices = [mol['aam1'][str(idx)] for idx in bound_indices]
-        mol1 = mol['mol']
+        atom = mol1.GetAtoms()[bound_indices[i]]
+        mol2 = get_compound(atom, neighbors[i])
+        if mol2 is not None:
+            mol = merge_mols(mol1, mol2['mol'], 
+                             bound_indices[i], mol2['index'], 
+                             mol1_track=bound_indices)
+            bound_indices = [mol['aam1'][str(idx)] for idx in bound_indices]
+            mol1 = mol['mol']
+        else:
+            mol = {'mol': mol1}
     return mol
 
 if __name__ == "__main__":
@@ -240,12 +301,6 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from rdkit.Chem import Draw 
 
-    assert _check_atom_cond(['C'], 'C')
-    assert _check_atom_cond(['O', 'C'], 'C')
-    assert not _check_atom_cond(['!O'], 'C')
-    assert _check_atom_cond(['!O', 'C'], 'C')
-    assert not _check_atom_cond(['!O'], 'O')
-    
     plot = True
    
     def _test_merge_mols(mol1, mol2, idx1, idx2, result):
