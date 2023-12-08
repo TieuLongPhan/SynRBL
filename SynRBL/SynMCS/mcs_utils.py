@@ -14,7 +14,7 @@ def convert_smiles_to_mols(smiles_list):
         if mol:
             try:
                 Chem.SanitizeMol(mol)
-                mol = Chem.RemoveHs(mol)
+                #mol = Chem.RemoveHs(mol)
             except:
                 pass
             
