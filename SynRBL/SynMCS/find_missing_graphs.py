@@ -64,19 +64,23 @@ class FindMissingGraphs:
                 # Calculate MCS using RDKit's rdFMCS
                 mcs = rdFMCS.FindMCS([mol, mcs_mol], params)
                 mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
-
-            if mcs_mol:
-                # Special case handling (e.g., single oxygen atom)
-                if Chem.MolToSmiles(mcs_mol) == 'O':
-                    smarts_pattern = '[OH]'
-                    smarts_mol = Chem.MolFromSmarts(smarts_pattern)
-                    substructure_match = mol.GetSubstructMatch(smarts_mol)
-                    rw_mol = Chem.RWMol(mol)
-                    rw_mol.RemoveAtom(substructure_match[0])
-                    missing_part = rw_mol.GetMol()
-                    boundary_atoms = [{'O': 0}]
-                    nearest_atoms = [{'O': 0}]
-                else:
+            
+            try:
+                if mcs_mol:
+                    # Special case handling (e.g., single oxygen atom)
+                    if Chem.MolToSmiles(mcs_mol) == 'O':
+                        smarts_pattern = '[OH]'
+                        smarts_mol = Chem.MolFromSmarts(smarts_pattern)
+                        substructure_match = mol.GetSubstructMatch(smarts_mol)
+                        rw_mol = Chem.RWMol(mol)
+                        rw_mol.RemoveAtom(substructure_match[0])
+                        missing_part = rw_mol.GetMol()
+                        boundary_atoms = [{'O': 0}]
+                        nearest_atoms = [{'O': 0}]
+                    else:
+                        raise ValueError
+            except:
+                if mcs_mol:
                     # Finding substructure matches
                     substructure_match = mol.GetSubstructMatch(mcs_mol)
                     if substructure_match:
