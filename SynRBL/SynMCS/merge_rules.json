@@ -1,0 +1,38 @@
+[
+	{
+		"name": "phosphor double bond",
+		"condition1": {"atom": ["P"], "rad_e": 1, "charge": 1}, 
+		"condition2": {"nr_Hs": [2, 3, 4], "rad_e": 0, "charge": 0}, 
+		"action1": ["removeRadE", "chargeNeg"], 
+		"action2": ["removeH", "removeH"], 
+		"bond": "double"
+	},
+	{
+		"name": "silicium radical",
+		"condition1": {"atom": ["Si"], "rad_e": 1}, 
+		"condition2": {"nr_Hs": [1, 2, 3, 4], "rad_e": 0}, 
+		"action1": ["removeRadE"], 
+		"action2": ["removeH"], 
+		"bond": "single"
+	},
+	{
+		"name": "halogen bond restriction",
+		"condition1": {"atom": ["N", "O"]},
+		"condition2": {"atom": ["F", "Cl", "Br", "I", "At"]}
+	},
+	{
+		"name": "radical halogen exchange",
+		"condition1": {"atom": ["Sn", "Zn", "Cu", "Fl", "Mg"], "rad_e": 1, "charge": 0}, 
+		"condition2": {"atom": ["F", "Cl", "Br", "I", "At", "O", "N"], "nr_Hs": [1, 2, 3, 4], "rad_e": 0, "charge": 0},
+		"action1": ["removeRadE", "chargePos"],
+		"action2": ["removeH", "chargeNeg"]
+	},
+	{
+		"name": "default single bond",
+		"condition1": {"nr_Hs": [1, 2, 3, 4], "rad_e": 0}, 
+		"condition2": {"nr_Hs": [1, 2, 3, 4], "rad_e": 0}, 
+		"action1": ["removeH"], 
+		"action2": ["removeH"], 
+		"bond": "single"
+	}
+]
