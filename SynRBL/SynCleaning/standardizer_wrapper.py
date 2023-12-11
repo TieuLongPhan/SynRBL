@@ -1,25 +1,26 @@
 from rdkit import Chem
 from rdkit.Chem.MolStandardize import normalize, tautomer, charge
 from rdkit.Chem.SaltRemover import SaltRemover
-from rdkit.Chem import Draw, MolStandardize, rdDepictor
 from rdkit.Chem.MolStandardize import rdMolStandardize
-def normalize_molecule(mol):
+
+
+def normalize_molecule(mol: Chem.Mol) -> Chem.Mol:
     """
     Normalize a molecule using RDKit's Normalizer.
 
-    Parameters:
-    - mol (Chem.Mol): RDKit Mol object to be normalized.
+    Args:
+        mol (Chem.Mol): RDKit Mol object to be normalized.
 
     Returns:
-    - Chem.Mol: Normalized RDKit Mol object.
+        Chem.Mol: Normalized RDKit Mol object.
     """
     return normalize.Normalizer().normalize(mol)
 
-def canonicalize_tautomer(mol):
+def canonicalize_tautomer(mol: Chem.Mol) -> Chem.Mol:
     """
     Canonicalize the tautomer of a molecule using RDKit's TautomerCanonicalizer.
 
-    Parameters:
+    Args:
     - mol (Chem.Mol): RDKit Mol object.
 
     Returns:
@@ -27,77 +28,80 @@ def canonicalize_tautomer(mol):
     """
     return tautomer.TautomerCanonicalizer().canonicalize(mol)
 
-def salts_remover(mol):
+def salts_remover(mol: Chem.Mol) -> Chem.Mol:
     """
     Remove salt fragments from a molecule using RDKit's SaltRemover.
 
-    Parameters:
+    Args:
     - mol (Chem.Mol): RDKit Mol object.
 
     Returns:
     - Chem.Mol: Mol object with salts removed.
     """
-    return SaltRemover().StripMol(mol)
+    remover = SaltRemover()
+    return remover.StripMol(mol)
 
-def reionize_charges(mol):
+def reionize_charges(mol: Chem.Mol) -> Chem.Mol:
     """
     Adjust molecule to its most likely ionic state using RDKit's Reionizer.
 
-    Parameters:
-    - mol (Chem.Mol): RDKit Mol object.
+    Args:
+    - mol: RDKit Mol object.
 
     Returns:
-    - Chem.Mol: Mol object with reionized charges.
+    - Mol object with reionized charges.
     """
     return charge.Reionizer().reionize(mol)
 
-def uncharge_molecule(mol):
+def uncharge_molecule(mol: Chem.Mol) -> Chem.Mol:
     """
     Neutralize a molecule by removing counter-ions using RDKit's Uncharger.
 
-    Parameters:
-    - mol (Chem.Mol): RDKit Mol object.
+    Args:
+        mol: RDKit Mol object.
 
     Returns:
-    - Chem.Mol: Neutralized Mol object.
+        Neutralized Mol object.
     """
-    return rdMolStandardize.Uncharger().uncharge(mol)
+    uncharger = rdMolStandardize.Uncharger()
+    return uncharger.uncharge(mol)
 
-def assign_stereochemistry(mol, cleanIt=True, force=True):
+def assign_stereochemistry(mol: Chem.Mol, cleanIt: bool = True, force: bool = True) -> None:
     """
-    Assign stereochemistry to a molecule using RDKit's AssignStereochemistry.
+    Assigns stereochemistry to a molecule using RDKit's AssignStereochemistry.
 
-    Parameters:
-    - mol (Chem.Mol): RDKit Mol object.
-    - cleanIt (bool, optional): Clean the molecule. Default is True.
-    - force (bool, optional): Force stereochemistry assignment. Default is True.
+    Args:
+        mol: RDKit Mol object.
+        cleanIt: Flag indicating whether to clean the molecule. Default is True.
+        force: Flag indicating whether to force stereochemistry assignment. Default is True.
 
     Returns:
-    - None
+        None
     """
     Chem.AssignStereochemistry(mol, cleanIt=cleanIt, force=force)
 
-def fragmets_remover(mol):
+def fragments_remover(mol: Chem.Mol) -> Chem.Mol:
     """
     Remove small fragments from a molecule, keeping only the largest one.
 
-    Parameters:
-    - mol (Chem.Mol): RDKit Mol object.
+    Args:
+        mol (Chem.Mol): RDKit Mol object.
 
     Returns:
-    - Chem.Mol: Mol object with small fragments removed.
+        Chem.Mol: Mol object with small fragments removed.
     """
-    return max(Chem.GetMolFrags(mol, asMols=True, sanitizeFrags=True), default=None, key=lambda m: m.GetNumAtoms())
+    frags = Chem.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
+    return max(frags, default=None, key=lambda m: m.GetNumAtoms())
 
-def remove_hydrogens_and_sanitize(mol):
+def remove_hydrogens_and_sanitize(mol: Chem.Mol) -> Chem.Mol:
     """
     Remove explicit hydrogens and sanitize a molecule.
 
-    Parameters:
-    - mol (Chem.Mol): RDKit Mol object.
+    Args:
+        mol (Chem.Mol): RDKit Mol object.
 
     Returns:
-    - Chem.Mol: Mol object with explicit hydrogens removed and sanitized.
+        Chem.Mol: Mol object with explicit hydrogens removed and sanitized.
     """
     mol = Chem.RemoveHs(mol)
     Chem.SanitizeMol(mol)

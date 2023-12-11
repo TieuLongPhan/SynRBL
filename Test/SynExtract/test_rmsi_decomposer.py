@@ -1,36 +1,46 @@
-import unittest
 import sys
-sys.path.append('../../')
-from SynRBL.SynExtract.rsmi_decomposer import RSMIDecomposer, decompose  
+from pathlib import Path
+import unittest
+import pandas as pd
+root_dir = Path(__file__).parents[2]
+sys.path.append(str(root_dir))
+from SynRBL.SynExtract.rsmi_decomposer import RSMIDecomposer  
+
 
 class TestRSMIDecomposer(unittest.TestCase):
 
     def setUp(self):
-        # Setup code for the tests
-        self.smiles_string = 'CCO'
-        self.decomposer = RSMIDecomposer(smiles=self.smiles_string, parallel=False)
+        self.decomposer = RSMIDecomposer()
 
-    def test_calculate_mol_weight(self):
-        # Test for the calculate_mol_weight method
-        expected_weight = 46.069  # Expected molecular weight for 'CCO'
-        calculated_weight = self.decomposer.calculate_mol_weight(self.smiles_string)
-        self.assertAlmostEqual(calculated_weight, expected_weight, places=3)
-
-    def test_data_decomposer(self):
-        # Test for the data_decomposer method
-        test_data = [{'reactants': 'CCO', 'products': 'C=O'}]
-        decomposer = RSMIDecomposer(data=test_data, parallel=False)
-        reactants, products = decomposer.data_decomposer()
-
-        expected_reactants = [{'6': 2, '8': 1, '0': 0}]  # Expected composition for 'CCO'
-        self.assertEqual(reactants, expected_reactants)
-
-    def test_decompose_function(self):
-        # Test for the standalone decompose function
+    def test_decompose_valid(self):
+        # Test decompose method with a valid SMILES string
         smiles = 'CCO'
-        expected_composition = {'6': 2, '8': 1, '0': 0}  # Expected atomic composition for 'CCO'
-        composition = decompose(smiles)
-        self.assertEqual(composition, expected_composition)
+        composition = RSMIDecomposer.decompose(smiles)
+        self.assertEqual(composition, {'C': 2, 'O': 1, 'H': 6, 'Q': 0})
+
+    def test_decompose_invalid(self):
+        # Test decompose method with an invalid SMILES string
+        smiles = 'InvalidString'
+        composition = RSMIDecomposer.decompose(smiles)
+        self.assertIsNone(composition)
+
+    def test_data_decomposer_valid(self):
+        # Test data_decomposer method with valid data
+        data = pd.DataFrame({'reactants': ['CCO', 'CC'], 'products': ['C=O', 'C=C']})
+        decomposer = RSMIDecomposer(data=data, parallel=False)
+        reactants, products = decomposer.data_decomposer()
+        self.assertEqual(len(reactants), 2)
+        self.assertEqual(len(products), 2)
+
+    def test_data_decomposer_invalid(self):
+        # Test data_decomposer method with invalid data
+        data = pd.DataFrame({'reactants': ['InvalidString', 'CC'], 'products': ['C=O', 'InvalidString']})
+        decomposer = RSMIDecomposer(data=data, parallel=False)
+        reactants, products = decomposer.data_decomposer()
+        self.assertEqual(len(reactants), 2)
+        self.assertEqual(len(products), 2)
+        self.assertIsNone(reactants[0])
+        self.assertIsNone(products[1])
 
 if __name__ == '__main__':
     unittest.main()

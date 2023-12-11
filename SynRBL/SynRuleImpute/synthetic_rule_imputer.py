@@ -4,6 +4,7 @@ from SynRBL.SynRuleImpute.synthetic_rule_matcher import SyntheticRuleMatcher
 import copy
 from rdkit import Chem
 from joblib import Parallel, delayed
+from typing import List, Dict, Any, Union, Optional
 from rdkit import RDLogger
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.ERROR)
@@ -35,14 +36,14 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
     #   'new_reaction': 'C2H6>>C2H6.C1=CC=CC=C1'}]
     """
 
-    def __init__(self, rule_dict, select='best', ranking='longest'):
+    def __init__(self, rule_dict: List[Dict[str, Any]], select: str = 'best', ranking: str = 'longest') -> None:
         """
         Initialize the SyntheticRuleImputer.
 
         Args:
-            rule_dict (list): A list of dictionaries representing chemical rules.
-            select (str): Selection mode, either 'best' for the best solution or 'all' for all solutions.
-            ranking (str): Ranking mode for solutions, options are 'longest', 'least', 'greatest'.
+            rule_dict: A list of dictionaries representing chemical rules.
+            select: Selection mode, either 'best' for the best solution or 'all' for all solutions.
+            ranking: Ranking mode for solutions, options are 'longest', 'least', 'greatest'.
         """
         self.rule_dict = rule_dict
         self.select = select
@@ -50,25 +51,27 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
 
 
     @staticmethod
-    def single_impute(missing_dict, rule_dict, select='best', ranking='longest'):
+    def single_impute(missing_dict: List[Dict[str, Any]], rule_dict: Dict[str, Any],
+                    select: str = 'best', ranking: str = 'longest') -> List[Dict[str, Any]]:
         """
         Impute missing chemical data based on the provided rules.
 
         Args:
-            missing_dict (list): A list of dictionaries representing missing chemical data.
+            missing_dict (List[Dict[str, Any]]): A list of dictionaries representing missing chemical data.
+            rule_dict (Dict[str, Any]): A dictionary representing the rules for imputing missing data.
+            select (str, optional): The selection strategy for choosing the best rule. Defaults to 'best'.
+            ranking (str, optional): The ranking strategy for ordering the rules. Defaults to 'longest'.
 
         Returns:
-            list: A list of dictionaries with imputed data.
+            List[Dict[str, Any]]: A list of dictionaries with imputed data.
         """
         dict_impute = copy.deepcopy(missing_dict)
 
-      
-        matcher = SyntheticRuleMatcher(rule_dict, dict_impute['Diff_formula'], 
-                                       select=select, ranking=ranking)
+        matcher = SyntheticRuleMatcher(rule_dict, dict_impute['Diff_formula'], select=select, ranking=ranking)
         solution = matcher.match()
 
         if solution:
-            if len(solution[0]) >0:
+            if len(solution[0]) > 0:
                 valid_smiles = SyntheticRuleImputer.get_and_validate_smiles(solution[0])
                 if valid_smiles:
                     key = 'products' if dict_impute['Unbalance'] == 'Products' else 'reactants'
@@ -79,32 +82,32 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
 
         return dict_impute
     
-    def parallel_impute(self, missing_dict):
+    def parallel_impute(self, missing_dict: List[Dict]) -> List[Dict]:
         """
         Impute missing chemical data in parallel.
 
         Args:
-            missing_dict (list): A list of dictionaries representing missing chemical data.
+            missing_dict: A list of dictionaries representing missing chemical data.
 
         Returns:
-            list: A list of dictionaries with imputed data.
+            A list of dictionaries with imputed data.
         """
         dict_impute = Parallel(n_jobs=-2, verbose=1)(
             delayed(self.single_impute)(item, self.rule_dict, self.select, self.ranking) for item in missing_dict
         )
         return dict_impute
-
+    
     @staticmethod
-    def get_and_validate_smiles(solution):
+    def get_and_validate_smiles(solution: List[Dict[str, Union[str, int]]]) -> Optional[str]:
         """
         Concatenate smiles strings based on their ratios and validate the result using RDKit.
 
         Args:
-            solution (list): A list of dictionaries representing chemical solutions,
-                            each with a 'smiles' string and a 'Ratio'.
+            solution: A list of dictionaries representing chemical solutions,
+                    each with a 'smiles' string and a 'Ratio' integer.
 
         Returns:
-            str or None: A validated smiles string or None if validation fails.
+            A validated smiles string or None if validation fails.
         """
         # Concatenate smiles strings based on their ratios
         smiles_parts = []

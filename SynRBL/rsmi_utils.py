@@ -1,43 +1,45 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Set, Any
+from typing import Optional, Union, Callable, Tuple
 from rdkit import Chem
+import json
 
-def save_database(database, pathname='./Data/database.json'):
+
+def save_database(database: list[dict], pathname: str = './Data/database.json') -> None:
     """
     Save a database (a list of dictionaries) to a JSON file.
 
     Args:
-        database (list of dict): The database to be saved.
-        pathname (str, optional): The path where the database will be saved. Defaults to './Data/database.json'.
+        database: The database to be saved.
+        pathname: The path where the database will be saved. Defaults to './Data/database.json'.
 
     Raises:
         TypeError: If the database is not a list of dictionaries.
-        IOError: If there is an error writing the file.
+        ValueError: If there is an error writing the file.
     """
-    # Check if the database is a list of dictionaries
     if not all(isinstance(item, dict) for item in database):
         raise TypeError("Database should be a list of dictionaries.")
 
     try:
-        # Open the file in write mode and save the database as JSON
         with open(pathname, 'w') as f:
             json.dump(database, f)
     except IOError as e:
-        # If there is an error writing the file, raise an exception
         raise ValueError(f"Error writing to file {pathname}: {e}")
 
-def load_database(pathname='./Data/database.json'):
+
+
+def load_database(pathname: str = './Data/database.json') -> List[Dict]:
     """
     Load a database (a list of dictionaries) from a JSON file.
 
     Args:
-        pathname (str, optional): The path from where the database will be loaded. Defaults to './Data/database.json'.
+        pathname: The path from where the database will be loaded. Defaults to './Data/database.json'.
 
     Returns:
-        list of dict: The loaded database.
+        The loaded database.
 
     Raises:
-        IOError: If there is an error reading the file.
+        ValueError: If there is an error reading the file.
     """
     try:
         with open(pathname, 'r') as f:
@@ -46,17 +48,16 @@ def load_database(pathname='./Data/database.json'):
     except IOError as e:
         raise ValueError(f"Error reading to file {pathname}: {e}")
     
-
-def extract_atomic_elements(rules):
+def extract_atomic_elements(rules: List[Dict[str, Dict[str, int]]]) -> Set[str]:
     """
     Extracts the set of all atomic elements from a list of rules.
 
     Args:
-        rules (list of dict): A list of rules, where each rule is a dictionary
-            representing a composition of atomic elements.
+        rules: A list of rules, where each rule is a dictionary representing a
+            composition of atomic elements.
 
     Returns:
-        set: A set of all atomic elements found in the rules.
+        A set of all atomic elements found in the rules.
 
     Example:
         ```python
@@ -68,16 +69,10 @@ def extract_atomic_elements(rules):
 
     atomic_elements = set()
 
-    # Iterate over the rules
     for rule in rules:
-
-        # Extract the atomic elements from the current rule
         atomic_elements.update(rule["Composition"].keys())
 
     return atomic_elements
-
-
-
 
 def _get_max_comp_len(database: List[Dict]) -> int:
     """
@@ -173,15 +168,16 @@ def build_lookups(atomic_elements: set, database: list) -> list:
 
     return lookup
 
-def calculate_net_charge(sublist):
+
+def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
     """
     Calculate the net charge from a list of molecules represented as SMILES strings.
 
     Args:
-        sublist (list): A list of dictionaries, each with a 'smiles' string and a 'Ratio'.
+        sublist: A list of dictionaries, each with a 'smiles' string and a 'Ratio' integer.
 
     Returns:
-        int: Net charge of the sublist.
+        The net charge of the sublist as an integer.
     """
     total_charge = 0
     for item in sublist:
@@ -193,16 +189,15 @@ def calculate_net_charge(sublist):
     return total_charge
 
 
-
-def find_shortest_sublists(solution):
+def find_shortest_sublists(solution: List[List[Dict]]) -> List[List[Dict]]:
     """
     Find all sublists of dictionaries that have the shortest length.
 
     Args:
-        solution (list of lists): A list containing lists of dictionaries.
+        solution: A list containing lists of dictionaries.
 
     Returns:
-        list: A list of all sublists with the shortest length.
+        A list of all sublists with the shortest length.
     """
     if not solution:
         return []
@@ -213,7 +208,12 @@ def find_shortest_sublists(solution):
     return shortest_sublists
 
 
-def filter_data(data, unbalance_values=None, formula_key='Diff_formula', element_key=None, min_count=0, max_count=3):
+def filter_data(data: List[Dict[str, any]], 
+                unbalance_values: Optional[List[str]] = None, 
+                formula_key: str = 'Diff_formula', 
+                element_key: Optional[str] = None, 
+                min_count: int = 0, 
+                max_count: int = 3) -> List[Dict[str, any]]:
     """
     Filter dictionaries based on a list of unbalance values and element count in a specified formula key.
 
@@ -222,15 +222,15 @@ def filter_data(data, unbalance_values=None, formula_key='Diff_formula', element
     unbalance criteria and where the element count falls within the specified range.
 
     Args:
-        data (list of dict): A list of dictionaries to be filtered.
-        unbalance_values (list of str, optional): The values to filter by in the 'Unbalance' key. If None, this criterion is ignored.
-        formula_key (str): The key in the dictionaries that contains the element counts. Defaults to 'Diff_formula'.
-        element_key (str, optional): The element to filter by in the formula key. If None, this criterion is ignored.
-        min_count (int): The minimum allowed count of the element. Defaults to 0.
-        max_count (int): The maximum allowed count of the element. Defaults to infinity.
+        data: A list of dictionaries to be filtered.
+        unbalance_values: The values to filter by in the 'Unbalance' key. If None, this criterion is ignored.
+        formula_key: The key in the dictionaries that contains the element counts. Defaults to 'Diff_formula'.
+        element_key: The element to filter by in the formula key. If None, this criterion is ignored.
+        min_count: The minimum allowed count of the element. Defaults to 0.
+        max_count: The maximum allowed count of the element. Defaults to infinity.
 
     Returns:
-        list of dict: A list of dictionaries filtered based on the criteria.
+        A list of dictionaries filtered based on the criteria.
     """
     filtered_data = []
     
@@ -248,17 +248,16 @@ def filter_data(data, unbalance_values=None, formula_key='Diff_formula', element
     return filtered_data
 
 
-
-def remove_duplicates_by_key(data, key_function):
+def remove_duplicates_by_key(data: List[dict], key_function: Callable[..., Any]) -> List[dict]:
     """
     Remove duplicate entries from a list based on a unique key for each entry.
 
     Parameters:
-    data (list): A list of data entries (dictionaries, objects, etc.).
-    key_function (function): A function that takes an entry from `data` and returns a key for duplicate check.
+    - `data` (List[dict]): A list of data entries (dictionaries, objects, etc.).
+    - `key_function` (Callable[..., Any]): A function that takes an entry from `data` and returns a key for duplicate check.
 
     Returns:
-    list: A list of unique entries, based on the unique keys generated.
+    - `List[dict]`: A list of unique entries, based on the unique keys generated.
 
     Example:
     >>> data = [{'name': 'Alice', 'age': 30}, {'name': 'Bob', 'age': 25}, {'name': 'Alice', 'age': 30}]
@@ -266,60 +265,60 @@ def remove_duplicates_by_key(data, key_function):
     [{'name': 'Alice', 'age': 30}, {'name': 'Bob', 'age': 25}]
     """
 
-    # Set to keep track of already seen keys
     seen_keys = set()
     unique_data = []
 
     for entry in data:
-        # Generate a key for each entry using the provided key function
         key = frozenset(key_function(entry))
-        # Add entry to unique_data if key hasn't been seen before
         if key not in seen_keys:
             seen_keys.add(key)
             unique_data.append(entry)
 
     return unique_data
 
-def sort_by_key_length(data, key_function):
+
+
+
+def sort_by_key_length(data: List[Any], key_function: Callable[[Any], Any]) -> List[Any]:
     """
     Sort a list of entries based on the length of a specific key.
 
-    Parameters:
-    data (list): A list of data entries.
-    key_function (function): A function that takes an entry from `data` and returns a key whose length is to be used for sorting.
+    Args:
+    - data (List[Any]): A list of data entries.
+    - key_function (Callable[[Any], Any]): A function that takes an entry from `data` and returns a key 
+      whose length is to be used for sorting.
 
     Returns:
-    list: A list of entries sorted by the length of the specified key.
-
-    Example:
-    >>> data = [{'name': 'Alice', 'skills': ['Python', 'Java']}, {'name': 'Bob', 'skills': ['HTML']}]
-    >>> sort_by_key_length(data, lambda x: x['skills'])
-    [{'name': 'Bob', 'skills': ['HTML']}, {'name': 'Alice', 'skills': ['Python', 'Java']}]
+    - List[Any]: A list of entries sorted by the length of the specified key.
     """
 
-    # Sorting the data based on the length of the key returned by key_function
     return sorted(data, key=lambda x: len(key_function(x)))
 
 
-def add_missing_key_to_dicts(data, dict_key, missing_key, default_value):
+def add_missing_key_to_dicts(
+    data: List[Dict[str, Dict[str, Any]]],
+    dict_key: str,
+    missing_key: str,
+    default_value: Any
+) -> List[Dict[str, Dict[str, Any]]]:
     """
     Iterates through a list of dictionaries and adds a specified key with a default value to a specified 
     dictionary within each main dictionary, if the key is not already present. Returns a new list with the updates.
 
-    Parameters:
-    data (list): A list of dictionaries.
-    dict_key (str): The key in the main dictionaries that points to another dictionary where the check should be done.
-    missing_key (str): The key to add if it's not present in the nested dictionary.
-    default_value: The default value to assign to the missing key.
+    Args:
+        data: A list of dictionaries.
+        dict_key: The key in the main dictionaries that points to another dictionary where the check should be done.
+        missing_key: The key to add if it's not present in the nested dictionary.
+        default_value: The default value to assign to the missing key.
 
     Returns:
-    list: A new list of dictionaries with the missing key added where necessary.
+        A new list of dictionaries with the missing key added where necessary.
 
     Example:
-    >>> data = [{'Composition': {'A': 1, 'B': 2}}, {'Composition': {'B': 3}}]
-    >>> updated_data = add_missing_key_to_dicts(data, 'Composition', 'Q', 0)
-    >>> updated_data
-    [{'Composition': {'A': 1, 'B': 2, 'Q': 0}}, {'Composition': {'B': 3, 'Q': 0}}]
+        >>> data = [{'Composition': {'A': 1, 'B': 2}}, {'Composition': {'B': 3}}]
+        >>> updated_data = add_missing_key_to_dicts(data, 'Composition', 'Q', 0)
+        >>> updated_data
+        [{'Composition': {'A': 1, 'B': 2, 'Q': 0}}, {'Composition': {'B': 3, 'Q': 0}}]
     """
 
     updated_data = []
@@ -342,22 +341,24 @@ def add_missing_key_to_dicts(data, dict_key, missing_key, default_value):
     return updated_data
 
 
-def extract_results_by_key(data, key='new_reaction'):
+
+def extract_results_by_key(data: List[Dict[str, any]], key: str = 'new_reaction'
+                           ) -> Tuple[List[Dict[str, any]], List[Dict[str, any]]]:
     """
     Separate dictionaries from a list into two lists based on the presence of a specific key.
 
     Args:
-        data (list of dict): A list of dictionaries to be separated.
-        key (str): The key to check for in each dictionary. Defaults to 'new_reaction'.
+        data: A list of dictionaries to be separated.
+        key: The key to check for in each dictionary. Defaults to 'new_reaction'.
 
     Returns:
-        tuple of two lists: 
+        A tuple of two lists:
             - The first list contains dictionaries that have the specified key.
             - The second list contains dictionaries that do not have the specified key.
     """
 
-    with_key = []
-    without_key = []
+    with_key: List[Dict[str, any]] = []
+    without_key: List[Dict[str, any]] = []
 
     # Separate dictionaries based on the presence of the key
     for item in data:
@@ -369,31 +370,33 @@ def extract_results_by_key(data, key='new_reaction'):
     return with_key, without_key
 
 
-def add_hydrogens_to_radicals(mol):
+from rdkit import Chem
+from rdkit.Chem import rdmolops
+
+def add_hydrogens_to_radicals(mol: Chem.Mol) -> Chem.Mol:
     """
     Add hydrogen atoms to radical sites in a molecule.
 
-    Parameters:
-    - mol: rdkit.Chem.Mol
-        RDKit molecule object.
+    Args:
+    - mol (Chem.Mol): RDKit molecule object.
 
     Returns:
-    - rdkit.Chem.Mol
-        The modified molecule with added hydrogens.
+    - Chem.Mol: The modified molecule with added hydrogens.
     """
-    if mol:
-        # Create a copy of the molecule
-        mol_with_h = Chem.RWMol(mol)
+    # Create a copy of the molecule
+    mol_with_h = Chem.RWMol(mol)
 
-        # Add explicit hydrogens (not necessary if they are already present in the input molecule)
-        mol_with_h = rdmolops.AddHs(mol_with_h)
+    # Add explicit hydrogens (not necessary if they are already present in the input molecule)
+    mol_with_h = rdmolops.AddHs(mol_with_h)
 
-        # Find and process radical atoms
-        for atom in mol_with_h.GetAtoms():
-            num_radical_electrons = atom.GetNumRadicalElectrons()
-            if num_radical_electrons > 0:
-                atom.SetNumExplicitHs(atom.GetNumExplicitHs() + num_radical_electrons)
-                atom.SetNumRadicalElectrons(0)
-        curate_mol = Chem.RemoveHs(mol_with_h)
-        # Return the molecule with added hydrogens
-        return curate_mol
+    # Find and process radical atoms
+    for atom in mol_with_h.GetAtoms():
+        num_radical_electrons = atom.GetNumRadicalElectrons()
+        if num_radical_electrons > 0:
+            atom.SetNumExplicitHs(atom.GetNumExplicitHs() + num_radical_electrons)
+            atom.SetNumRadicalElectrons(0)
+    
+    curate_mol = Chem.RemoveHs(mol_with_h)
+    
+    # Return the molecule with added hydrogens
+    return curate_mol

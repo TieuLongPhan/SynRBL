@@ -1,7 +1,8 @@
 from rdkit import Chem
 from rdkit.Chem import Descriptors
 from joblib import Parallel, delayed
-import pandas as pd
+from typing import List, Dict
+
 
 class AutomaticSmilesExtraction:
     """
@@ -41,7 +42,12 @@ class AutomaticSmilesExtraction:
     [2, 2]
     """
 
-    def __init__(self, reactions, n_jobs=-1, verbose=1):
+    def __init__(
+        self, 
+        reactions: List[str], 
+        n_jobs: int = 4, 
+        verbose: int = 1
+        ) -> None:
         self.reactions = reactions
         self.smiles_list = self.get_smiles(reactions)
         # Use n_jobs and verbose as arguments in Parallel
@@ -52,53 +58,37 @@ class AutomaticSmilesExtraction:
             delayed(self.count_carbon_atoms)(smi) for smi in self.smiles_list
         )
 
-    
-    def get_smiles(self, list_of_dicts):
+    @staticmethod
+    def get_smiles(list_of_dicts: List[Dict[str, str]]) -> List[str]:
         """
         Extract SMILES strings from a list of dictionaries containing reaction data.
 
-        Parameters
-        ----------
-        list_of_dicts : list of dict
-            A list of dictionaries containing reaction data. Each dictionary should
-            contain 'reactants' and 'products' keys, where the values are SMILES strings.
+        Parameters:
+        - list_of_dicts (List[Dict[str, str]]): A list of dictionaries containing reaction data.
+        Each dictionary should contain 'reactants' and 'products' keys, where the values are SMILES strings.
 
-        Returns
-        -------
-        list of str
-            List of SMILES strings extracted from the reactions.
+        Returns:
+        - List[str]: List of SMILES strings extracted from the reactions.
         """
-        smiles_list = []
-        for reaction in list_of_dicts:
-            reactants = reaction.get('reactants', '')
-            products = reaction.get('products', '')
-            # Splitting the reactants and products into individual fragments and adding them to the list
-            smiles_list.extend(reactants.split('.'))
-            smiles_list.extend(products.split('.'))
-        # Filtering out empty strings
-        return [smi for smi in smiles_list if smi]
+        return [smi for reaction in list_of_dicts for smi in reaction.get('reactants', '').split('.') + reaction.get('products', '').split('.') if smi]
 
     @staticmethod
-    def calculate_mol_weight(smiles):
+    def calculate_mol_weight(smiles: str) -> float:
         """
         Calculate the molecular weight of a molecule represented by a SMILES string.
 
-        Parameters
-        ----------
-        smiles : str
-            The SMILES string of the molecule.
+        Parameters:
+        - smiles (str): The SMILES string of the molecule.
 
-        Returns
-        -------
-        float
-            The molecular weight of the molecule, or None if the SMILES string is invalid.
+        Returns:
+        - float: The molecular weight of the molecule, or None if the SMILES string is invalid.
         """
         molecule = Chem.MolFromSmiles(smiles)
         if molecule:
             return Descriptors.MolWt(molecule)
 
     @staticmethod
-    def count_carbon_atoms(smiles):
+    def count_carbon_atoms(smiles: str) -> int:
         """
         Count the number of carbon (C) atoms in a molecule represented by its SMILES string.
 
@@ -120,7 +110,7 @@ class AutomaticSmilesExtraction:
         return num_carbon_atoms
 
     @staticmethod
-    def get_fragments(input_dict, mw=100, n_C=10, combination='union'):
+    def get_fragments(input_dict: dict, mw: float = 100, n_C: int = 10, combination: str = 'union') -> dict:
         """
         Filter a dictionary of lists based on conditions specified by mw and n_C.
 

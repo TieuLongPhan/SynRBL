@@ -1,5 +1,6 @@
 from SynRBL.rsmi_utils import calculate_net_charge, find_shortest_sublists
-
+from typing import List, Dict, Any
+from typing import Union
 class SyntheticRuleMatcher:
     """
     A class to match rules based on given chemical data using a depth-first search algorithm.
@@ -24,14 +25,29 @@ class SyntheticRuleMatcher:
     Methods:
         match(): Find matching solutions based on the specified selection and ranking mode.
     """
-    def __init__(self, rule_dict, data_dict, select='best', ranking=False):
+    
+    def __init__(
+        self, 
+        rule_dict: List[Dict[str, Any]], 
+        data_dict: Dict[str, int], 
+        select: str = 'best',
+        ranking: bool = False
+        ) -> None:
+        """
+        Initialize the class.
+
+        Args:
+            rule_dict: A list of dictionaries representing rules.
+            data_dict: A dictionary with data.
+            select: A string indicating the selection method.
+            ranking: A boolean indicating whether ranking is enabled.
+        """
         # Sort rules by composition length in descending order for efficient matching.
         self.rule_dict = sorted(rule_dict, key=lambda r: len(r['Composition']), reverse=True)
         self.data_dict = data_dict
         self.select = select
         if self.select == 'all':
             self.all_solutions = []
-
         self.ranking = ranking
 
         # Ensure 'Q' key exists in data_dict and remove elements with zero counts.
@@ -39,12 +55,15 @@ class SyntheticRuleMatcher:
             self.data_dict['Q'] = 0
         self.data_dict = {k: v for k, v in self.data_dict.items() if v != 0 or k == 'Q'}
 
-    def match(self):
-        """
-        Find matching solutions based on the specified selection and ranking mode.
+    def match(self
+        ) -> List[List[Dict[str, Any]]]:
+        """Find matching solutions based on the specified selection and ranking mode.
 
+        Args:
+            self (obj): The instance of the class.
+        
         Returns:
-            list: List of matching solutions, each represented as a list of dictionaries.
+            List[List[Dict[str, Any]]]: List of matching solutions, each represented as a list of dictionaries.
         """
         if self.select == 'all':
             self.dfs(self.data_dict, [])
@@ -54,7 +73,11 @@ class SyntheticRuleMatcher:
             solution = self.dfs(self.data_dict, [])
             return [solution] if solution is not None else []
 
-    def dfs(self, data, path):
+    def dfs(
+        self, 
+        data: dict, 
+        path: list
+        ) -> Union[dict, None]:
         """
         Depth-First Search (DFS) algorithm to find solutions by exploring possible paths.
 
@@ -63,12 +86,12 @@ class SyntheticRuleMatcher:
             path (list): List of dictionaries representing the current path/solution.
 
         Returns:
-            dict or None: A solution (path) if found, None otherwise.
+            Union[dict, None]: A solution (path) if found, None otherwise.
         """
         if self.exit_strategy_solution(data):
             if self.select == 'all':
                 self.all_solutions.append(path)
-                return
+                return None
             else:
                 return path
 
@@ -81,17 +104,22 @@ class SyntheticRuleMatcher:
                         return result
         return None
 
-    def apply_rule(self, data, path, rule):
+    def apply_rule(
+        self, 
+        data: dict, 
+        path: list, 
+        rule: dict
+        ) -> tuple[dict, list]:
         """
         Apply a chemical rule to the current data and path.
 
         Args:
-            data (dict): Current chemical data to match against.
-            path (list): List of dictionaries representing the current path/solution.
-            rule (dict): Chemical rule to apply, containing 'Composition' and 'smiles'.
+            data: Current chemical data to match against.
+            path: List of dictionaries representing the current path/solution.
+            rule: Chemical rule to apply, containing 'Composition' and 'smiles'.
 
         Returns:
-            dict or None: Updated chemical data and path if the rule can be applied, None otherwise.
+            A tuple containing the updated chemical data and path if the rule can be applied, None otherwise.
         """
         if not self.can_match(rule['Composition'], data):
             return None, None
@@ -107,30 +135,40 @@ class SyntheticRuleMatcher:
         new_path = path + [{'smiles': rule['smiles'], 'Ratio': ratio}]
         return new_data, new_path
 
-    def can_match(self, rule, data):
+    def can_match(
+        self, 
+        rule: dict, 
+        data: dict
+        ) -> bool:
         """
         Check if a chemical rule can be matched with the current data.
 
         Args:
-            rule (dict): Chemical rule to apply, containing element symbols and counts.
-            data (dict): Current chemical data to match against.
+            rule: Chemical rule to apply, containing element symbols and counts.
+            data: Current chemical data to match against.
 
         Returns:
-            bool: True if the rule can be matched, False otherwise.
+            True if the rule can be matched, False otherwise.
         """
+        # Iterate over each key-value pair in the rule dictionary
+        # Check if the key is in the data dictionary and if the corresponding value in the data dictionary is greater than or equal to the value in the rule dictionary
+        # Exclude the key 'Q' from the check
+        # Return True if all the conditions are met, False otherwise
         return all(k in data and data[k] >= v for k, v in rule.items() if k != 'Q')
 
+
+
     @staticmethod
-    def rank_solutions(solutions, ranking):
+    def rank_solutions(solutions: List[List[Dict[str, Any]]], ranking: Union[str, bool]) -> List[List[Dict[str, Any]]]:
         """
         Rank a list of solutions based on the specified ranking mode.
 
         Args:
-            solutions (list): List of solutions, each represented as a list of dictionaries.
-            ranking (str or bool): Ranking mode for solutions.
+            solutions: List of solutions, each represented as a list of dictionaries.
+            ranking: Ranking mode for solutions.
 
         Returns:
-            list: List of ranked solutions.
+            List of ranked solutions.
         """
         if ranking == 'longest':
             return sorted(solutions, key=lambda sol: -len(sol), reverse=True)
@@ -140,13 +178,12 @@ class SyntheticRuleMatcher:
             return sorted(solutions, key=lambda sol: sum(len(item) for item in sol), reverse=True)
         elif ranking == 'ion_priority':
             shortest_sublists = find_shortest_sublists(solutions)
-            #print(sorted(shortest_sublists, key=lambda sol: get_net_charge(sol), reverse=False))
-            return sorted(shortest_sublists, key=calculate_net_charge, reverse = True)
-    
+            return sorted(shortest_sublists, key=calculate_net_charge, reverse=True)
         else:
-            return solutions  # Default case, no sorting
+            return solutions
+
     @staticmethod
-    def exit_strategy_solution(data):
+    def exit_strategy_solution(data: dict) -> bool:
         """
         Check if the exit strategy condition for finding a solution is met.
 
@@ -159,15 +196,16 @@ class SyntheticRuleMatcher:
         return len(data) == 1 and data.get('Q', 0) == 0
 
     @staticmethod
-    def remove_overlapping_solutions(solutions):
+    def remove_overlapping_solutions(solutions: List[List[Dict[str, str]]]) -> List[List[Dict[str, str]]]:
         """
         Remove overlapping solutions from the list of solutions.
 
         Args:
-            solutions (list): List of solutions, each represented as a list of dictionaries.
+            solutions: List of solutions, each represented as a list of dictionaries.
+                Each dictionary should have 'smiles' and 'Ratio' keys with string values.
 
         Returns:
-            list: List of unique solutions with overlapping solutions removed.
+            List of unique solutions with overlapping solutions removed.
         """
         unique_solutions = []
         seen = set()

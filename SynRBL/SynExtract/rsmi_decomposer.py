@@ -4,6 +4,9 @@ from rdkit.Chem import Descriptors
 from joblib import Parallel, delayed
 import pandas as pd
 
+from typing import Dict, List, Tuple, Union
+
+
 class RSMIDecomposer:
     """
     A class for decomposing SMILES strings into atomic compositions and calculating molecular weights.
@@ -38,18 +41,26 @@ class RSMIDecomposer:
             # This covers elements up to Radon (Rn). Extend further if needed.
         }
 
-    def __init__(self, smiles=None, data=None, reactant_col='reactants', product_col='products', parallel=True, n_jobs=10, verbose=1):
+    def __init__(
+        self, smiles: str = None, 
+        data: Union[List[str], pd.DataFrame] = None,
+        reactant_col: str = 'reactants', 
+        product_col: str = 'products',
+        parallel: bool = True, 
+        n_jobs: int = 10, 
+        verbose: int = 1
+        ) -> None:
         """
         Initialize the RSMIDecomposer object.
 
-        Parameters:
-        smiles (str): The SMILES string to decompose.
-        data (list or DataFrame): The data containing the SMILES strings to decompose.
-        reactant_col (str): The column or key name in the data for reactant SMILES strings.
-        product_col (str): The column or key name in the data for product SMILES strings.
-        parallel (bool): Whether to use parallel processing.
-        n_jobs (int): The number of jobs to run in parallel.
-        verbose (int): The verbosity level.
+        Args:
+            smiles (str): The SMILES string to decompose.
+            data (list or DataFrame): The data containing the SMILES strings to decompose.
+            reactant_col (str): The column or key name in the data for reactant SMILES strings.
+            product_col (str): The column or key name in the data for product SMILES strings.
+            parallel (bool): Whether to use parallel processing.
+            n_jobs (int): The number of jobs to run in parallel.
+            verbose (int): The verbosity level.
         """
         self.smiles = smiles
         self.data = data
@@ -59,15 +70,16 @@ class RSMIDecomposer:
         self.n_jobs = n_jobs
         self.verbose = verbose
 
-    def calculate_mol_weight(self, smiles):
+
+    def calculate_mol_weight(self, smiles: str) -> float:
         """
         Calculates the molecular weight of a molecule represented by a SMILES string.
 
-        Parameters:
-        smiles (str): The SMILES string of the molecule.
+        Args:
+            smiles: The SMILES string of the molecule.
 
         Returns:
-        float: The molecular weight of the molecule, or None if the SMILES string is invalid.
+            The molecular weight of the molecule, or None if the SMILES string is invalid.
 
         Example:
         >>> decomposer = RSMIDecomposer()
@@ -76,10 +88,10 @@ class RSMIDecomposer:
         """
         molecule = Chem.MolFromSmiles(smiles)
         if molecule:
-            # Calculate and return the molecular weight of the molecule
             return Descriptors.MolWt(molecule)
 
-    def data_decomposer(self):
+
+    def data_decomposer(self) -> Tuple[List[Dict[str, int]], List[Dict[str, int]]]:
         """
         Decomposes SMILES strings in the data into atomic compositions for reactants and products.
 
@@ -112,7 +124,7 @@ class RSMIDecomposer:
         return react_dict, prods_dict
 
     @staticmethod
-    def decompose(smiles):
+    def decompose(smiles: str) -> Dict[str, int]:
         """
         Decomposes a SMILES string into a dictionary of atomic counts and charges.
 

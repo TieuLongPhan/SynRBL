@@ -1,12 +1,16 @@
+import pandas as pd
 from rdkit import Chem
-from rdkit.Chem import Draw, MolStandardize, rdDepictor
-from rdkit.Chem.MolStandardize import rdMolStandardize
-from rdkit.Chem.SaltRemover import SaltRemover
+from rdkit.Chem import Draw, MolStandardize
 from IPython.display import SVG, display
 from joblib import Parallel, delayed
-import pandas as pd
-import copy
-from SynRBL.SynCleaning.standardizer_wrapper import normalize_molecule, canonicalize_tautomer, salts_remover, reionize_charges, uncharge_molecule, assign_stereochemistry, fragmets_remover, remove_hydrogens_and_sanitize
+from typing import Tuple, Optional, Union
+from typing import List
+
+import sys
+from pathlib import Path
+root_dir = Path(__file__).parents[2]
+sys.path.append(str(root_dir))
+from SynRBL.SynCleaning.standardizer_wrapper import normalize_molecule, canonicalize_tautomer, salts_remover, reionize_charges, uncharge_molecule, assign_stereochemistry, fragments_remover, remove_hydrogens_and_sanitize
 
 class SMILESStandardizer:
     """
@@ -20,39 +24,35 @@ class SMILESStandardizer:
         self.normalizer = MolStandardize.normalize.Normalizer()
 
     @staticmethod
-    def standardize_mol(mol, verbose=False, normalize=True, tautomerize=True, remove_salts=False, 
-                        handle_charges=False, uncharge=False, handle_stereo=True, remove_fragments=False, 
-                        largest_fragment_only=False):
+    def standardize_mol(
+        mol: Chem.Mol,
+        verbose: bool = False,
+        normalize: bool = True,
+        tautomerize: bool = True,
+        remove_salts: bool = False,
+        handle_charges: bool = False,
+        uncharge: bool = False,
+        handle_stereo: bool = True,
+        remove_fragments: bool = False,
+        largest_fragment_only: bool = False
+    ) -> Chem.Mol:
         """
         Apply comprehensive standardization to a molecule.
 
-        Parameters
-        ----------
-        mol : Mol
-            RDKit Mol object to be standardized.
-        verbose : bool, optional
-            If True, visualize the molecule at each step.
-        normalize : bool, optional
-            Perform normalization (corrects functional groups and recharges).
-        tautomerize : bool, optional
-            Canonicalize tautomers.
-        remove_salts : bool, optional
-            Remove salt fragments from the molecule.
-        handle_charges : bool, optional
-            Adjust molecule to its most likely ionic state using Reionizer.
-        uncharge : bool, optional
-            Neutralize molecule by removing counter-ions using Uncharger.
-        handle_stereo : bool, optional
-            Handle stereochemistry.
-        remove_fragments : bool, optional
-            Remove small fragments, keeping only the largest one.
-        largest_fragment_only : bool, optional
-            Keep only the largest fragment in the molecule.
+        Parameters:
+        mol (Chem.Mol): RDKit Mol object to be standardized.
+        verbose (bool, optional): If True, visualize the molecule at each step.
+        normalize (bool, optional): Perform normalization (corrects functional groups and recharges).
+        tautomerize (bool, optional): Canonicalize tautomers.
+        remove_salts (bool, optional): Remove salt fragments from the molecule.
+        handle_charges (bool, optional): Adjust molecule to its most likely ionic state using Reionizer.
+        uncharge (bool, optional): Neutralize molecule by removing counter-ions using Uncharger.
+        handle_stereo (bool, optional): Handle stereochemistry.
+        remove_fragments (bool, optional): Remove small fragments, keeping only the largest one.
+        largest_fragment_only (bool, optional): Keep only the largest fragment in the molecule.
 
-        Returns
-        -------
-        Mol
-            Standardized RDKit Mol object.
+        Returns:
+        Chem.Mol: Standardized RDKit Mol object.
         """
         if mol is None:
             return None
@@ -78,7 +78,7 @@ class SMILESStandardizer:
         if handle_stereo:
             assign_stereochemistry(mol, cleanIt=True, force=True)
         if remove_fragments or largest_fragment_only:
-            mol = fragmets_remover(mol)
+            mol = fragments_remover(mol)
 
         # Visualize the molecule if verbose is True
         if verbose:
@@ -90,7 +90,10 @@ class SMILESStandardizer:
         return mol
 
     @staticmethod
-    def draw_mol_with_SVG(mol, molSize=(450, 150)):
+    def draw_mol_with_SVG(
+        mol: Chem.Mol, 
+        molSize: Tuple[int, int] = (450, 150)
+        ) -> None:
         """
         Visualize an RDKit molecule using SVG.
 
@@ -98,7 +101,7 @@ class SMILESStandardizer:
         ----------
         mol : Mol
             RDKit Mol object to be visualized.
-        molSize : tuple, optional
+        molSize : Tuple[int, int], optional
             Size of the image (width, height).
         """
         mc = Chem.Mol(mol.ToBinary())
@@ -110,7 +113,11 @@ class SMILESStandardizer:
         svg = drawer.GetDrawingText()
         display(SVG(svg.replace('svg:', '')))
 
-    def standardize_smiles(self, smiles, visualize=False, **kwargs):
+    def standardize_smiles(
+        self, smiles: str, 
+        visualize: bool = False, 
+        **kwargs
+        ) -> Tuple[str, Optional[Chem.Mol]]:
         """
         Standardize a SMILES string.
 
@@ -123,7 +130,7 @@ class SMILESStandardizer:
 
         Returns
         -------
-        tuple
+        Tuple[str, Optional[Chem.Mol]]
             A tuple containing the standardized SMILES string and the standardized RDKit Mol object.
         """
         original_mol = Chem.MolFromSmiles(smiles)
@@ -135,43 +142,51 @@ class SMILESStandardizer:
             return standardized_smiles, standardized_mol
         except Chem.MolSanitizeException:
             return "Sanitization failed for SMILES: " + smiles, None
-
-    def standardize_dict_smiles(self, data_input, keys, visualize=False, parallel=True, n_jobs=4, keep_mol=True, **kwargs):
+        
+    def standardize_dict_smiles(
+        self,
+        data_input: Union[pd.DataFrame, List[dict]],
+        keys: List[str],
+        visualize: bool = False,
+        parallel: bool = True,
+        n_jobs: int = 4,
+        keep_mol: bool = True,
+        **kwargs
+    ) -> Union[pd.DataFrame, List[dict]]:
         """
         Standardize SMILES strings in a pandas DataFrame or a list of dictionaries for multiple keys.
 
-        Parameters
-        ----------
-        data_input : DataFrame or list of dicts
-            Data containing SMILES strings to be standardized.
-        keys : list of str
-            Keys or column names for SMILES strings in the data.
-        visualize : bool, optional
-            If True, visualize the molecules during standardization.
-        parallel : bool, optional
-            If True and data_input is a list of dicts, use parallel processing.
-        n_jobs : int, optional
-            Number of jobs to run in parallel (if parallel is True).
-        keep_mol : bool, optional
-            If True, keep the RDKit Mol objects in the output.
+        Args:
+            data_input (Union[pd.DataFrame, List[dict]]): Data containing SMILES strings to be standardized.
+            keys (List[str]): Keys or column names for SMILES strings in the data.
+            visualize (bool, optional): If True, visualize the molecules during standardization.
+            parallel (bool, optional): If True and data_input is a list of dicts, use parallel processing.
+            n_jobs (int, optional): Number of jobs to run in parallel (if parallel is True).
+            keep_mol (bool, optional): If True, keep the RDKit Mol objects in the output.
 
-        Returns
-        -------
-        DataFrame or list of dicts
-            Data with standardized SMILES strings and, optionally, standardized RDKit Mol objects for each key.
+        Returns:
+            Union[pd.DataFrame, List[dict]]: Data with standardized SMILES strings and, optionally, 
+            standardized RDKit Mol objects for each key.
         """
         if isinstance(data_input, pd.DataFrame):
             for key in keys:
                 if parallel:
                     with Parallel(n_jobs=n_jobs, verbose=1) as parallel:
-                        standardized_results = parallel(delayed(self.standardize_smiles)(smiles, visualize=visualize, **kwargs) for smiles in data_input[key])
+                        standardized_results = parallel(
+                            delayed(self.standardize_smiles)(smiles, visualize=visualize, **kwargs) 
+                            for smiles in data_input[key]
+                        )
                     data_input['standardized_' + key] = [result[0] for result in standardized_results]
                     if keep_mol:
                         data_input['standardized_mol_' + key] = [result[1] for result in standardized_results]
                 else:
-                    data_input['standardized_' + key] = data_input[key].apply(lambda x: self.standardize_smiles(x, visualize=visualize, **kwargs)[0])
+                    data_input['standardized_' + key] = data_input[key].apply(
+                        lambda x: self.standardize_smiles(x, visualize=visualize, **kwargs)[0]
+                    )
                     if keep_mol:
-                        data_input['standardized_mol_' + key] = data_input[key].apply(lambda x: self.standardize_smiles(x, visualize=visualize, **kwargs)[1])
+                        data_input['standardized_mol_' + key] = data_input[key].apply(
+                            lambda x: self.standardize_smiles(x, visualize=visualize, **kwargs)[1]
+                        )
         elif isinstance(data_input, list) and all(isinstance(item, dict) for item in data_input):
             for key in keys:
                 if parallel:
@@ -186,7 +201,9 @@ class SMILESStandardizer:
                 else:
                     for reaction_data in data_input:
                         smiles = reaction_data.get(key, '')
-                        standardized_smiles, standardized_mol = self.standardize_smiles(smiles, visualize=visualize, **kwargs)
+                        standardized_smiles, standardized_mol = self.standardize_smiles(
+                            smiles, visualize=visualize, **kwargs
+                        )
                         reaction_data['standardized_' + key] = standardized_smiles
                         if keep_mol:
                             reaction_data['standardized_mol_' + key] = standardized_mol
