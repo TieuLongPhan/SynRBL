@@ -70,7 +70,7 @@ class MCSMissingGraphAnalyzer:
         return Chem.MolToSmarts(mol) if mol else None
 
     @staticmethod
-    def find_maximum_common_substructure(mol1, mol2, params=None):
+    def find_maximum_common_substructure(mol1, mol2, params):
         """
         Find the maximum common substructure (MCS) between two molecules.
 
@@ -82,7 +82,10 @@ class MCSMissingGraphAnalyzer:
         - rdkit.Chem.Mol or None
             The RDKit molecule object representing the MCS, or None if MCS search was canceled.
         """
-        mcs_result = rdFMCS.FindMCS([mol1, mol2], params=params)
+        if params == None:
+            mcs_result = rdFMCS.FindMCS([mol1, mol2])
+        else:
+            mcs_result = rdFMCS.FindMCS([mol1, mol2], params)
         if mcs_result.canceled:
             return None
         mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)

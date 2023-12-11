@@ -82,7 +82,7 @@ class FindMissingGraphs:
             except:
                 if mcs_mol:
                     # Finding substructure matches
-                    substructure_match = mol.GetSubstructMatch(mcs_mol)
+                    substructure_match = sorted(mol.GetSubstructMatch(mcs_mol))
                     if substructure_match:
                         atoms_to_remove.update(substructure_match)
 
