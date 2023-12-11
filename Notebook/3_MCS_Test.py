@@ -296,8 +296,9 @@ Fail = [8]
 rare = [13]
 #|%%--%%| <0Ld2NEsqkC|gXEx0Epyj6>
 from rdkit.Chem import rdmolops
-from SynRBL.SynMCS.mol_merge import merge_mols, merge_expand, plot_mols
+from SynRBL.SynMCS.mol_merge import merge, merge_mols, merge_expand, plot_mols
 import matplotlib.pyplot as plt
+from collections import defaultdict
 
 def _normalize(impute_product_frags, boundary_atoms_products, nearest_neighbor_products):
     frags = []
@@ -370,30 +371,57 @@ def impute(data, idx, verbose=False):
         for i, f in enumerate(frags):
             print("  Mol {}: {}".format(i, Chem.MolToSmiles(f)))
         display_reaction(reaction)
-    if len(frags) == 1:
-        impute_single(frags, bounds, neighbors)
-    elif len(frags) == 2:
-        impute_double(frags, bounds, neighbors)
+        plot_mols(frags, figsize=(4, 1), titles=["Input" for _ in range(len(frags))])
+        plt.show()
+    mmol = merge(frags, bounds, neighbors)
+    if verbose:
+        plot_mols([Chem.RemoveHs(m['mol']) for m in mmol], figsize=(3, 1), titles=['Merged' for _ in range(len(mmol))])
+        plt.show()
+    return mmol
 
-s = 100
+
+s = 1000
 n = 0
-correct = 0
+correct = []
 incorrect = []
+crules = defaultdict(lambda: [])
+mrules = defaultdict(lambda: [])
 for i in range(n, n + s):
     try:
-        impute(filtered_data, i)
-        correct += 1
+        mmols = impute(filtered_data, i)
+        for mmol in mmols:
+            for r in mmol.get('compound_rules', []):
+                crules[r.name].append(i)
+            for r in mmol.get('merge_rules', []):
+                mrules[r.name].append(i)
+        correct.append(i) 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        #import traceback
+        #traceback.print_exc()
         print('[{}]'.format(i), e)
         incorrect.append(i)
-print('Correct merges:', correct)
+
+#|%%--%%| <gXEx0Epyj6|InYhbn1oVE>
+
+print('Compound rule useage:')
+for k, v in crules.items():
+    print("  Rule '{}' was used {} times.".format(k, len(v)))
+print('Merge rule useage:')
+for k, v in mrules.items():
+    print("  Rule '{}' was used {} times.".format(k, len(v)))
+print('Correct merges:', len(correct))
 print('Extracted incorrect:', len(incorrect))
 
-#|%%--%%| <gXEx0Epyj6|ErWqmJQDiS>
+#|%%--%%| <InYhbn1oVE|ErWqmJQDiS>
+import random
 
-indices = [1, 11, 18] #incorrect
+#indices = crules['append O to Si'][0:5]
+#indices = crules['append O to C-C bond'][0:5] 
+indices = mrules['halogen bond restriction']
+#indices = mrules['silicium radical'][0:5]
+#indices = incorrect #[11, 20, 59, 64, 90]
+#indices = random.choices(correct, k=5)
+
 for i in indices:
     try:
         impute(filtered_data, i, verbose=True) 
@@ -401,11 +429,3 @@ for i in indices:
         #import traceback
         #traceback.print_exc()
         print('[{}]'.format(i), e)
-
-#|%%--%%| <ErWqmJQDiS|ibTLyHEW1q>
-from rdkit.Chem import rdmolops
-mol = Chem.MolFromSmiles('CC.O')
-plot_mols(list(rdmolops.GetMolFrags(mol, asMols = True)))
-plt.show()
-
-

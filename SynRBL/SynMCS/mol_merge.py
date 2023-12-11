@@ -22,6 +22,11 @@ class MergeError(Exception):
                                    Chem.MolToSmiles(Chem.RemoveHs(mol1)), 
                                    Chem.MolToSmiles(Chem.RemoveHs(mol2))))
 
+class SubstructureError(Exception):
+    def __init__(self):
+        super().__init__('Substructure mismatch.')
+
+
 class AtomCondition:
     def __init__(self, atom=None, rad_e=None, charge=None, neighbors=None, **kwargs):
         atom = kwargs.get('atom', atom)
@@ -242,7 +247,7 @@ def get_compound_rules() -> list[CompoundRule]:
 def get_compound(atom, neighbor):
     for rule in get_compound_rules():
         if rule.can_apply(atom, neighbor):
-            return rule.apply(atom, neighbor)
+            return rule.apply(atom, neighbor), rule
     raise NoCompoundError(atom.GetSymbol(), neighbor)
 
 def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
@@ -257,16 +262,17 @@ def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
     mol2_tracker.add_atoms(mol, offset=mol2_offset)
     atom1 = mol.GetAtoms()[idx1]
     atom2 = mol.GetAtoms()[mol2_offset + idx2]
-    found_merge_rule = False
+    merge_rule = None
     for rule in get_merge_rules():
         if not rule.can_apply(atom1, atom2):
             continue
         rule.apply(mol, atom1, atom2)
-        found_merge_rule = True
+        merge_rule = rule
         break
-    if found_merge_rule:
+    if merge_rule:
         Chem.SanitizeMol(mol)
         return {'mol': mol, 
+                'rule': merge_rule,
                 'aam1': mol1_tracker.to_dict(), 
                 'aam2': mol2_tracker.to_dict()}
     else:
@@ -283,59 +289,80 @@ def merge_expand(mol, bound_indices, neighbors=None):
                          '(bound_indices={}, neighbors={})'.format(
                              bound_indices, neighbors))
     mol1 = mol
+    used_compound_rules = []
+    used_merge_rules = []
     for i in range(l):
         atom = mol1.GetAtoms()[bound_indices[i]]
-        mol2 = get_compound(atom, neighbors[i])
+        mol2, rule = get_compound(atom, neighbors[i])
+        used_compound_rules.append(rule)
         if mol2 is not None:
             mol = merge_mols(mol1, mol2['mol'], 
                              bound_indices[i], mol2['index'], 
                              mol1_track=bound_indices)
             bound_indices = [mol['aam1'][str(idx)] for idx in bound_indices]
             mol1 = mol['mol']
+            used_merge_rules.append(mol['rule'])
         else:
             mol = {'mol': mol1}
+    mol['compound_rules'] = used_compound_rules
+    mol['merge_rules'] = used_merge_rules
     return mol
 
-def _normalize_indices(bounds):
-    indices = []
-    for bound in bounds:
-        for atom in bound:
-            indices.extend(atom.values())
-    return indices
+def _ad2t(atom_dict):
+    """ Atom dict to tuple. """
+    assert isinstance(atom_dict, dict) and len(atom_dict) == 1
+    return next(iter(atom_dict.items()))
 
-def _normalize_neighbors(neighbors):
-    symbols = []
-    for neighbor in neighbors:
-        for atom in neighbor:
-            symbols.extend(atom.keys())
-    return symbols
+def _adl2t(atom_dict_list):
+    """ Atom dict list to symbol and indices lists tuple. """
+    sym_list = []
+    idx_list = []
+    for a in atom_dict_list:
+        sym, idx = _ad2t(a)
+        sym_list.append(sym)
+        idx_list.append(idx)
+    return sym_list, idx_list
 
-def _split(mol):
-    return [f for f in rdmolops.GetMolFrags(mol, asMols=True)]
-
-def _check_structure(mols, indices, neighbors):
-    if len(mols) != len(indices) or len(mols) != len(neighbors):
-        raise ValueError('Substructure mismatch.')
+def _split_mol(mol, bounds, neighbors):
+    assert isinstance(bounds, list) and len(bounds) > 0 and isinstance(bounds[0], dict)
+    assert isinstance(neighbors, list) and len(neighbors) == len(bounds) and isinstance(neighbors[0], dict)
+    frags = list(rdmolops.GetMolFrags(mol, asMols = True))
+    offsets = [0]
+    for i, f in enumerate(frags):
+        offsets.append(offsets[i] + len(f.GetAtoms()))
+    _bounds = [[] for _ in range(len(frags))]
+    _neighbors = [[] for _ in range(len(frags))]
+    for b, n in zip(bounds, neighbors):
+        sym, idx = _ad2t(b)
+        for i in range(len(offsets) - 1):
+            if idx >= offsets[i] and idx < offsets[i + 1]:
+                _bounds[i].append({sym: idx - offsets[i]})
+                _neighbors[i].append(n)
+    return frags, _bounds, _neighbors
 
 def merge(mols, bounds, neighbors):
-    indices = _normalize_indices(bounds)
-    neighbors = _normalize_neighbors(neighbors)
     merged_mols = []
     if len(mols) == 1:
-        mols = _split(mols[0])
-        _check_structure(mols, indices, neighbors)
-        for m, i, n in zip(mols, indices, neighbors):
-            print(m, i, n)
-            merged_mol = merge_expand(m, [i], [n])
-            merged_mols.append(merged_mol['mol'])
+        mols, bounds, neighbors = _split_mol(mols[0], bounds[0], neighbors[0])
+        for m, b, n in zip(mols, bounds, neighbors):
+            _, indices = _adl2t(b)
+            nsyms, _ = _adl2t(n)
+            merged_mol = merge_expand(m, indices, nsyms)
+            merged_mols.append(merged_mol)
     elif len(mols) == 2:
-        _check_structure(mols, indices, neighbors)
         mol1, mol2 = mols[0], mols[1]
-        idx1, idx2 = indices[0], indices[1] 
+        if len(bounds[0]) != 1 or len(bounds[1]) != 1:
+            raise SubstructureError()
+        _, idx1 = _ad2t(bounds[0][0])
+        _, idx2 = _ad2t(bounds[1][0])
         merged_mol = merge_mols(mol1, mol2, idx1, idx2)
-        merged_mols.append(merged_mol['mol'])
+        merged_mols.append(merged_mol)
     else:
-        raise NotImplementedError('Merging of {} fragments is not supported.'.format(len(frags)))
+        raise NotImplementedError('Merging of {} molecules is not supported.'.format(len(mols)))
+    for m in merged_mols:
+        if 'rule' in m.keys(): del m['rule']
+        if 'aam1' in m.keys(): del m['aam1']
+        if 'aam2' in m.keys(): del m['aam2']
     return merged_mols
 
 if __name__ == "__main__":
@@ -382,23 +409,26 @@ if __name__ == "__main__":
                             f"Actual: {Chem.CanonSmiles(result)}")
 
     def _test_merge(frags, bounds, neighbors, result):
-        print(frags, bounds, neighbors) 
         mols = [Chem.MolFromSmiles(f) for f in frags]
-        _mmol = merge(mols, bounds, neighbors)
-        is_correct = Chem.MolToSmiles(_mmol) == Chem.CanonSmiles(result)
+        _mmol = [Chem.RemoveHs(m['mol']) for m in merge(mols, bounds, neighbors)]
+        all_correct = True
+        for m, r in zip(_mmol, result):
+            is_correct = Chem.MolToSmiles(m) == Chem.CanonSmiles(r)
+            all_correct = all_correct and is_correct
+            if not is_correct:
+                print(f"Expected: {Chem.CanonSmiles(r)} Actual: {Chem.MolToSmiles(m)}")
+            if not is_correct:
+                _rmol = Chem.MolFromSmiles(r)
+                if plot:
+                    plot_mols([_rmol, m], titles=['expected', 'actual'], 
+                              includeAtomNumbers=True)
+                    plt.show()
         if plot:
-            plot_mols([_mol, _mmol], titles=['input', 'expaneded'], 
-                      includeAtomNumbers=False)
+            plot_mols(_mmol, includeAtomNumbers=False)
             plt.show()
-        if not is_correct:
-            _rmol = Chem.MolFromSmiles(result)
-            plot_mols([_rmol, _mmol], titles=['expected', 'actual'], 
-                      includeAtomNumbers=True)
-            plt.show()
-        assert is_correct, (f"Expected: {Chem.MolToSmiles(_mmol)} " + 
-                            f"Actual: {Chem.CanonSmiles(result)}")
+        assert all_correct, "Merge result is not as expected."
 
-    if False:
+    if True:
         _test_merge_mols('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 'CC1(C)OB(-C(C)C)OC1(C)C')
         _test_merge_mols('O', 'C[Si](C)C(C)(C)C', 0, 1, 'C[Si](O)(C)C(C)(C)C')
         _test_merge_mols('O', 'CC(C)[P+](c1ccccc1)c1ccccc1', 0, 3, 'CC(C)P(=O)(c1ccccc1)c1ccccc1')  
@@ -408,8 +438,18 @@ if __name__ == "__main__":
         _test_merge_expand('C[Si](C)C(C)(C)C', [1], ['O'], 'C[Si](O)(C)C(C)(C)C')
         _test_merge_expand('CC(C)(C)OC(=O)O', [7], ['C'], 'CC(C)(C)OC(=O)O')
 
-    _test_merge(['CC1(C)OBOC1(C)C', 'Br'], [[{'B': 4}], [{'Br': 0}]], [[{'C': 5}], [{'C': 13}]])
-    #_test_merge(['NBr.O'], [[{'N': 1}, {'O': 0}, {'N': 1}]], [[{'C': 1}, {'C': 4}, {'C': 4}]])
-    #_test_merge(['C.O'], [[{'O': 1}, {'C': 0}]], [[{'C': 2}, {'O': 1}]])
+    _test_merge(['CC1(C)OBOC1(C)C', 'Br'], 
+                [[{'B': 4}], [{'Br': 0}]], 
+                [[{'C': 5}], [{'C': 13}]], 
+                ['CC1(C)OB(Br)OC1(C)C'])
+    try:
+        _test_merge(['NBr.O'], [[{'N': 1}, {'O': 0}, {'N': 1}]], [[{'C': 1}, {'C': 4}, {'C': 4}]], ['NBr', 'O'])
+    except NoCompoundError: 
+        pass
+    _test_merge(['C.O'], [[{'C': 0}, {'O': 1}]], [[{'O': 1}, {'C': 2}]], ['CO', 'O'])
+    _test_merge(['O=Cc1ccccc1C=O'], [[{'C': 1}, {'C': 8}]], [[{'N': 9}, {'N': 11}]], ['O=C(O)c1ccccc1C(O)=O'])
     #plot_mols(Chem.MolFromSmiles('CCCC[Sn+](CCCC)CCCC.[Cl-]'), includeAtomNumbers=False)
     #plt.show()
+
+
+
