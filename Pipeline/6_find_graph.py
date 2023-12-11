@@ -37,8 +37,6 @@ def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
     
     return missing_results
 
-
-
 def main():
 
     missing_results_3_macth = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',

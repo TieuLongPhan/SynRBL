@@ -37,5 +37,5 @@ def smiles_to_mol_parallel(
     :param n_jobs: The number of jobs to run in parallel. -1 means using all processors.
     :return: A list of lists containing RDKit molecule objects.
     """
-    mol_lists = Parallel(n_jobs=n_jobs)(delayed(Chem.MolFromSmiles)(smiles_list) for smiles_list in smiles_lists)
+    mol_lists = Parallel(n_jobs=n_jobs)(delayed(convert_smiles_to_mols)(smiles_list) for smiles_list in smiles_lists)
     return mol_lists
