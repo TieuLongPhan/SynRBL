@@ -92,15 +92,14 @@ class FindMissingGraphs:
                         missing_part.RemoveAtom(idx)
 
                     # re-index
-                    AM = False
-                    missing_part = Chem.MolFromSmiles(Chem.MolToSmiles(missing_part))
                     try:
-                        atom_mapping = FindMissingGraphs.map_parent_to_child(mol, missing_part)
-                        AM=True
+                        missing_part = Chem.MolFromSmiles(Chem.MolToSmiles(missing_part))
                     except:
-                        pass
+                        missing_part = missing_part
+                    atom_mapping = FindMissingGraphs.map_parent_to_child(mol, missing_part)
+                    
                     # Mapping indices from original to missing part molecule
-                    index_mapping = {idx: i for i, idx in enumerate(sorted(set(range(mol.GetNumAtoms())) - atoms_to_remove))}
+                    #index_mapping = {idx: i for i, idx in enumerate(sorted(set(range(mol.GetNumAtoms())) - atoms_to_remove))}
 
                     boundary_atoms = []
                     nearest_atoms = []
@@ -114,13 +113,8 @@ class FindMissingGraphs:
                             for neighbor in neighbors:
                                 if neighbor.GetIdx() not in substructure_match:
                                     nearest_atoms.append({atom_symbol: atom_idx})
-                                
-                                    #boundary_atoms.append({neighbor.GetSymbol(): atom_mapping[neighbor.GetIdx()]})
-                                    #renumerate_idx = atom_mapping.get(neighbor.GetIdx(), -1)
-                                    if AM == True:
-                                        renumerate_idx = atom_mapping.get(neighbor.GetIdx(), -1)
-                                    else:
-                                        renumerate_idx = index_mapping.get(neighbor.GetIdx(), -1)
+                                    #renumerate_idx = index_mapping.get(neighbor.GetIdx(), -1)
+                                    renumerate_idx = atom_mapping.get(neighbor.GetIdx(), -1)
                                     if renumerate_idx != -1:
                                         boundary_atoms.append({neighbor.GetSymbol(): renumerate_idx})
 
@@ -218,6 +212,7 @@ class FindMissingGraphs:
 
         results = Parallel(n_jobs=n_jobs)(delayed(process_single_pair)(reactant_mol, mcs_mol, use_findMCS=use_findMCS) for reactant_mol, mcs_mol in zip(sorted_reactants_mol_list, mcs_mol_list))
         return results
+
     
     @staticmethod
     def map_parent_to_child(parent_mol, child_mol):

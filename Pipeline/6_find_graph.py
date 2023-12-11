@@ -42,8 +42,8 @@ def main():
     missing_results_3_macth = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',
                 save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_3+.json.gz')
     
-    missing_results_largest = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_0_50_largest.json.gz',
-                save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_under2-.json.gz')
+    #missing_results_largest = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_0_50_largest.json.gz',
+    #            save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_under2-.json.gz')
     
     
 
