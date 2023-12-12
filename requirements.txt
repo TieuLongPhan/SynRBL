@@ -52,7 +52,7 @@ mdurl==0.1.2
 mhfp==1.9.6
 more-itertools==10.1.0
 nest-asyncio @ file:///home/conda/feedstock_root/build_artifacts/nest-asyncio_1697083700168/work
-networkx==2.2
+networkx @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_b9af3smw_7/croot/networkx_1690562010704/work
 numba==0.58.1
 numpy==1.26.2
 packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1696202382185/work
