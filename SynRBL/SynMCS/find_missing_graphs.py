@@ -1,7 +1,8 @@
 from rdkit import Chem
 from rdkit.Chem import rdFMCS
 from joblib import Parallel, delayed
-
+from rdkit.Chem import rdmolops
+import copy
 class FindMissingGraphs:
     """
     A class for finding missing parts, boundary atoms, and nearest neighbors in a list of reactant molecules.
@@ -61,9 +62,12 @@ class FindMissingGraphs:
             nearest_neighbor_list = []
 
             if use_findMCS:
+                #Chem.SanitizeMol(mol)
+                #Chem.SanitizeMol(mol)
                 # Calculate MCS using RDKit's rdFMCS
-                mcs = rdFMCS.FindMCS([mol, mcs_mol], params)
+                mcs = rdFMCS.FindMCS([mol, mcs_mol])
                 mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
+                
             
             try:
                 if mcs_mol:
@@ -86,27 +90,38 @@ class FindMissingGraphs:
                     if substructure_match:
                         atoms_to_remove.update(substructure_match)
 
+                    
+                    left_number = []
+                    for i in range(mol.GetNumAtoms()):
+                        if i not in substructure_match:
+                            left_number.append(i)
+
+                    
                     # Creating the molecule of missing parts
                     missing_part = Chem.RWMol(mol)
                     for idx in sorted(atoms_to_remove, reverse=True):
                         missing_part.RemoveAtom(idx)
 
-                    # re-index
-                    AM = False
-                    missing_part = Chem.MolFromSmiles(Chem.MolToSmiles(missing_part))
-                    try:
-                        atom_mapping = FindMissingGraphs.map_parent_to_child(mol, missing_part)
-                        AM=True
-                    except:
-                        pass
-                    # Mapping indices from original to missing part molecule
-                    index_mapping = {idx: i for i, idx in enumerate(sorted(set(range(mol.GetNumAtoms())) - atoms_to_remove))}
+
+                    missing_part_old = copy.deepcopy(missing_part)
+                   
+
+                    if missing_part is not None:
+                        missing_part = Chem.MolFromSmiles(Chem.MolToSmiles(missing_part))
+                     
+                        missing_part = FindMissingGraphs.add_hydrogens_to_radicals(missing_part)
+                        atom_mapping = FindMissingGraphs.map_parent_to_child(missing_part_old, missing_part, left_number)
+                        
+                    
+                    else:
+                        index_mapping = {idx: i for i, idx in enumerate(sorted(set(range(mol.GetNumAtoms())) - atoms_to_remove))}
 
                     boundary_atoms = []
                     nearest_atoms = []
 
                     # Identifying boundary atoms and nearest neighbors
                     for atom_idx in substructure_match:
+                        #display(mol)
                         if atom_idx < mol.GetNumAtoms():
                             atom_symbol = mol.GetAtomWithIdx(atom_idx).GetSymbol()
                             neighbors = mol.GetAtomWithIdx(atom_idx).GetNeighbors()
@@ -117,7 +132,7 @@ class FindMissingGraphs:
                                 
                                     #boundary_atoms.append({neighbor.GetSymbol(): atom_mapping[neighbor.GetIdx()]})
                                     #renumerate_idx = atom_mapping.get(neighbor.GetIdx(), -1)
-                                    if AM == True:
+                                    if missing_part:
                                         renumerate_idx = atom_mapping.get(neighbor.GetIdx(), -1)
                                     else:
                                         renumerate_idx = index_mapping.get(neighbor.GetIdx(), -1)
@@ -219,14 +234,58 @@ class FindMissingGraphs:
         results = Parallel(n_jobs=n_jobs)(delayed(process_single_pair)(reactant_mol, mcs_mol, use_findMCS=use_findMCS) for reactant_mol, mcs_mol in zip(sorted_reactants_mol_list, mcs_mol_list))
         return results
     
+ 
     @staticmethod
-    def map_parent_to_child(parent_mol, child_mol):
+    def map_parent_to_child(parent_mol, child_mol, key_base):
         # Get atom indices in the parent molecule that match the entire child molecule
         parent_mcs_indices = parent_mol.GetSubstructMatch(child_mol)
 
         # Create a mapping of parent atom indices to child atom indices
         atom_mapping = {}
         for child_idx, parent_idx in enumerate(parent_mcs_indices):
-            atom_mapping[parent_idx] = child_idx
+            map_key = key_base[parent_idx]
+            atom_mapping[map_key] = child_idx
 
         return atom_mapping
+    
+    @staticmethod
+    def is_mapping_correct(mol, symbol_to_index):
+        # Convert the molecule to a dictionary of atom indices to symbols
+        molecule_dict = {atom.GetIdx(): atom.GetSymbol() for atom in mol.GetAtoms()}
+        
+        # Check if the mappings are consistent
+        for symbol, index in symbol_to_index.items():
+            if index not in molecule_dict:
+                return False
+            if molecule_dict[index] != symbol:
+                return False
+        
+        return True
+    
+    @staticmethod
+    def add_hydrogens_to_radicals(mol: Chem.Mol) -> Chem.Mol:
+        """
+        Add hydrogen atoms to radical sites in a molecule.
+
+        Args:
+        - mol (Chem.Mol): RDKit molecule object.
+
+        Returns:
+        - Chem.Mol: The modified molecule with added hydrogens.
+        """
+        # Create a copy of the molecule
+        mol_with_h = Chem.RWMol(mol)
+
+        # Add explicit hydrogens (not necessary if they are already present in the input molecule)
+        mol_with_h = rdmolops.AddHs(mol_with_h)
+
+        # Find and process radical atoms
+        for atom in mol_with_h.GetAtoms():
+            num_radical_electrons = atom.GetNumRadicalElectrons()
+            if num_radical_electrons > 0:
+                atom.SetNumExplicitHs(atom.GetNumExplicitHs() + num_radical_electrons)
+                atom.SetNumRadicalElectrons(0)
+        
+        curate_mol = Chem.RemoveHs(mol_with_h)
+        return curate_mol
+    

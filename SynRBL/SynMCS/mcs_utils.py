@@ -17,11 +17,11 @@ def convert_smiles_to_mols(
     mol_list = []
     for smiles in smiles_list:
         mol = Chem.MolFromSmiles(smiles, sanitize=False)
-        if mol:
-            try:
-                Chem.SanitizeMol(mol)
-            except:
-                pass
+        # if mol:
+        #     try:
+        #         Chem.SanitizeMol(mol, Chem.SanitizeFlags.SANITIZE_SETAROMATICITY)
+        #     except:
+        #         pass
             
         mol_list.append(mol)
     return mol_list

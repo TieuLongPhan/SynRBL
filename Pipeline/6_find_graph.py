@@ -30,20 +30,23 @@ def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
     missing_final = pd.DataFrame(missing_results)
 
     missing_final = missing_final.map(lambda x: np.nan if x == '' else x)
+    print(missing_final)
     non_pass_df = missing_final.iloc[missing_final.dropna(subset=['issue']).index,:].to_dict(orient='records')
     print('Bug:', len(non_pass_df))
     if save:
         save_database(missing_results, save_path)
+    non_pass_df = msc_df.iloc[missing_final.dropna(subset=['issue']).index,:].to_dict(orient='records')
     
-    return missing_results
+    return missing_results, non_pass_df
 
 def main():
 
-    missing_results_3_macth = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',
+    missing_results_3_macth, non_pass_df= find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',
                 save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_3+.json.gz')
+    save_database(non_pass_df, root_dir / 'Data/MCS/Bug.json.gz')
     
-    #missing_results_largest = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_0_50_largest.json.gz',
-    #            save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_under2-.json.gz')
+    missing_results_largest, _ = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_0_50_largest.json.gz',
+                save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_under2-.json.gz')
     
     
 
