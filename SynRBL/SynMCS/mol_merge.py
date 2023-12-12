@@ -4,93 +4,201 @@ from rdkit import Chem
 import SynRBL.SynMCS
 from rdkit.Chem import rdmolops
 
-class NoCompoundError(Exception):
-    def __init__(self, boundary_atom, nearest_neighbor):
-        self.boundary_atom = boundary_atom
-        self.nearest_neighbor = nearest_neighbor
 
-        super().__init__("Could not identify second compound for merge. " + 
-                         "(Boundary Atom: {}, Nearest Neighbor: {})".format(
-                             self.boundary_atom, self.nearest_neighbor))
+class NoCompoundError(Exception):
+    """
+    Exception if no compound rule is found to expand a molecule.
+    """
+    def __init__(self, boundary_atom, neighbor_atom):
+        """
+        Exception when no compound rule is found to expand a molecule.
+
+        Arguments:
+            boundary_atom (str): Atom symbol of boundary atom.
+            neighbor_atom (str): Atom symbol of boundary neighbor.        
+        """
+        super().__init__(("Could not identify second compound for merge. " + 
+                         "(boundary atom: {}, neighbor atom: {})")
+                         .format(boundary_atom, neighbor_atom))
+
 
 class MergeError(Exception):
+    """
+    Exception if no merge rule is found to combine two molecules.
+    """
     def __init__(self, boundary_atom1, boundary_atom2, mol1, mol2):
-        super().__init__(("Not able to find merge rule for atoms '{}' and '{}'" + 
-                           " of compounds '{}' and '{}'.")
+        """
+        Exception when no merge rule is found to combine two molecules.
+
+        Arguments:
+            boundary_atom1 (str): Atom symbol of first boundary atom.
+            boundary_atom2 (str): Atom symbol of second boundary atom.
+            mol1 (rdkit.Chem.Mol): Part one of molecule to be merged.
+            mol2 (rdkit.Chem.Mol): Part two of molecule to be merged.
+        """
+        super().__init__(("Not able to find merge rule for atoms '{}' and " + 
+                          "'{}' of compounds '{}' and '{}'.")
                            .format(boundary_atom1.GetSymbol(), 
                                    boundary_atom2.GetSymbol(), 
                                    Chem.MolToSmiles(Chem.RemoveHs(mol1)), 
                                    Chem.MolToSmiles(Chem.RemoveHs(mol2))))
 
+
 class SubstructureError(Exception):
+    """
+    Exception if the structure of bound configuration to be merged is invalid.
+    """
     def __init__(self):
+        """
+        Exception if the structure of bound configuration to be merged is 
+        invalid.
+        """
         super().__init__('Substructure mismatch.')
 
+
 class InvalidAtomDict(Exception):
+    """
+    Exception if the atom dictionary is invalid.
+    """
     def __init__(self, expected, actual, index, smiles):
+        """
+        Exception if the atom dictionary is invalid.
+
+        Arguments:
+            expected (str): The expected atom at the given index.
+            actual (str): The actual atom at the index.
+            index (int): The atom index in the molecule.
+            smiles (str): The SMILES representation of the molecule.
+        """
         super().__init__(("Atom dict is invalid for molecule '{}'. " + 
                          "Expected atom '{}' at index {} but found '{}'.")
                         .format(smiles, expected, index, actual))
 
-class AtomCondition:
-    def __init__(self, atom=None, rad_e=None, charge=None, neighbors=None, **kwargs):
-        atom = kwargs.get('atom', atom)
-        rad_e = kwargs.get('rad_e', rad_e)
-        charge = kwargs.get('charge', charge)
-        neighbors = kwargs.get('neighbors', neighbors)
-        atom = atom if atom is None or isinstance(atom, list) else [atom]
-        self.__rad_e = rad_e if rad_e is None or isinstance(rad_e, list) else [rad_e]
-        self.__charge = charge if charge is None or isinstance(charge, list) else [charge]
-        self.__neighbors = neighbors
+class Property:
+    """
+    Generic property for dynamic rule configuration.
+    """
+    def __init__(self, value: str | list[str], dtype=str, allow_none=False):
+        """
+        Generic property for dynamic rule configuration.
 
-        self.__atoms = None
-        self.__neg_atoms = None
-        if atom is not None:
-            for a in atom:
-                if '!' in a:
-                    if self.__neg_atoms is None:
-                        self.__neg_atoms = []
-                    self.__neg_atoms.append(a.replace('!', ''))
+        Arguments:
+            value (str | list[str]): Configuration for this property. This is 
+                a list of acceptable and forbiden values. 
+                e.g.: ['A', 'B'] -> check is true if value is A or B 
+                      ['!C', '!D'] -> check is true if value is not C and not D 
+            dtype (optional): Datatype of the property. Must implement 
+                conversion from string as constructor (e.g.: int).
+            allow_none (bool): Flag if a check with value None is valid or not.
+        """
+        self.__dtype = dtype
+        self.allow_none = allow_none
+        self.neg_values = []
+        self.pos_values = []
+        if value is not None:
+            if not isinstance(value, list):
+                value = [value]
+            for i, s in enumerate(value):
+                value[i] = str(s)
+            for item in value:
+                if not isinstance(item, str):
+                    raise ValueError('value must be str or a list of strings.')
+                if len(item) > 0 and item[0] == '!':
+                    self.neg_values.append(dtype(item[1:]))
                 else:
-                    if self.__atoms is None:
-                        self.__atoms = []
-                    self.__atoms.append(a)
+                    self.pos_values.append(dtype(item))
 
-    def check(self, atom, neighbor=None):
-        if self.__atoms is not None:
+    def check(self, value):
+        """
+        Check if the property is true for the given value.
+
+        Arguments:
+            value: The value to check. It must be of the same datatype as 
+                specified in the constructor.
+
+        Returns:
+            bool: True if the value fulfills the property, false otherwise.
+        """
+        if self.allow_none and value is None:
+            return True
+        if not isinstance(value, self.__dtype):
+            raise ValueError("value must be of type '{}'.".format(
+                self.__dtype))
+        if len(self.pos_values) > 0:
             found = False
-            for a in self.__atoms:
-                if a == atom.GetSymbol():
+            for pv in self.pos_values: 
+                if pv == value:
                     found = True
                     break
             if not found:
                 return False
-        if self.__neg_atoms is not None:
-            for a in self.__neg_atoms:
-                if a == atom.GetSymbol():
+        if len(self.neg_values) > 0:
+            for nv in self.neg_values:
+                if nv == value:
                     return False
-        if self.__rad_e is not None:
-            if atom.GetNumRadicalElectrons() not in self.__rad_e:
-                return False
-        if self.__charge is not None:
-            if atom.GetFormalCharge() not in self.__charge:
-                return False
-        if self.__neighbors is not None:
-            if neighbor is None:
-                return False
-            valid_neighbor_set = False
-            for neighbor_set in self.__neighbors:
-                found_all = True
-                for n_atom in neighbor_set:
-                    if neighbor is None or n_atom != neighbor:
-                        found_all = False
-                        break
-                if found_all:
-                    valid_neighbor_set = True
-                    break
-            if not valid_neighbor_set:
-                return False
         return True
+
+
+class AtomCondition:
+    """
+    Atom condition class to check if a rule is applicable to a specific 
+    molecule. Property configs (atom, rad_e, ...) can be prefixed with '!' 
+    to negate the check. See SynRBL.SynMCS.mol_merge.Property for more 
+    information.
+
+    Example:
+        Check if atom is Carbon and has Oxygen or Nitrogen as neighbor. 
+        >>> cond = AtomCondition(atom=['C'], neighbors=['O', 'N'])
+        >>> mol = rdkit.Chem.MolFromSmiles('CO')
+        >>> cond.check(mol.GetAtomFromIdx(0), neighbor='O')
+        True
+
+    Attributes:
+        atom (SynRBL.SynMCS.mol_merge.Property): Atom property 
+        rad_e (SynRBL.SynMCS.mol_merge.Property): Radical electron property
+        charge (SynRBL.SynMCS.mol_merge.Property): Charge porperty
+        neighbors (SynRBL.SynMCS.mol_merge.Property): Neighbors property
+    """
+    def __init__(self, atom=None, rad_e=None, charge=None, neighbors=None, 
+                 **kwargs):
+        """
+        Atom condition class to check if a rule is applicable to a specific 
+        molecule. Property configs (atom, rad_e, ...) can be prefixed with '!' 
+        to negate the check. See SynRBL.SynMCS.mol_merge.Property for more 
+        information.
+
+        Arguments:
+            atom: Atom property configuration. 
+            rad_e: Radical electron property configuration.
+            charge: Charge porperty configuration.
+            neighbors: Neighbors property configuration.
+        """
+        atom = kwargs.get('atom', atom)
+        rad_e = kwargs.get('rad_e', rad_e)
+        charge = kwargs.get('charge', charge)
+        neighbors = kwargs.get('neighbors', neighbors)
+        
+        self.atom = Property(atom)
+        self.rad_e = Property(rad_e, dtype=int)
+        self.charge = Property(charge, dtype=int)
+        self.neighbors = Property(neighbors, allow_none=True)
+
+    def check(self, atom, neighbor=None):
+        """
+        Check if the atom meets the condition.
+
+        Arguments:
+            atom (rdkit.Chem.Atom): Atom the condition should be checked for.
+            neighbor (str): A boundary atom.
+
+        Returns:
+            bool: True if the atom fulfills the condition, false otherwise.
+        """
+        return all([self.atom.check(atom.GetSymbol()),
+                self.rad_e.check(atom.GetNumRadicalElectrons()),
+                self.charge.check(atom.GetFormalCharge()),
+                self.neighbors.check(neighbor)])
+
 
 class Action:
     def __init__(self, action=None):
@@ -200,7 +308,8 @@ class CompoundRule:
         self.compound = kwargs.get('compound', None)
     
     def can_apply(self, atom, neighbor):
-        return self.cond.check(atom, neighbor=neighbor)
+        r = self.cond.check(atom, neighbor=neighbor)
+        return r
 
     def apply(self, atom, neighbor):
         if not self.can_apply(atom, neighbor):
@@ -324,15 +433,26 @@ def _check_atoms(mol, atom_dict):
         actual_sym = mol.GetAtomWithIdx(idx).GetSymbol()
         if actual_sym != sym:
             raise InvalidAtomDict(sym, actual_sym, idx, Chem.MolToSmiles(mol))
+    else:
+        raise ValueError('atom_dict must be either a list or a dict.')
             
 
 def _ad2t(atom_dict):
-    """ Atom dict to tuple. """
-    assert isinstance(atom_dict, dict) and len(atom_dict) == 1
+    """ 
+    Convert atom dict to symbol and index tuple. 
+
+    Args:
+        atom_dict (dict): Atom dictionary in the for of {<symbol>: <index>}
+
+    Returns:
+        (str, int): Atom dictionary as tuple (<symbol>, <index>}
+    """
+    if not isinstance(atom_dict, dict) or len(atom_dict) != 1:
+        raise ValueError('atom_dict must be of type {<symbol>: <index>}')
     return next(iter(atom_dict.items()))
 
 def _adl2t(atom_dict_list):
-    """ Atom dict list to symbol and indices lists tuple. """
+    """ Split atom dict into symbol and indices lists. """
     sym_list = []
     idx_list = []
     for a in atom_dict_list:

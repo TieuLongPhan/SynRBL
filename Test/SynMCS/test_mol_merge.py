@@ -1,7 +1,96 @@
 import unittest
 from rdkit import Chem
-from SynRBL.SynMCS.mol_merge import merge_mols, merge_expand, merge, NoCompoundError, plot_mols
+from SynRBL.SynMCS.mol_merge import * 
 import matplotlib.pyplot as plt
+
+class TestAtomCondition(unittest.TestCase):
+
+    def __check_cond(self, cond, smiles, idx, expected_result, neighbor=None):
+        mol = Chem.MolFromSmiles(smiles)
+        actual_result = cond.check(mol.GetAtomWithIdx(idx), neighbor)
+        self.assertEqual(expected_result, actual_result)
+
+    def test_positive_check(self):
+        cond = AtomCondition(atom=['C', 'O'])
+        self.__check_cond(cond, 'CO', 0, True)
+        self.__check_cond(cond, 'CO', 1, True)
+        self.__check_cond(cond, '[Na+].[Cl-]', 0, False)
+
+    def test_negative_check(self):
+        cond = AtomCondition(atom=['!Si', '!Cl'])
+        self.__check_cond(cond, 'C=[Si](C)C', 0, True)
+        self.__check_cond(cond, 'CO', 1, True)
+        self.__check_cond(cond, '[Na+]', 0, True)
+        self.__check_cond(cond, 'C=[Si](C)C', 1, False)
+        self.__check_cond(cond, '[Na+].[Cl-]', 1, False)
+
+    def test_positive_check_with_neighbors(self):
+        cond = AtomCondition(atom='C', neighbors=['O', 'N'])
+        self.__check_cond(cond, 'CO', 0, True, neighbor='O')
+
+    def test_invalid_neighbor(self):
+        cond = AtomCondition(atom='C', neighbors=['O'])
+        with self.assertRaises(ValueError):
+            self.__check_cond(cond, 'CO', 0, True, neighbor=['O'])
+
+class TestProperty(unittest.TestCase):
+
+    def test_parsing(self):
+        prop = Property('A')
+        self.assertIn('A', prop.pos_values)
+        self.assertNotIn('A', prop.neg_values)
+        prop = Property(['A', 'B'])
+        self.assertIn('A', prop.pos_values)
+        self.assertIn('B', prop.pos_values)
+        prop = Property('!A')
+        self.assertIn('A', prop.neg_values)
+        self.assertNotIn('A', prop.pos_values)
+        prop = Property(['!A', '!B'])
+        self.assertIn('A', prop.neg_values)
+        self.assertIn('B', prop.neg_values)
+        prop = Property(['!A', 'B'])
+        self.assertIn('A', prop.neg_values)
+        self.assertIn('B', prop.pos_values)
+        prop = Property(['!-1', '!1', '-2', '2'], dtype=int)
+        self.assertTrue(all(v in prop.neg_values for v in [-1, 1]))
+        self.assertTrue(all(v in prop.pos_values for v in [-2, 2]))
+        prop = Property([1, '!2'], dtype=int)
+        self.assertIn(1, prop.pos_values)
+        self.assertIn(2, prop.neg_values)
+
+    def test_parsing_none(self):
+        prop = Property(None)
+        self.assertEqual(0, len(prop.neg_values))
+        self.assertEqual(0, len(prop.pos_values))
+
+    def test_passthrough_behaviour(self):
+        prop = Property(None)
+        self.assertTrue(prop.check('A'))
+
+    def test_allow_none(self):
+        prop = Property('A', allow_none=True)
+        self.assertTrue(prop.check(None))
+
+    def test_check_value_error(self):
+        prop = Property('1', dtype=int)
+        with self.assertRaises(ValueError):
+            prop.check('2')
+
+    def test_check_property(self):
+        prop = Property('A')
+        self.assertTrue(prop.check('A'))
+        self.assertFalse(prop.check('B'))
+        prop = Property('!A')
+        self.assertTrue(prop.check('B'))
+        self.assertFalse(prop.check('A'))
+        prop = Property(['A', 'B'])
+        self.assertTrue(prop.check('A'))
+        self.assertTrue(prop.check('B'))
+        self.assertFalse(prop.check('C'))
+        prop = Property(['!A', '!B'])
+        self.assertFalse(prop.check('A'))
+        self.assertFalse(prop.check('B'))
+        self.assertTrue(prop.check('C'))
 
 
 class TestMergeMols(unittest.TestCase):

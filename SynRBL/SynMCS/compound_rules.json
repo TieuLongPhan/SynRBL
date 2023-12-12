@@ -1,7 +1,7 @@
 [
 	{
 		"name": "append O when next to O or N",
-		"condition": {"atom": ["!O"], "neighbors": [["O"], ["N"]]}, 
+		"condition": {"atom": ["!O"], "neighbors": ["O", "N"]}, 
 		"compound": {"smiles": "O", "index": 0}
 	},
 	{
@@ -11,7 +11,7 @@
 	},
 	{
 		"name": "append O to C-C bond",
-		"condition": {"atom": ["C"], "neighbors": [["C"]]},
+		"condition": {"atom": ["C"], "neighbors": ["C"]},
 		"compound": {"smiles": "O", "index": 0}
 	},
 	{
