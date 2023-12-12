@@ -6,7 +6,6 @@ from pathlib import Path
 root_dir = Path(__file__).parents[1]
 sys.path.append(str(root_dir))
 from SynRBL.SynMCS.mcs_missing_graph_analyzer import MCSMissingGraphAnalyzer
-from SynRBL.SynMCS.find_missing_graphs import find_missing_parts_pairs
 from SynRBL.rsmi_utils import load_database, save_database
 from rdkit import Chem
 import logging

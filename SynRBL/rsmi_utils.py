@@ -2,6 +2,7 @@ import json
 from typing import List, Dict, Set, Any
 from typing import Optional, Union, Callable, Tuple
 from rdkit import Chem
+from rdkit.Chem import Draw
 import json
 
 
@@ -400,3 +401,21 @@ def add_hydrogens_to_radicals(mol: Chem.Mol) -> Chem.Mol:
     
     # Return the molecule with added hydrogens
     return curate_mol
+
+
+def draw_molecule_with_atom_numbers(mol):
+    """
+    Draw a molecule with atom numbers annotated.
+    
+    :param mol: RDKit Molecule object.
+    :return: An image of the molecule with atom numbers.
+    """
+    # Create a copy of the molecule
+    mol_with_atom_numbers = Chem.Mol(mol)
+    
+    # Add atom numbers
+    for atom in mol_with_atom_numbers.GetAtoms():
+        atom.SetProp('atomLabel', str(atom.GetIdx()))
+
+    # Draw the molecule
+    return Draw.MolToImage(mol_with_atom_numbers, size=(300, 300))
