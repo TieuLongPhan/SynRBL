@@ -106,17 +106,20 @@ class TestMergeMols(unittest.TestCase):
         self.assertEqual(Chem.CanonSmiles(expected_result), actual_result)
 
     def test_merge_with_default_single_bond(self):
-        self.__test_merge('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 'CC1(C)OB(-C(C)C)OC1(C)C')
+        self.__test_merge('CC1(C)OBOC1(C)C', 'CCC', 4, 1, 
+                          'CC1(C)OB(-C(C)C)OC1(C)C')
 
     def test_merge_to_silicium_radical(self):
-        self.__test_merge('O', 'C[Si](C)C(C)(C)C', 0, 1, 'C[Si](O)(C)C(C)(C)C')
+        self.__test_merge('O', 'C[Si](C)C(C)(C)C', 0, 1, 
+                          'C[Si](O)(C)C(C)(C)C')
 
     def test_merge_with_phosphor_double_bond(self):
         self.__test_merge('O', 'CC(C)[P+](c1ccccc1)c1ccccc1', 0, 3,
                           'CC(C)P(=O)(c1ccccc1)c1ccccc1')  
     
     def test_merge_radical_halogen_exchange(self):
-        self.__test_merge('Cl', 'CCCC[Sn](CCCC)CCCC', 0, 4, 'CCCC[Sn+](CCCC)CCCC.[Cl-]')
+        self.__test_merge('Cl', 'CCCC[Sn](CCCC)CCCC', 0, 4, 
+                          'CCCC[Sn+](CCCC)CCCC.[Cl-]')
 
     def test_merge_halogen_bond_restriction(self):
         pass
@@ -137,10 +140,12 @@ class TestMergeExpand(unittest.TestCase):
         self.__test_expand('O=COCc1ccccc1', [1], ['O'], 'O=C(O)OCc1ccccc1')
     
     def test_expand_multiple_bounds(self):
-        self.__test_expand('O=Cc1ccccc1C=O', [1, 8], ['O', 'O'], 'O=C(O)c1ccccc1C(O)=O')
+        self.__test_expand('O=Cc1ccccc1C=O', [1, 8], ['O', 'O'], 
+                           'O=C(O)c1ccccc1C(O)=O')
 
     def test_expand(self):
-        self.__test_expand('C[Si](C)C(C)(C)C', [1], ['O'], 'C[Si](O)(C)C(C)(C)C')
+        self.__test_expand('C[Si](C)C(C)(C)C', [1], ['O'], 
+                           'C[Si](O)(C)C(C)(C)C')
 
     def test_leave_O_bound_as_is(self):
         self.__test_expand('CC(C)(C)OC(=O)O', [7], ['C'], 'CC(C)(C)OC(=O)O')
@@ -162,7 +167,8 @@ class TestMerge(unittest.TestCase):
                           ['CC1(C)OB(Br)OC1(C)C'])
 
     def test_split_and_expand(self):
-        self.__test_merge(['C.O'], [[{'C': 0}, {'O': 1}]], [[{'O': 1}, {'C': 2}]], ['CO', 'O'])
+        self.__test_merge(['C.O'], [[{'C': 0}, {'O': 1}]], 
+                          [[{'O': 1}, {'C': 2}]], ['CO', 'O'])
 
     def test_merge_expand_multiple(self):
         self.__test_merge(['O=Cc1ccccc1C=O'], 
