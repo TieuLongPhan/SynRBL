@@ -25,6 +25,7 @@ SynRBL is organized into several key components, each dedicated to a specific as
   - `SynExtract/`: Data extraction module
   - `SynRuleEngine/`: Rule engine module
   - `SynRuleImpute/`: Rule-based imputation module
+  - `SynMCS/`: MCS-based imputation module
   - `SynVis/`: Data visualization module
 
 ### Test Suite
@@ -34,6 +35,7 @@ SynRBL is organized into several key components, each dedicated to a specific as
   - `SynExtract/`: Tests for SynExtract module
   - `SynRuleEngine/`: Tests for SynRuleEngine module
   - `SynRuleImpute/`: Tests for SynRuleImpute module
+  - `SynMCS/`: Tests for MCS-based imputation module
   - `SynVis/`: Tests for SynVis module
 
 ### Additional Resources
