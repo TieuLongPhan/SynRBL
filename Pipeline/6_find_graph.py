@@ -28,22 +28,35 @@ def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
     find_graph = FindMissingGraphs()
     missing_results = find_graph.find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=n_jobs, use_findMCS=use_findMCS)
     missing_final = pd.DataFrame(missing_results)
+    bug_data = check_for_bug(missing_final)
 
-    missing_final = missing_final.map(lambda x: np.nan if x == '' else x)
-    print(missing_final)
-    non_pass_df = missing_final.iloc[missing_final.dropna(subset=['issue']).index,:].to_dict(orient='records')
-    print('Bug:', len(non_pass_df))
+
+    missing_final.drop(bug_data.index,axis=0, inplace = True)
+    missing_results = missing_final.to_dict(orient='records')
+
+    print('Bug:', len(bug_data))
     if save:
+        
         save_database(missing_results, save_path)
-    non_pass_df = msc_df.iloc[missing_final.dropna(subset=['issue']).index,:].to_dict(orient='records')
+    non_pass_df = bug_data.to_dict(orient='records')
     
     return missing_results, non_pass_df
 
+def check_for_bug(dataframe):
+    ind_key = []
+    for key, value in enumerate(dataframe['boundary_atoms_products']):
+        if len(value) == 0:
+            ind_key.append(key)
+
+    bug_rows = dataframe.iloc[ind_key, :]
+    return bug_rows
+
+
 def main():
 
-    missing_results_3_macth, non_pass_df= find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',
+    missing_results_3_macth, _= find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',
                 save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_3+.json.gz')
-    save_database(non_pass_df, root_dir / 'Data/MCS/Bug.json.gz')
+    #save_database(non_pass_df, root_dir / 'Data/MCS/Bug.json.gz')
     
     missing_results_largest, _ = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_0_50_largest.json.gz',
                 save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_under2-.json.gz')
