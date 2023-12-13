@@ -1,9 +1,10 @@
-import json
 from typing import List, Dict, Set, Any
 from typing import Optional, Union, Callable, Tuple
 from rdkit import Chem
 from rdkit.Chem import Draw
 import json
+import random
+from collections import defaultdict
 
 
 def save_database(database: list[dict], pathname: str = './Data/database.json') -> None:
@@ -371,35 +372,38 @@ def extract_results_by_key(data: List[Dict[str, any]], key: str = 'new_reaction'
     return with_key, without_key
 
 
-from rdkit import Chem
-from rdkit.Chem import rdmolops
-
-def add_hydrogens_to_radicals(mol: Chem.Mol) -> Chem.Mol:
+def get_random_samples_by_diff_formula(
+    data: List[Dict[str, any]], 
+    num_samples_per_group: int = 1, 
+    random_seed: int = None
+    ) -> List[Dict[str, any]]:
     """
-    Add hydrogen atoms to radical sites in a molecule.
+    Get random samples from data, grouped by 'Diff_formula'.
 
-    Args:
-    - mol (Chem.Mol): RDKit molecule object.
+    Parameters:
+    - data: List of dictionaries, each containing 'Diff_formula' and other keys.
+    - num_samples_per_group: Number of random samples to draw from each unique 'Diff_formula' group.
+    - random_seed: Seed for the random number generator for reproducibility.
 
     Returns:
-    - Chem.Mol: The modified molecule with added hydrogens.
+    - A list of randomly selected samples from each unique 'Diff_formula' group.
     """
-    # Create a copy of the molecule
-    mol_with_h = Chem.RWMol(mol)
+    if random_seed is not None:
+        random.seed(random_seed)
 
-    # Add explicit hydrogens (not necessary if they are already present in the input molecule)
-    mol_with_h = rdmolops.AddHs(mol_with_h)
+    # Group data by 'Diff_formula'
+    grouped_data = defaultdict(list)
+    for item in data:
+        grouped_data[tuple(sorted(item['Diff_formula'].items()))].append(item)
 
-    # Find and process radical atoms
-    for atom in mol_with_h.GetAtoms():
-        num_radical_electrons = atom.GetNumRadicalElectrons()
-        if num_radical_electrons > 0:
-            atom.SetNumExplicitHs(atom.GetNumExplicitHs() + num_radical_electrons)
-            atom.SetNumRadicalElectrons(0)
-    
-    curate_mol = Chem.RemoveHs(mol_with_h)
-    
-    # Return the molecule with added hydrogens
-    return curate_mol
+    # Select random samples from each group
+    random_samples = []
+    for diff_formula, items in grouped_data.items():
+        if len(items) >= num_samples_per_group:
+            random_samples.extend(random.sample(items, num_samples_per_group))
+        else:
+            # If there aren't enough items, take all available
+            random_samples.extend(items)
 
-
+    return random_samples
+    return random_samples
