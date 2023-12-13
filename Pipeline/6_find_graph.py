@@ -31,7 +31,7 @@ def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
     bug_data = check_for_bug(missing_final)
 
 
-    missing_final.drop(bug_data.index,axis=0, inplace = True)
+    #missing_final.drop(bug_data.index,axis=0, inplace = True)
     missing_results = missing_final.to_dict(orient='records')
 
     print('Bug:', len(bug_data))
