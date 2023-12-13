@@ -9,6 +9,20 @@ _merge_rules = None
 _compound_rules = None
 
 
+class NoMoreHsError(Exception):
+    """
+    Exception if an atom has no more Hydrogen atoms that can be removed.
+    """
+
+    def __init__(self, atom):
+        """
+        Exception if an atom has no more Hydrogen atoms that can be removed.
+        """
+        super().__init__(
+            "Could not remove any more neighboring H atoms from {}.".format(atom)
+        )
+
+
 class NoCompoundError(Exception):
     """
     Exception if no compound rule is found to expand a molecule.
@@ -254,11 +268,7 @@ class Action:
                     found_H = True
                     break
             if not found_H:
-                raise RuntimeError(
-                    (
-                        "Could not remove any more neighboring " + "H atoms from {}."
-                    ).format(atom.GetSymbol())
-                )
+                raise NoMoreHsError(atom.GetSymbol())
         elif action_name == "removeRadE":
             atom.SetNumRadicalElectrons(atom.GetNumRadicalElectrons() - 1)
         elif action_name == "addRadE":
@@ -383,13 +393,18 @@ class MergeRule:
         Returns:
             rdkit.Chem.Mol: The merged molecule.
         """
-        if self.sym:
-            if self.__can_apply(atom1, atom2):
-                return self.__apply(mol, atom1, atom2)
+        try:
+            if self.sym:
+                if self.__can_apply(atom1, atom2):
+                    return self.__apply(mol, atom1, atom2)
+                else:
+                    return self.__apply(mol, atom2, atom1)
             else:
-                return self.__apply(mol, atom2, atom1)
-        else:
-            return self.__apply(mol, atom1, atom2)
+                return self.__apply(mol, atom1, atom2)
+        except Exception as e:
+            raise RuntimeError(
+                "Failed to apply merge rule '{}'.".format(self.name)
+            ) from e
 
 
 class AtomTracker:
@@ -660,14 +675,14 @@ def merge_expand(mol, bound_indices, neighbors=None):
     used_merge_rules = []
     for i in range(l):
         atom = mol1.GetAtoms()[bound_indices[i]]
-        mol2, rule = get_compound(atom, neighbors[i])
+        comp, rule = get_compound(atom, neighbors[i])
         used_compound_rules.append(rule)
-        if mol2 is not None:
+        if comp is not None:
             mol = merge_mols(
                 mol1,
-                mol2["mol"],
+                comp["mol"],
                 bound_indices[i],
-                mol2["index"],
+                comp["index"],
                 mol1_track=bound_indices,
             )
             bound_indices = [mol["aam1"][str(idx)] for idx in bound_indices]

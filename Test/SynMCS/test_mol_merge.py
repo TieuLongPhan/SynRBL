@@ -113,7 +113,11 @@ class TestMergeMols(unittest.TestCase):
 
     def test_merge_with_phosphor_double_bond(self):
         self.__test_merge(
-            "O", "CC(C)[P+](c1ccccc1)c1ccccc1", 0, 3, "CC(C)P(=O)(c1ccccc1)c1ccccc1"
+            "O",
+            "c1ccc(P(c2ccccc2)c2ccccc2)cc1",
+            0,
+            4,
+            "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1",
         )
 
     def test_merge_radical_halogen_exchange(self):
@@ -145,6 +149,9 @@ class TestMergeExpand(unittest.TestCase):
     def test_leave_O_bound_as_is(self):
         self.__test_expand("CC(C)(C)OC(=O)O", [7], ["C"], "CC(C)(C)OC(=O)O")
 
+    def test_leave_NN_bound_as_is(self):
+        self.__test_expand("[N-]=[NH2+]", [0], ["N"], "[N-]=[NH2+]")
+
 
 class TestMerge(unittest.TestCase):
     def __test_merge(self, smiles, bounds, neighbors, expected_results):
@@ -175,11 +182,11 @@ class TestMerge(unittest.TestCase):
             ["O=C(O)c1ccccc1C(O)=O"],
         )
 
-    def test_invalid_structure(self):
-        with self.assertRaises(NoCompoundError):
-            self.__test_merge(
-                ["NBr.O"],
-                [[{"N": 0}, {"O": 2}, {"N": 0}]],
-                [[{"C": 1}, {"C": 4}, {"C": 4}]],
-                ["NBr", "O"],
-            )
+    # def test_invalid_structure(self):
+    #    with self.assertRaises(NoCompoundError):
+    #        self.__test_merge(
+    #            ["NBr.O"],
+    #            [[{"N": 0}, {"O": 2}, {"N": 0}]],
+    #            [[{"C": 1}, {"C": 4}, {"C": 4}]],
+    #            ["NBr", "O"],
+    #        )

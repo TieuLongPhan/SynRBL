@@ -1,7 +1,7 @@
 [
 	{
 		"name": "append O when next to O or N",
-		"condition": {"atom": ["!O"], "neighbors": ["O", "N"]}, 
+		"condition": {"atom": ["!O", "!N"], "neighbors": ["O", "N"]}, 
 		"compound": {"smiles": "O", "index": 0}
 	},
 	{
@@ -15,7 +15,11 @@
 		"compound": {"smiles": "O", "index": 0}
 	},
 	{
-		"name": "boundary O is fine",
-		"condition": {"atom": ["O"]}
+		"name": "I expandsion on C and O bond",
+		"condition": {"atom": ["C"], "neighbors": ["O"], "smiles_cond": ["!OC(=O)"]},
+		"compound": {"smiles": "I", "index": 0}
+	},
+	{
+		"name": "no expansion"
 	}
 ]

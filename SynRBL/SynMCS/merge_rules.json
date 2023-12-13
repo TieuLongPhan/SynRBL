@@ -1,9 +1,8 @@
 [
 	{
 		"name": "phosphor double bond",
-		"condition1": {"atom": ["P"], "rad_e": 1, "charge": 1}, 
+		"condition1": {"atom": ["P"]}, 
 		"condition2": {"nr_Hs": [2, 3, 4], "rad_e": 0, "charge": 0}, 
-		"action1": ["removeRadE", "chargeNeg"], 
 		"action2": ["removeH", "removeH"], 
 		"bond": "double"
 	},
