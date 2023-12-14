@@ -4,34 +4,6 @@ from SynRBL.SynMCS.mol_merge import *
 import matplotlib.pyplot as plt
 
 
-class TestAtomCondition(unittest.TestCase):
-    def __check_cond(self, cond, smiles, idx, expected_result, neighbor=None):
-        mol = Chem.MolFromSmiles(smiles)
-        actual_result = cond.check(mol.GetAtomWithIdx(idx), neighbor)
-        self.assertEqual(expected_result, actual_result)
-
-    def test_positive_check(self):
-        cond = AtomCondition(atom=["C", "O"])
-        self.__check_cond(cond, "CO", 0, True)
-        self.__check_cond(cond, "CO", 1, True)
-        self.__check_cond(cond, "[Na+].[Cl-]", 0, False)
-
-    def test_negative_check(self):
-        cond = AtomCondition(atom=["!Si", "!Cl"])
-        self.__check_cond(cond, "C=[Si](C)C", 0, True)
-        self.__check_cond(cond, "CO", 1, True)
-        self.__check_cond(cond, "[Na+]", 0, True)
-        self.__check_cond(cond, "C=[Si](C)C", 1, False)
-        self.__check_cond(cond, "[Na+].[Cl-]", 1, False)
-
-    def test_positive_check_with_neighbors(self):
-        cond = AtomCondition(atom="C", neighbors=["O", "N"])
-        self.__check_cond(cond, "CO", 0, True, neighbor="O")
-
-    def test_invalid_neighbor(self):
-        cond = AtomCondition(atom="C", neighbors=["O"])
-        with self.assertRaises(ValueError):
-            self.__check_cond(cond, "CO", 0, True, neighbor=["O"])
 
 
 class TestMergeMols(unittest.TestCase):

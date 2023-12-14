@@ -1,6 +1,6 @@
 import traceback
 from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCS.mol_merge import merge
+from SynRBL.SynMCS.mol_merge import merge, plot_mols
 from rdkit import Chem
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -151,26 +151,32 @@ def get_export_dict(
 
 def main():
     dataset = "3+" #"0-50"
-    reactions = load_data(dataset)[0:10]
+    reactions = load_data(dataset)
     print(reactions[0])
     failed = []
     missing_parts_lengths = defaultdict(lambda: 0)
     for i in range(len(reactions)):
         reaction = reactions[i]
+        k = len(reaction['reactions'].split('.'))
+        print(reaction)
+        break
+        mol1 = Chem.MolFromSmiles(reaction['reactants'])
+        mol2 = Chem.MolFromSmiles(reaction['products'])
+        plot_mols([mol1, mol2], includeAtomNumbers=True)
         missing_parts = reaction['missing_parts']
-        print(reaction['Unbalance'])
-        print(reaction['products'])
-        missing_parts_lengths[len(missing_parts['smiles'])] += 1
-        continue
+        #print(len(missing_parts['smiles']))
+        missing_parts_lengths[k] += 1
+        break
     print(missing_parts_lengths)
+    plot_summary(reaction)
     return
-        try:
-            impute(reaction)
-        except Exception as e:
-            # traceback.print_exc()
-            failed.append(i)
-            reaction["issue"] = [str(e)]
-            print("[ERROR] [{}] {}".format(i, e))
+        #try:
+        #    impute(reaction)
+        #except Exception as e:
+        #    #traceback.print_exc()
+        #    failed.append(i)
+        #    reaction["issue"] = [str(e)]
+        #    print("[ERROR] [{}] {}".format(i, e))
 
     #export_reactions = get_export_dict(reactions)
     #save_database(
