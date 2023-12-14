@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from rdkit import Chem
 from rdkit.Chem import Draw, rdChemReactions
+from collections import defaultdict
 
 
 def plot_summary(reaction_data):
@@ -150,10 +151,19 @@ def get_export_dict(
 
 def main():
     dataset = "3+" #"0-50"
-    reactions = load_data(dataset)
+    reactions = load_data(dataset)[0:10]
+    print(reactions[0])
     failed = []
+    missing_parts_lengths = defaultdict(lambda: 0)
     for i in range(len(reactions)):
         reaction = reactions[i]
+        missing_parts = reaction['missing_parts']
+        print(reaction['Unbalance'])
+        print(reaction['products'])
+        missing_parts_lengths[len(missing_parts['smiles'])] += 1
+        continue
+    print(missing_parts_lengths)
+    return
         try:
             impute(reaction)
         except Exception as e:
@@ -162,12 +172,11 @@ def main():
             reaction["issue"] = [str(e)]
             print("[ERROR] [{}] {}".format(i, e))
 
-    export_reactions = get_export_dict(reactions)
-    save_database(
-        export_reactions,
-        "./Data/MCS/After_Merge_and_Expansion_{}.json.gz".format(dataset),
-    )
-    print('Failed: {}'.format(len(failed)))
+    #export_reactions = get_export_dict(reactions)
+    #save_database(
+    #    export_reactions,
+    #    "./Data/MCS/After_Merge_and_Expansion_{}.json.gz".format(dataset),
+    #)
     return
     id = 0
     try:
@@ -180,3 +189,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

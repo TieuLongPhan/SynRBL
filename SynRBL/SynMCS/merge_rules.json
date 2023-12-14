@@ -17,7 +17,7 @@
 	{
 		"name": "halogen bond restriction",
 		"condition1": {"atom": ["N", "O"]},
-		"condition2": {"atom": ["F", "Cl", "Br", "I", "At"]}
+		"condition2": {"atom": ["N", "O", "F", "Cl", "Br", "I", "At"]}
 	},
 	{
 		"name": "radical halogen exchange",
@@ -35,3 +35,4 @@
 		"bond": "single"
 	}
 ]
+

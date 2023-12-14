@@ -1,10 +1,11 @@
 import unittest
+from rdkit import Chem
 from SynRBL.SynMCS.rule_formation import *
 
 
 class TestProperty(unittest.TestCase):
     def __test_prop(self, config, in_p=[], in_n=[], dtype=str):
-        prop = Property(config)
+        prop = Property(config, dtype=dtype)
         self.assertTrue(all(e in prop.pos_values for e in in_p))
         self.assertTrue(all(e in prop.neg_values for e in in_n))
         self.assertTrue(all(e not in prop.pos_values for e in in_n))
@@ -16,12 +17,10 @@ class TestProperty(unittest.TestCase):
         self.__test_prop("!A", in_n=["A"])
         self.__test_prop(["!A", "!B"], in_n=["A", "B"])
         self.__test_prop(["!A", "B"], in_p=["B"], in_n=["A"])
-        prop = Property(["!-1", "!1", "-2", "2"], dtype=int)
-        self.assertTrue(all(v in prop.neg_values for v in [-1, 1]))
-        self.assertTrue(all(v in prop.pos_values for v in [-2, 2]))
-        prop = Property([1, "!2"], dtype=int)
-        self.assertIn(1, prop.pos_values)
-        self.assertIn(2, prop.neg_values)
+        self.__test_prop(
+            ["!-1", "!1", "-2", "2"], in_p=[-2, 2], in_n=[-1, 1], dtype=int
+        )
+        self.__test_prop([1, "!2"], in_p=[1], in_n=[2], dtype=int)
 
     def test_parsing_none(self):
         prop = Property(None)
@@ -33,8 +32,13 @@ class TestProperty(unittest.TestCase):
         self.assertTrue(prop.check("A"))
 
     def test_allow_none(self):
-        prop = Property("A", allow_none=True)
+        prop = Property(allow_none=True)
         self.assertTrue(prop.check(None))
+
+    def test_dont_allow_non(self):
+        prop = Property(allow_none=False)
+        with self.assertRaises(ValueError):
+            prop.check(None)
 
     def test_check_value_error(self):
         prop = Property("1", dtype=int)
@@ -56,3 +60,38 @@ class TestProperty(unittest.TestCase):
         self.assertFalse(prop.check("A"))
         self.assertFalse(prop.check("B"))
         self.assertTrue(prop.check("C"))
+
+
+class TestAtomCondition(unittest.TestCase):
+    def __check_cond(self, cond, smiles, idx, expected_result, neighbor=None):
+        mol = Chem.MolFromSmiles(smiles)
+        actual_result = cond.check(mol.GetAtomWithIdx(idx), neighbor)
+        self.assertEqual(expected_result, actual_result)
+
+    def test_positive_check(self):
+        cond = AtomCondition(atom=["C", "O"])
+        self.__check_cond(cond, "CO", 0, True)
+        self.__check_cond(cond, "CO", 1, True)
+        self.__check_cond(cond, "[Na+].[Cl-]", 0, False)
+
+    def test_negative_check(self):
+        cond = AtomCondition(atom=["!Si", "!Cl"])
+        self.__check_cond(cond, "C=[Si](C)C", 0, True)
+        self.__check_cond(cond, "CO", 1, True)
+        self.__check_cond(cond, "[Na+]", 0, True)
+        self.__check_cond(cond, "C=[Si](C)C", 1, False)
+        self.__check_cond(cond, "[Na+].[Cl-]", 1, False)
+
+    def test_positive_check_with_neighbors(self):
+        cond = AtomCondition(atom="C", neighbors=["O", "N"])
+        self.__check_cond(cond, "CO", 0, True, neighbor="O")
+
+    def test_invalid_neighbor(self):
+        cond = AtomCondition(atom="C", neighbors=["O"])
+        with self.assertRaises(ValueError):
+            self.__check_cond(cond, "CO", 0, True, neighbor=["O"])
+
+
+class TestAction(unittest.TestCase):
+    def test_remove_H_action(self):
+        action = ActionSet()
