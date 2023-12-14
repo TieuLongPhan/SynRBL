@@ -3,6 +3,7 @@ from importlib.resources import files
 from rdkit import Chem
 import SynRBL.SynMCS
 from rdkit.Chem import rdmolops
+from SynRBL.SynMCS.rule_formation import Property
 
 
 _merge_rules = None
@@ -23,7 +24,7 @@ class NoMoreHsError(Exception):
         )
 
 
-class NoCompoundError(Exception):
+class NoCompoundRuleError(Exception):
     """
     Exception if no compound rule is found to expand a molecule.
     """
@@ -44,7 +45,7 @@ class NoCompoundError(Exception):
         )
 
 
-class MergeError(Exception):
+class NoMergeRuleError(Exception):
     """
     Exception if no merge rule is found to combine two molecules.
     """
@@ -70,6 +71,22 @@ class MergeError(Exception):
                 Chem.MolToSmiles(Chem.RemoveHs(mol2)),
             )
         )
+
+
+class MergeError(Exception):
+    """
+    Exception if merge failed.
+    """
+
+    def __init__(self, rule_name, inner_msg=None):
+        """
+        Exception if merge failed.
+        """
+
+        msg = "Merge rule '{}' failed.".format(rule_name)
+        if inner_msg is not None:
+            msg += " {}".format(inner_msg)
+        super().__init__(msg)
 
 
 class SubstructureError(Exception):
@@ -106,71 +123,6 @@ class InvalidAtomDict(Exception):
                 + "Expected atom '{}' at index {} but found '{}'."
             ).format(smiles, expected, index, actual)
         )
-
-
-class Property:
-    """
-    Generic property for dynamic rule configuration.
-    """
-
-    def __init__(self, value: str | list[str], dtype=str, allow_none=False):
-        """
-        Generic property for dynamic rule configuration.
-
-        Arguments:
-            value (str | list[str]): Configuration for this property. This is
-                a list of acceptable and forbiden values.
-                e.g.: ['A', 'B'] -> check is true if value is A or B
-                      ['!C', '!D'] -> check is true if value is not C and not D
-            dtype (optional): Datatype of the property. Must implement
-                conversion from string as constructor (e.g.: int).
-            allow_none (bool): Flag if a check with value None is valid or not.
-        """
-        self.__dtype = dtype
-        self.allow_none = allow_none
-        self.neg_values = []
-        self.pos_values = []
-        if value is not None:
-            if not isinstance(value, list):
-                value = [value]
-            for i, s in enumerate(value):
-                value[i] = str(s)
-            for item in value:
-                if not isinstance(item, str):
-                    raise ValueError("value must be str or a list of strings.")
-                if len(item) > 0 and item[0] == "!":
-                    self.neg_values.append(dtype(item[1:]))
-                else:
-                    self.pos_values.append(dtype(item))
-
-    def check(self, value):
-        """
-        Check if the property is true for the given value.
-
-        Arguments:
-            value: The value to check. It must be of the same datatype as
-                specified in the constructor.
-
-        Returns:
-            bool: True if the value fulfills the property, false otherwise.
-        """
-        if self.allow_none and value is None:
-            return True
-        if not isinstance(value, self.__dtype):
-            raise ValueError("value must be of type '{}'.".format(self.__dtype))
-        if len(self.pos_values) > 0:
-            found = False
-            for pv in self.pos_values:
-                if pv == value:
-                    found = True
-                    break
-            if not found:
-                return False
-        if len(self.neg_values) > 0:
-            for nv in self.neg_values:
-                if nv == value:
-                    return False
-        return True
 
 
 class AtomCondition:
@@ -307,6 +259,30 @@ class MergeRule:
     Examples on how to configure merge rules can be found in
     SynRBL/SynMCS/merge_rules.json file.
 
+    Example:
+        The following example shows a complete default configuration for a merge rule.
+        config = {
+            "name": "unnamed",
+            "condition1": {
+                "atom": None,
+                "rad_e": None,
+                "charge": None,
+                "neighbors": None,
+                "compound": None
+            },
+            "condition2": {
+                "atom": None,
+                "rad_e": None,
+                "charge": None,
+                "neighbors": None,
+                "compound": None
+            },
+            "action1": [],
+            "action2": [],
+            "bond": None,
+            "sym": True
+        }
+
     Attributes:
         name (str, optional): A descriptive name for the rule. This attribute
             is just for readability and does not serve a functional purpose.
@@ -402,9 +378,7 @@ class MergeRule:
             else:
                 return self.__apply(mol, atom1, atom2)
         except Exception as e:
-            raise RuntimeError(
-                "Failed to apply merge rule '{}'.".format(self.name)
-            ) from e
+            raise MergeError(self.name, str(e)) from e
 
 
 class AtomTracker:
@@ -570,8 +544,7 @@ def get_compound_rules() -> list[CompoundRule]:
 
 def get_compound(atom, neighbor):
     """
-    Get the second compound for the specified boundary atom. If no suitable
-    compound rule is found a NoCompoundError is raised.
+    Get the second compound for the specified boundary atom.
 
     Arguments:
         atom (rdkit.Chem.Atom): The boundary atom for which to find an
@@ -584,7 +557,7 @@ def get_compound(atom, neighbor):
     for rule in get_compound_rules():
         if rule.can_apply(atom, neighbor):
             return rule.apply(atom, neighbor), rule
-    raise NoCompoundError(atom.GetSymbol(), neighbor)
+    raise NoCompoundRuleError(atom.GetSymbol(), neighbor)
 
 
 def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
@@ -592,8 +565,7 @@ def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
     Merge two molecules. How and if the molecules are merge is defined by
     merge rules. For more details on merge rules see the
     SynRBL.SynMCS.mol_merge.MergeRule class documentation and the rule
-    configuration in SynRBL/SynMCS/merge_rules.json. If no suitable merge rule
-    is found a MergeError is raised.
+    configuration in SynRBL/SynMCS/merge_rules.json.
 
     Arguments:
         mol1 (rdkit.Chem.Mol): First molecule to merge.
@@ -630,16 +602,15 @@ def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
         rule.apply(mol, atom1, atom2)
         merge_rule = rule
         break
-    if merge_rule:
-        Chem.SanitizeMol(mol)
-        return {
-            "mol": mol,
-            "rule": merge_rule,
-            "aam1": mol1_tracker.to_dict(),
-            "aam2": mol2_tracker.to_dict(),
-        }
-    else:
-        raise MergeError(atom1, atom2, mol1, mol2)
+    if not merge_rule:
+        raise NoMergeRuleError(atom1, atom2, mol1, mol2)
+    Chem.SanitizeMol(mol)
+    return {
+        "mol": mol,
+        "merge_rules": [merge_rule],
+        "aam1": mol1_tracker.to_dict(),
+        "aam2": mol2_tracker.to_dict(),
+    }
 
 
 def merge_expand(mol, bound_indices, neighbors=None):
@@ -647,8 +618,7 @@ def merge_expand(mol, bound_indices, neighbors=None):
     Expand and merge a single molecule with the product of a suitable compound
     rule. For more informatino on compound rules see the
     SynRBL.SynMCS.mol_merge.CompoundRule class documentation and the compound
-    rule config in SynRBL/SynMCS/compound_rules.json. If no compound rule is
-    found a NoCompoundError is raised.
+    rule config in SynRBL/SynMCS/compound_rules.json.
 
     Arguments:
         mol (rdkit.Chem.Mol): The molecule to expand.
@@ -662,37 +632,38 @@ def merge_expand(mol, bound_indices, neighbors=None):
     """
     if not isinstance(bound_indices, list):
         raise ValueError("bound_indices must be of type list")
-    l = len(bound_indices)
+    bound_len = len(bound_indices)
     if neighbors is None:
-        neighbors = [None for _ in range(l)]
-    if len(neighbors) != l:
+        neighbors = [None for _ in range(bound_len)]
+    if len(neighbors) != bound_len:
         raise ValueError(
             "neighbors list must be of same length as bound_indices. "
             + "(bound_indices={}, neighbors={})".format(bound_indices, neighbors)
         )
-    mol1 = mol
+
+    merged_mol = mol
     used_compound_rules = []
     used_merge_rules = []
-    for i in range(l):
-        atom = mol1.GetAtoms()[bound_indices[i]]
+    for i in range(bound_len):
+        atom = merged_mol.GetAtoms()[bound_indices[i]]
         comp, rule = get_compound(atom, neighbors[i])
         used_compound_rules.append(rule)
         if comp is not None:
-            mol = merge_mols(
-                mol1,
+            merge_result = merge_mols(
+                merged_mol,
                 comp["mol"],
                 bound_indices[i],
                 comp["index"],
                 mol1_track=bound_indices,
             )
-            bound_indices = [mol["aam1"][str(idx)] for idx in bound_indices]
-            mol1 = mol["mol"]
-            used_merge_rules.append(mol["rule"])
-        else:
-            mol = {"mol": mol1}
-    mol["compound_rules"] = used_compound_rules
-    mol["merge_rules"] = used_merge_rules
-    return mol
+            bound_indices = [merge_result["aam1"][str(idx)] for idx in bound_indices]
+            merged_mol = merge_result["mol"]
+            used_merge_rules.extend(merge_result["merge_rules"])
+    return {
+        "mol": merged_mol,
+        "compound_rules": used_compound_rules,
+        "merge_rules": used_merge_rules,
+    }
 
 
 def _check_atoms(mol, atom_dict):
@@ -715,7 +686,7 @@ def _check_atoms(mol, atom_dict):
         if actual_sym != sym:
             raise InvalidAtomDict(sym, actual_sym, idx, Chem.MolToSmiles(mol))
     else:
-        raise ValueError("atom_dict must be either a list or a dict.")
+        raise ValueError("agom_dict must be either a list or a dict.")
 
 
 def _ad2t(atom_dict):
@@ -836,16 +807,15 @@ def merge(mols, bounds, neighbors):
         _, idx1 = _ad2t(bounds[0][0])
         _, idx2 = _ad2t(bounds[1][0])
         merged_mol = merge_mols(mol1, mol2, idx1, idx2)
-        merged_mols.append(merged_mol)
+        merged_mols.append(
+            {
+                "mol": merged_mol["mol"],
+                "merge_rules": merged_mol["merge_rules"],
+                "compound_rules": [],
+            }
+        )
     elif len(mols) > 2:
         raise NotImplementedError(
             "Merging of {} molecules is not supported.".format(len(mols))
         )
-    for m in merged_mols:
-        if "rule" in m.keys():
-            del m["rule"]
-        if "aam1" in m.keys():
-            del m["aam1"]
-        if "aam2" in m.keys():
-            del m["aam2"]
     return merged_mols

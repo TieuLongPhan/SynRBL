@@ -34,65 +34,6 @@ class TestAtomCondition(unittest.TestCase):
             self.__check_cond(cond, "CO", 0, True, neighbor=["O"])
 
 
-class TestProperty(unittest.TestCase):
-    def test_parsing(self):
-        prop = Property("A")
-        self.assertIn("A", prop.pos_values)
-        self.assertNotIn("A", prop.neg_values)
-        prop = Property(["A", "B"])
-        self.assertIn("A", prop.pos_values)
-        self.assertIn("B", prop.pos_values)
-        prop = Property("!A")
-        self.assertIn("A", prop.neg_values)
-        self.assertNotIn("A", prop.pos_values)
-        prop = Property(["!A", "!B"])
-        self.assertIn("A", prop.neg_values)
-        self.assertIn("B", prop.neg_values)
-        prop = Property(["!A", "B"])
-        self.assertIn("A", prop.neg_values)
-        self.assertIn("B", prop.pos_values)
-        prop = Property(["!-1", "!1", "-2", "2"], dtype=int)
-        self.assertTrue(all(v in prop.neg_values for v in [-1, 1]))
-        self.assertTrue(all(v in prop.pos_values for v in [-2, 2]))
-        prop = Property([1, "!2"], dtype=int)
-        self.assertIn(1, prop.pos_values)
-        self.assertIn(2, prop.neg_values)
-
-    def test_parsing_none(self):
-        prop = Property(None)
-        self.assertEqual(0, len(prop.neg_values))
-        self.assertEqual(0, len(prop.pos_values))
-
-    def test_passthrough_behaviour(self):
-        prop = Property(None)
-        self.assertTrue(prop.check("A"))
-
-    def test_allow_none(self):
-        prop = Property("A", allow_none=True)
-        self.assertTrue(prop.check(None))
-
-    def test_check_value_error(self):
-        prop = Property("1", dtype=int)
-        with self.assertRaises(ValueError):
-            prop.check("2")
-
-    def test_check_property(self):
-        prop = Property("A")
-        self.assertTrue(prop.check("A"))
-        self.assertFalse(prop.check("B"))
-        prop = Property("!A")
-        self.assertTrue(prop.check("B"))
-        self.assertFalse(prop.check("A"))
-        prop = Property(["A", "B"])
-        self.assertTrue(prop.check("A"))
-        self.assertTrue(prop.check("B"))
-        self.assertFalse(prop.check("C"))
-        prop = Property(["!A", "!B"])
-        self.assertFalse(prop.check("A"))
-        self.assertFalse(prop.check("B"))
-        self.assertTrue(prop.check("C"))
-
-
 class TestMergeMols(unittest.TestCase):
     def __test_merge(self, smiles1, smiles2, idx1, idx2, expected_result):
         mol1 = Chem.MolFromSmiles(smiles1)

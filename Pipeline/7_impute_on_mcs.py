@@ -147,7 +147,7 @@ def get_export_dict(
 
 
 def main():
-    dataset = "0-50"  # "3+"
+    dataset = "3+" #"0-50"
     reactions = load_data(dataset)
     failed = []
     for i in range(len(reactions)):
@@ -155,18 +155,18 @@ def main():
         try:
             impute(reaction)
         except Exception as e:
+            #traceback.print_exc()
             failed.append(i)
             reaction["issue"] = [str(e)]
             print("[ERROR] [{}] {}".format(i, e))
 
-    print("Failed cnt:", len(failed))
     export_reactions = get_export_dict(reactions)
     save_database(
         export_reactions,
         "./Data/MCS/After_Merge_and_Expansion_{}.json.gz".format(dataset),
     )
     return
-    id = 15746
+    id = 0
     try:
         plot_summary(reactions[id])
     except Exception as e:
