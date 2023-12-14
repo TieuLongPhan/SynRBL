@@ -372,38 +372,50 @@ def extract_results_by_key(data: List[Dict[str, any]], key: str = 'new_reaction'
     return with_key, without_key
 
 
-def get_random_samples_by_diff_formula(
-    data: List[Dict[str, any]], 
+def get_random_samples_by_key(
+    data: List[Dict[str, Any]], 
+    stratify_key: str, 
     num_samples_per_group: int = 1, 
     random_seed: int = None
-    ) -> List[Dict[str, any]]:
+    ) -> List[Dict[str, Any]]:
     """
-    Get random samples from data, grouped by 'Diff_formula'.
+    Get random samples from data, grouped by a specified key.
 
     Parameters:
-    - data: List of dictionaries, each containing 'Diff_formula' and other keys.
-    - num_samples_per_group: Number of random samples to draw from each unique 'Diff_formula' group.
+    - data: List of dictionaries containing various keys.
+    - stratify_key: The key used for stratifying the data.
+    - num_samples_per_group: Number of random samples to draw from each unique group.
     - random_seed: Seed for the random number generator for reproducibility.
 
     Returns:
-    - A list of randomly selected samples from each unique 'Diff_formula' group.
+    - A list of randomly selected samples from each unique group based on the stratify_key.
     """
     if random_seed is not None:
         random.seed(random_seed)
 
-    # Group data by 'Diff_formula'
+    # Function to create a sortable key from the item
+    def sortable_key(item: Dict[str, Any]) -> Union[str, tuple]:
+        key_value = item.get(stratify_key, None)
+        if isinstance(key_value, dict):
+            return tuple(sorted(key_value.items()))
+        elif isinstance(key_value, list):
+            return tuple(sorted(key_value))
+        else:
+            return key_value
+
+    # Group data by the specified stratify_key
     grouped_data = defaultdict(list)
     for item in data:
-        grouped_data[tuple(sorted(item['Diff_formula'].items()))].append(item)
+        grouped_key = sortable_key(item)
+        grouped_data[grouped_key].append(item)
 
     # Select random samples from each group
     random_samples = []
-    for diff_formula, items in grouped_data.items():
+    for _, items in grouped_data.items():
         if len(items) >= num_samples_per_group:
             random_samples.extend(random.sample(items, num_samples_per_group))
         else:
             # If there aren't enough items, take all available
             random_samples.extend(items)
 
-    return random_samples
     return random_samples
