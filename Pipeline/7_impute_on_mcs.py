@@ -66,12 +66,25 @@ def plot_summary(reaction_data):
     plt.show()
 
 
-def load_data():
-    mcs_data = load_database("./Data/MCS/Final_Graph_macth_3+.json.gz")
-    reactions = load_database(
-        "./Data/MCS/Original_data_Intersection_MCS_3+_matching_ensemble.json.gz"
-    )
-    assert len(mcs_data) == len(reactions)
+def load_data(dataset="3+"):
+    if dataset == "3+":
+        mcs_data = load_database("./Data/MCS/Final_Graph_macth_3+.json.gz")
+        reactions = load_database(
+            "./Data/MCS/Original_data_Intersection_MCS_3+_matching_ensemble.json.gz"
+        )
+    elif dataset == "0-50":
+        mcs_data = load_database("./Data/MCS/Final_Graph_macth_under2-.json.gz")
+        reactions = load_database(
+            "./Data/MCS/Original_data_Intersection_MCS_0_50_largest.json.gz"
+        )
+    else:
+        raise ValueError("Unknown dataset '{}'.".format(dataset))
+    if len(mcs_data) != len(reactions):
+        raise ValueError(
+            "Graph data and reaction data must be of same length. ({} != {})".format(
+                len(mcs_data), len(reactions)
+            )
+        )
     for i, mcs_item in enumerate(mcs_data):
         reactions[i]["missing_parts"] = mcs_item
     return reactions
@@ -126,7 +139,7 @@ def get_export_dict(
 
 
 def main():
-    reactions = load_data()
+    reactions = load_data("0-50")
     failed = []
     for i in range(len(reactions)):
         reaction = reactions[i]
@@ -137,6 +150,7 @@ def main():
             failed.append(i)
             print("[ERROR] [{}] {}".format(i, e))
 
+    print("Failed cnt:", len(failed))
     export_reactions = get_export_dict(reactions)
     save_database(export_reactions, "./Data/MCS/After_Merge_and_Expansion.json.gz")
     return
