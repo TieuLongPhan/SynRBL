@@ -1,3 +1,4 @@
+import traceback
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynMCS.mol_merge import merge
 from rdkit import Chem
@@ -93,13 +94,16 @@ def load_data(dataset="3+"):
 def impute(reaction):
     mcs_data = reaction["missing_parts"]
     mols = [Chem.MolFromSmiles(s) for s in mcs_data["smiles"]]
+    if len(mcs_data["smiles"]) == 0:
+        # Skip reactions where finding MCS timed out.
+        raise ValueError("Empty substructure.")
     bounds = mcs_data["boundary_atoms_products"]
     neighbors = mcs_data["nearest_neighbor_products"]
     merge_result = merge(mols, bounds, neighbors)
     m_smiles = []
     compound_rules = []
     merge_rules = []
-    for i, result in enumerate(merge_result):
+    for result in merge_result:
         mol = Chem.RemoveHs(result["mol"])
         m_smiles.append(Chem.MolToSmiles(mol))
         if "compound_rules" in result.keys():
@@ -126,7 +130,8 @@ def get_export_dict(
         "reactions": "old_reaction",
         "structure_impute_reaction": "new_reaction",
         "merge_rules": "merge_rules",
-        "compound_rules": "compound_rules"
+        "compound_rules": "compound_rules",
+        "issue": "issue",
     },
 ):
     export = []
@@ -142,7 +147,7 @@ def get_export_dict(
 
 
 def main():
-    dataset = "3+"
+    dataset = "0-50"  # "3+"
     reactions = load_data(dataset)
     failed = []
     for i in range(len(reactions)):
@@ -151,11 +156,15 @@ def main():
             impute(reaction)
         except Exception as e:
             failed.append(i)
+            reaction["issue"] = [str(e)]
             print("[ERROR] [{}] {}".format(i, e))
 
     print("Failed cnt:", len(failed))
     export_reactions = get_export_dict(reactions)
-    save_database(export_reactions, "./Data/MCS/After_Merge_and_Expansion_{}.json.gz".format(dataset))
+    save_database(
+        export_reactions,
+        "./Data/MCS/After_Merge_and_Expansion_{}.json.gz".format(dataset),
+    )
     return
     id = 15746
     try:
