@@ -115,10 +115,8 @@ def impute(reaction):
         )
 
     reaction["structure_impute_reaction"] = ".".join(reaction_smiles)
-    reaction["structure_rules"] = {
-        "compound_rules": compound_rules,
-        "merge_rules": merge_rules,
-    }
+    reaction["compound_rules"] = compound_rules
+    reaction["merge_rules"] = merge_rules
 
 
 def get_export_dict(
@@ -127,32 +125,37 @@ def get_export_dict(
         "id": "id",
         "reactions": "old_reaction",
         "structure_impute_reaction": "new_reaction",
+        "merge_rules": "merge_rules",
+        "compound_rules": "compound_rules"
     },
 ):
     export = []
     for reaction in reactions:
         export_reaction = {}
         for k, v in export_key_map.items():
-            export_reaction[v] = reaction[k]
+            if k in reaction.keys():
+                export_reaction[v] = reaction[k]
+            else:
+                export_reaction[v] = None
         export.append(export_reaction)
     return export
 
 
 def main():
-    reactions = load_data("0-50")
+    dataset = "3+"
+    reactions = load_data(dataset)
     failed = []
     for i in range(len(reactions)):
         reaction = reactions[i]
         try:
             impute(reaction)
         except Exception as e:
-            reaction["structure_impute_reaction"] = None
             failed.append(i)
             print("[ERROR] [{}] {}".format(i, e))
 
     print("Failed cnt:", len(failed))
     export_reactions = get_export_dict(reactions)
-    save_database(export_reactions, "./Data/MCS/After_Merge_and_Expansion.json.gz")
+    save_database(export_reactions, "./Data/MCS/After_Merge_and_Expansion_{}.json.gz".format(dataset))
     return
     id = 15746
     try:
