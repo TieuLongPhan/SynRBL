@@ -176,9 +176,10 @@ class ExtractMCS:
             if value:
                 try:
                     for condition in conditions:
-                        if sorted(reference_results_list[key]) == sorted(set(condition[key]['mcs_results'])):
+                        if sorted(reference_results_list[key]) == sorted(condition[key]['mcs_results']):
                             results.append(condition[key])
                             break
+
                 except Exception as e:
                     print(f"Error processing condition at index {key}: {e}")
                     continue

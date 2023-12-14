@@ -55,7 +55,7 @@ def check_for_bug(dataframe):
 def main():
 
     missing_results_3_macth, _= find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',
-                save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_3+.json.gz')
+               save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_3+.json.gz')
     #save_database(non_pass_df, root_dir / 'Data/MCS/Bug.json.gz')
     
     missing_results_largest, _ = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_0_50_largest.json.gz',

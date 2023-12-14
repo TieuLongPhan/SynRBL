@@ -27,7 +27,7 @@ def main():
 
     # Largest case for matching under 50%
     analysis = ExtractMCS()
-    mcs_dict, threshold_index = analysis.extract_matching_conditions(0, 50, condition_1, condition_2, condition_3, condition_4,
+    mcs_dict, threshold_index = analysis.extract_matching_conditions(0, 69, condition_1, condition_2, condition_3, condition_4,
                                                                     extraction_method = 'largest_mcs', using_threshold=True)
 
     save_database(mcs_dict, f'{root_dir}/Data/MCS/Intersection_MCS_0_50_largest.json.gz')
