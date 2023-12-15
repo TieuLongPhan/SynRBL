@@ -12,9 +12,10 @@ def main(standardize = False, n_jobs=4, save = True):
     from SynRBL.SynCleaning import SMILESStandardizer
     from SynRBL.SynExtract import RSMIDecomposer  
     from SynRBL.SynExtract.rsmi_comparator import RSMIComparator
+    from SynRBL.SynExtract.rsmi_both_side_process import BothSideReact
     from SynRBL.rsmi_utils import save_database
 
-    df = pd.read_csv(root_dir /'Data/USPTO_50k.csv')
+    df = pd.read_csv(root_dir /'Data/USPTO_50K.csv')
 
     # process data
     process = RSMIProcessing(data=df, rsmi_col='reactions', parallel=True, n_jobs=n_jobs, 
@@ -34,6 +35,10 @@ def main(standardize = False, n_jobs=4, save = True):
     # compare dict and check balance
     comp = RSMIComparator(reactants=react_dict, products=product_dict, n_jobs=n_jobs)
     unbalance, diff_formula = comp.run_parallel(reactants=react_dict, products=product_dict)
+
+    # solve the both side reaction
+    both_side = BothSideReact(react_dict, product_dict, unbalance, diff_formula)
+    diff_formula, unbalance= both_side.fit()
 
     reactions_clean = pd.concat([pd.DataFrame(reactions), pd.DataFrame([unbalance]).T.rename(columns={0: 'Unbalance'}),
                                  pd.DataFrame([diff_formula]).T.rename(columns={0: 'Diff_formula'})], axis=1).to_dict(orient='records')

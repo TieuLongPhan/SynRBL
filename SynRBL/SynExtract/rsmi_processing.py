@@ -138,6 +138,9 @@ class RSMIProcessing:
         # Assign the second part of the split (products) to another new column
         self.data['products'] = split_smiles[1]
 
+        self.data.drop_duplicates(subset='reactions', inplace=True)
+        self.data.reset_index(drop=True, inplace=True)
+        self.data['R-id'] = ['R'+ str(i) for i in self.data.index]
         # Check if there's a need to save the processed data to a JSON file
         if self.save_json:
             data=self.data.to_dict(orient=self.orient)

@@ -26,7 +26,7 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Time
     - dict: A dictionary containing MCS results and any sorted reactants encountered.
     """
 
-    mcs_results_dict = {'mcs_results': [], 'sorted_reactants': [], 'issue': []}
+    mcs_results_dict = {'R-id': data_dict['R-id'], 'mcs_results': [], 'sorted_reactants': [], 'issue': []}
 
     try:
         analyzer = MCSMissingGraphAnalyzer()
@@ -41,7 +41,6 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Time
     except Exception as e:
         mcs_results_dict['issue'] = data_dict
         logging.error(f"Error in single_mcs: {str(e)}")
-
     return mcs_results_dict
 
 def run_and_save_conditions(data, root_dir, batch_size=100, Timeout=60):
@@ -83,7 +82,7 @@ def main():
     filtered_data = load_database(data_path)
 
     # Run and save conditions
-    run_and_save_conditions(filtered_data, root_dir, batch_size=6000, Timeout=60)
+    run_and_save_conditions(filtered_data, root_dir, batch_size=4000, Timeout=90)
 
 # Execute main function
 if __name__ == "__main__":

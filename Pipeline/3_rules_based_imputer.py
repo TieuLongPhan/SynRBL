@@ -9,6 +9,7 @@ def main(n_jobs=4):
 
     from SynRBL.rsmi_utils import save_database, load_database, filter_data, extract_results_by_key
     from SynRBL.SynRuleImpute import SyntheticRuleImputer
+    from SynRBL.SynRuleImpute.synthetic_rule_constraint import RuleConstraint
 
     rules = load_database(root_dir / 'Data/Rules/rules_manager.json.gz')
     reactions_clean = load_database(root_dir / 'Data/reaction_clean.json.gz')
@@ -47,10 +48,21 @@ def main(n_jobs=4):
 
     # Combine all unsolved cases
     unsolve = un_C_reactions + both_side_reactions + unsolve
+    #print('Total unsolved:', len(unsolve))
+
+    # Handle uncertainty in imputation
+    constrain = RuleConstraint(solve, ban_atoms=['O=O', 'F-F', 'Cl-Cl', 'Br-Br', 'I-I', 'Cl-Br', 'Cl-I', 'Br-I'])
+    certain_reactions, uncertain_reactions = constrain.fit()
+
+    id_uncertain = [entry['R-id'] for entry in uncertain_reactions]
+    new_uncertain_reactions = [entry for entry in reactions_clean if entry['R-id'] in id_uncertain]
+
+    unsolve = unsolve + new_uncertain_reactions
     print('Total unsolved:', len(unsolve))
 
+
     # Save solved and unsolved reactions
-    save_database(solve, root_dir / 'Data/Solved_reactions.json.gz')
+    save_database(certain_reactions, root_dir / 'Data/Solved_reactions.json.gz')
     save_database(unsolve, root_dir / 'Data/Unsolved_reactions.json.gz')
 
 
