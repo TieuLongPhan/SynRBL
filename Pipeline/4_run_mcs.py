@@ -82,7 +82,7 @@ def main():
     filtered_data = load_database(data_path)
 
     # Run and save conditions
-    run_and_save_conditions(filtered_data, root_dir, batch_size=4000, Timeout=90)
+    run_and_save_conditions(filtered_data, root_dir, batch_size=5600, Timeout=60)
 
 # Execute main function
 if __name__ == "__main__":

@@ -36,7 +36,6 @@ def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
 
     print('Bug:', len(bug_data))
     if save:
-        
         save_database(missing_results, save_path)
     non_pass_df = bug_data.to_dict(orient='records')
     
@@ -53,13 +52,22 @@ def check_for_bug(dataframe):
 
 
 def main():
-
-    missing_results_3_macth, _= find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',
+    original_3 = load_database(f'{root_dir}/Data/MCS/Original_data_Intersection_MCS_3+_matching_ensemble.json.gz')
+    missing_results_3_match, _= find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz',
                save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_3+.json.gz')
     #save_database(non_pass_df, root_dir / 'Data/MCS/Bug.json.gz')
+    for key, value in enumerate(missing_results_3_match):
+        missing_results_3_match[key]['R-id'] = original_3[key]['R-id']
+        missing_results_3_match[key]['old_reaction'] = original_3[key]['reactions']
+    save_database(missing_results_3_match, root_dir / 'Data/MCS/Final_Graph_macth_3+.json.gz')
     
+    original_2 = load_database(f'{root_dir}/Data/MCS/Original_data_Intersection_MCS_0_50_largest.json.gz')
     missing_results_largest, _ = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Intersection_MCS_0_50_largest.json.gz',
                 save_path=f'{root_dir}/Data/MCS/Final_Graph_macth_under2-.json.gz')
+    for key, value in enumerate(missing_results_largest):
+        missing_results_largest[key]['R-id'] = original_2[key]['R-id']
+        missing_results_largest[key]['old_reaction'] = original_2[key]['reactions']
+    save_database(missing_results_largest, root_dir / 'Data/MCS/Final_Graph_macth_under2-.json.gz')
     
     
 

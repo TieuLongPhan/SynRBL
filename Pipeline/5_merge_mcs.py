@@ -20,7 +20,7 @@ def main():
     analysis = ExtractMCS()
     mcs_dict_75_100, threshold_index = analysis.extract_matching_conditions(70, 100, condition_1, condition_2, condition_3, condition_4,
                                                                  extraction_method = 'ensemble', using_threshold=True)
-
+    
     save_database(mcs_dict_75_100, f'{root_dir}/Data/MCS/Intersection_MCS_3+_matching_ensemble.json.gz')
     data_solve = [d for d, b in zip(original_data, threshold_index) if b]
     save_database(data_solve, f'{root_dir}/Data/MCS/Original_data_Intersection_MCS_3+_matching_ensemble.json.gz')
