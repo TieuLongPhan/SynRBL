@@ -8,3 +8,6 @@
 
 *.ipynb
 *.png
+venv/
+
+.coverage
