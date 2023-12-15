@@ -1,9 +1,11 @@
-import rdkit
-from rdkit import Chem
-import SynRBL.SynMCS
-from rdkit.Chem import rdmolops
+import rdkit.Chem
+import rdkit.Chem.Draw
+import rdkit.Chem.rdmolops as rdmolops
+import rdkit.Chem.rdmolfiles as rdmolfiles
+import matplotlib.pyplot as plt
 from SynRBL.SynMCS.rule_formation import Property
 from SynRBL.SynMCS.merge_rule import *
+
 
 class SubstructureError(Exception):
     """
@@ -142,21 +144,18 @@ class CompoundRule:
             k in self.compound.keys() for k in ("smiles", "index")
         ):
             result = {
-                "mol": Chem.MolFromSmiles(self.compound["smiles"]),
+                "mol": rdmolfiles.MolFromSmiles(self.compound["smiles"]),
                 "index": self.compound["index"],
             }
         return result
 
 
 def plot_mols(mols, includeAtomNumbers=False, titles=None, figsize=None):
-    import matplotlib.pyplot as plt
-    from rdkit.Chem import Draw
-
     if type(mols) is not list:
         mols = [mols]
     if len(mols) == 0:
         return
-    fig, ax = plt.subplots(1, len(mols), figsize=figsize)
+    _, ax = plt.subplots(1, len(mols), figsize=figsize)
     for i, mol in enumerate(mols):
         a = ax
         if len(mols) > 1:
@@ -164,7 +163,7 @@ def plot_mols(mols, includeAtomNumbers=False, titles=None, figsize=None):
         if includeAtomNumbers:
             for atom in mol.GetAtoms():
                 atom.SetProp("atomLabel", str(atom.GetIdx()))
-        mol_img = Draw.MolToImage(mol)
+        mol_img = rdkit.Chem.Draw.MolToImage(mol)
         if titles is not None and i < len(titles):
             a.set_title(titles[i])
         a.axis("off")
@@ -216,9 +215,9 @@ def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
     mol1_tracker = AtomTracker(mol1_track)
     mol2_tracker = AtomTracker(mol2_track)
 
-    mol1 = Chem.AddHs(mol1)
-    mol2 = Chem.AddHs(mol2)
-    mol = Chem.RWMol(Chem.CombineMols(mol1, mol2))
+    mol1 = rdmolops.AddHs(mol1)
+    mol2 = rdmolops.AddHs(mol2)
+    mol = rdmolops.RWMol(rdmolops.CombineMols(mol1, mol2))
     mol2_offset = len(mol1.GetAtoms())
     mol1_tracker.add_atoms(mol)
     mol2_tracker.add_atoms(mol, offset=mol2_offset)
@@ -233,7 +232,7 @@ def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
         break
     if not merge_rule:
         raise NoMergeRuleError(atom1, atom2, mol1, mol2)
-    Chem.SanitizeMol(mol)
+    rdmolops.SanitizeMol(mol)
     return {
         "mol": mol,
         "merge_rules": [merge_rule],
@@ -313,7 +312,7 @@ def _check_atoms(mol, atom_dict):
         sym, idx = next(iter(atom_dict.items()))
         actual_sym = mol.GetAtomWithIdx(idx).GetSymbol()
         if actual_sym != sym:
-            raise InvalidAtomDict(sym, actual_sym, idx, Chem.MolToSmiles(mol))
+            raise InvalidAtomDict(sym, actual_sym, idx, rdmolops.MolToSmiles(mol))
     else:
         raise ValueError("atom_dict must be either a list or a dict.")
 
@@ -452,8 +451,8 @@ def merge(mols, bounds, neighbors):
 
 class CompletionCompound:
     def __init__(self, reactant, product, new_reactant, new_product):
-        self.reactant = Chem.MolFromSmiles(reactant)
-        self.product = Chem.MolFromSmiles(product)
+        self.reactant = rdmolfiles.MolFromSmiles(reactant)
+        self.product = rdmolfiles.MolFromSmiles(product)
         self.new_reactant = new_reactant
         self.new_product = new_product
         self.boundaries = []
@@ -488,16 +487,19 @@ class CompletionCompound:
             products = rdmolops.CombineMols(products, self.product)
         return reactants, products
 
-reactants = 'COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O'
-products = 'COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O'
-mol3 = Chem.MolFromSmiles(reactants)
-mol4 = Chem.MolFromSmiles(products)
-mol5 = Chem.MolFromSmiles('O=COCc1ccccc1')
-#plot_mols([mol3, mol4, mol5], includeAtomNumbers=True)
-cc1 = CompletionCompound(reactants, 'O=COCc1ccccc1', False, True)
-cc1.add_broken_bond({'C': 1}, {'N': 9})
-cc2 = CompletionCompound('O', 'O', True, True)
-cc2.add_broken_bond({'O': 0}, None)
+
+import rdkit.Chem.rdmolfiles as rdmolfiles
+
+reactants = "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O"
+products = "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O"
+mol3 = rdmolfiles.MolFromSmiles(reactants)
+mol4 = rdmolfiles.MolFromSmiles(products)
+mol5 = rdmolfiles.MolFromSmiles("O=COCc1ccccc1")
+# plot_mols([mol3, mol4, mol5], includeAtomNumbers=True)
+cc1 = CompletionCompound(reactants, "O=COCc1ccccc1", False, True)
+cc1.add_broken_bond({"C": 1}, {"N": 9})
+cc2 = CompletionCompound("O", "O", True, True)
+cc2.add_broken_bond({"O": 0}, None)
 mol6, mol7 = cc1.complete_reaction(mol3, mol4)
 mol8, mol9 = cc2.complete_reaction(mol6, mol7)
 plot_mols([mol6, mol7])
@@ -506,11 +508,11 @@ plot_mols([mol8, mol9])
 ccs = [cc1, cc2]
 for i, ci in enumerate(ccs):
     for bi in ci.boundaries:
-        for cj in ccs[i+1:]:
+        for cj in ccs[i + 1 :]:
             if ci == cj:
                 assert False
             for bj in cj.boundaries:
                 print(bi[0].GetSymbol(), bj[0].GetSymbol())
-            
-    
-#cc.add_missing_bond({})
+
+
+# cc.add_missing_bond({})

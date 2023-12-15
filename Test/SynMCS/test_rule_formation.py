@@ -1,10 +1,9 @@
 import unittest
-from rdkit import Chem
+import rdkit.Chem.rdmolfiles as rdmolfiles
 from SynRBL.SynMCS.rule_formation import *
 
-
 class TestProperty(unittest.TestCase):
-    def __test_prop(self, config, in_p=[], in_n=[], dtype=str):
+    def __test_prop(self, config, in_p=[], in_n=[], dtype: type[str | int] = str):
         prop = Property(config, dtype=dtype)
         self.assertTrue(all(e in prop.pos_values for e in in_p))
         self.assertTrue(all(e in prop.neg_values for e in in_n))
@@ -20,7 +19,7 @@ class TestProperty(unittest.TestCase):
         self.__test_prop(
             ["!-1", "!1", "-2", "2"], in_p=[-2, 2], in_n=[-1, 1], dtype=int
         )
-        self.__test_prop([1, "!2"], in_p=[1], in_n=[2], dtype=int)
+        self.__test_prop(["1", "!2"], in_p=[1], in_n=[2], dtype=int)
 
     def test_parsing_none(self):
         prop = Property(None)
@@ -61,10 +60,13 @@ class TestProperty(unittest.TestCase):
         self.assertFalse(prop.check("B"))
         self.assertTrue(prop.check("C"))
 
+    def test_invalid_config_type(self):
+        with self.assertRaises(ValueError):
+            Property(8) # type: ignore
 
 class TestAtomCondition(unittest.TestCase):
     def __check_cond(self, cond, smiles, idx, expected_result, neighbor=None):
-        mol = Chem.MolFromSmiles(smiles)
+        mol = rdmolfiles.MolFromSmiles(smiles)
         actual_result = cond.check(mol.GetAtomWithIdx(idx), neighbor)
         self.assertEqual(expected_result, actual_result)
 

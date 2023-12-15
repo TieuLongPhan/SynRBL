@@ -1,6 +1,3 @@
-from rdkit.Chem import rdmolops
-
-
 class NoMoreHError(Exception):
     """
     Exception if an atom has no more Hydrogen atoms that can be removed.
@@ -28,7 +25,10 @@ class Property:
     """
 
     def __init__(
-        self, config: str | list[str] | None = None, dtype=str, allow_none=False
+        self,
+        config: str | list[str] | None = None,
+        dtype: type[int | str] = str,
+        allow_none=False,
     ):
         """
         Generic property for dynamic rule configuration.
@@ -49,11 +49,11 @@ class Property:
         if config is not None:
             if not isinstance(config, list):
                 config = [config]
-            for i, s in enumerate(config):
-                config[i] = str(s)
             for item in config:
                 if not isinstance(item, str):
-                    raise ValueError("value must be str or a list of strings.")
+                    raise ValueError(
+                        "Property configuration must be of type str or list[str]."
+                    )
                 if len(item) > 0 and item[0] == "!":
                     self.neg_values.append(dtype(item[1:]))
                 else:
@@ -99,7 +99,7 @@ class AtomCondition:
     Example:
         Check if atom is Carbon and has Oxygen or Nitrogen as neighbor.
         >>> cond = AtomCondition(atom=['C'], neighbors=['O', 'N'])
-        >>> mol = rdkit.Chem.MolFromSmiles('CO')
+        >>> mol = rdkit.Chem.rdmolfiles.MolFromSmiles('CO')
         >>> cond.check(mol.GetAtomFromIdx(0), neighbor='O')
         True
 
