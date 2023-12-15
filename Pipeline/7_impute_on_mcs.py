@@ -121,13 +121,15 @@ def impute(reaction):
     reaction["structure_impute_reaction"] = ".".join(reaction_smiles)
     reaction["compound_rules"] = compound_rules
     reaction["merge_rules"] = merge_rules
+    reaction["old_reaction"] = mcs_data["old_reaction"]
 
 
 def get_export_dict(
     reactions,
     export_key_map={
         "id": "id",
-        "reactions": "old_reaction",
+        "R-id": "R-id",
+        "old_reaction": "old_reaction",
         "structure_impute_reaction": "new_reaction",
         "merge_rules": "merge_rules",
         "compound_rules": "compound_rules",
@@ -155,7 +157,7 @@ def main():
         try:
             impute(reaction)
         except Exception as e:
-            #traceback.print_exc()
+            # traceback.print_exc()
             failed.append(i)
             reaction["issue"] = [str(e)]
             print("[ERROR] [{}] {}".format(i, e))
@@ -165,6 +167,7 @@ def main():
         export_reactions,
         "./Data/MCS/After_Merge_and_Expansion_{}.json.gz".format(dataset),
     )
+    print('Failed: {}'.format(len(failed)))
     return
     id = 0
     try:
