@@ -38,10 +38,10 @@ class RuleConstraint:
             Defaults to a predefined list.
         """
         self.list_dict = copy.deepcopy(list_dict)
-        self.ban_atoms = ban_atoms or ['O=O', 'F-F', 'Cl-Cl', 'Br-Br', 'I-I', 'Cl-Br', 'Cl-I', 'Br-I']
+        self.ban_atoms = ban_atoms or ['[H]','[O].[O]', 'F-F', 'Cl-Cl', 'Br-Br', 'I-I', 'Cl-Br', 'Cl-I', 'Br-I']
         self.ban_atoms = [Chem.CanonSmiles(atom) for atom in self.ban_atoms]
         self.ban_pattern = re.compile('|'.join(map(re.escape, self.ban_atoms)))
-        self.ban_atoms_reactants = ban_atoms_reactants or ['[O]']
+        self.ban_atoms_reactants = ban_atoms_reactants or ['[H]', '[O]']
         self.ban_atoms_reactants = [Chem.CanonSmiles(atom) for atom in self.ban_atoms_reactants]
         self.ban_pattern_reactants = re.compile('|'.join(map(re.escape, self.ban_atoms_reactants)))
   
@@ -60,66 +60,37 @@ class RuleConstraint:
         """
         modified_data = []
         for entry in data:
-            products = entry['products']
-            reactants = entry['reactants']
             
-            if '[H]' in products:
-                products = products.replace('.[H]', '').replace('[H]', '')
-                reactants += '.O=O'
+            if '[H]' in entry['products']:
+                if RuleConstraint.check_even(entry, 'products', '[H]'):
+                    entry['products'] = entry['products'].replace('.[H]', '').replace('[H]', '')
+                    entry['reactants'] += '.[O].[O]'
 
-                if products:
-                    products += '.O'
+                    if entry['products']:
+                        entry['products'] += '.O'
+                    else:
+                        entry['products'] = 'O'
                 else:
-                    products = 'O'
+                    pass
             
-            if '[O]' in products:
-                products = products.replace('.[O]', '').replace('[O]', '')
-                reactants += '.[H].[H]'
-
-                if products:
-                    products += '.O'
+            if '[O]' in entry['products']:
+                if RuleConstraint.check_even(entry, 'products', '[O]'):
+                    pass
                 else:
-                    products = 'O'
+                    entry['products'] = entry['products'].replace('.[O]', '').replace('[O]', '')
+                    entry['reactants'] += '.[H].[H]'
 
-            new_reaction = f"{reactants}>>{products}"
+                    if entry['products']:
+                        entry['products'] += '.O'
+                    else:
+                        entry['products'] = 'O'
+
+            new_reaction = f"{entry['reactants']}>>{entry['products']}"
             entry['new_reaction'] = new_reaction
             modified_data.append(entry)
 
         return modified_data
     
-    @staticmethod
-    def reduction_rules_modify(
-        data: List[Dict[str, str]]
-        ) -> List[Dict[str, str]]:
-        """
-        Modify the oxidation rules in the given data.
-
-        Args:
-            data (List[Dict[str, str]]): The input data containing oxidation rules.
-
-        Returns:
-            List[Dict[str, str]]: The modified data with updated oxidation rules.
-        """
-        modified_data = []
-        for entry in data:
-            products = entry['products']
-            reactants = entry['reactants']
-            if '[O]' in products:
-                products = products.replace('.[O]', '').replace('[O]', '')
-                reactants += '.[H].[H]'
-
-                if products:
-                    products += '.O'
-                else:
-                    products = 'O'
-
-            new_reaction = f"{reactants}>>{products}"
-            entry['new_reaction'] = new_reaction
-            modified_data.append(entry)
-
-        return modified_data
-
-
     @staticmethod
     def remove_banned_reactions(
         reaction_list: List[Dict[str, str]], 
@@ -139,11 +110,31 @@ class RuleConstraint:
         filtered_reactions = [reaction for reaction in reaction_list if not ban_pattern.search(reaction.get('products', ''))]
         reactions_with_banned_atoms = [reaction for reaction in reaction_list if ban_pattern.search(reaction.get('products', ''))]
 
-        filtered_reactions = [reaction for reaction in filtered_reactions if not ban_pattern_reactants.search(reaction.get('reactants', ''))]
-        reactions_with_banned_atoms_reactants = [reaction for reaction in filtered_reactions if ban_pattern.search(reaction.get('reactants', ''))]
+        # check validity of reactants, should not contain single [H] or single [O]
+        filtered_reactions = [reaction for reaction in filtered_reactions if len(re.findall(ban_pattern_reactants, reaction.get('reactants', ''))) % 2 == 0]
+        reactions_with_banned_atoms_reactants = [reaction for reaction in reaction_list if len(re.findall(ban_pattern_reactants, reaction.get('reactants', ''))) % 2 != 0]
         reactions_with_banned_atoms.extend(reactions_with_banned_atoms_reactants)
         return filtered_reactions, reactions_with_banned_atoms
     
+
+    @staticmethod
+    def check_even(data_dict: dict, key: str, frag: str, symbol: str = '>>') -> bool:
+        """
+        Check if the number of occurrences of a fragment in a list of SMILES strings is even.
+
+        Args:
+            data_dict (dict): A dictionary containing SMILES strings.
+            key (str): The key to access the relevant value in the dictionary.
+            frag (str): The fragment to count in the SMILES strings.
+            symbol (str, optional): The delimiter used in the SMILES strings. Defaults to '>>'.
+
+        Returns:
+            bool: True if the number of occurrences of the fragment is even, False otherwise.
+        """
+        smiles_list = data_dict[key].split(symbol)
+        count = smiles_list.count(frag)
+        return count % 2 == 0
+
     def fit(self
         ) -> List[Dict[str, Any]]:
         """

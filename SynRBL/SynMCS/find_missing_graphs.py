@@ -3,6 +3,8 @@ from rdkit.Chem import rdFMCS
 from joblib import Parallel, delayed
 from rdkit.Chem import rdmolops
 import copy
+from rdkit.Chem import AllChem
+from rdkit.Chem.MolStandardize import rdMolStandardize
 class FindMissingGraphs:
     """
     A class for finding missing parts, boundary atoms, and nearest neighbors in a list of reactant molecules.
@@ -147,6 +149,7 @@ class FindMissingGraphs:
             try:
                 Chem.SanitizeMol(missing_part)
                 if missing_part.GetNumAtoms() > 0:
+                    missing_part = FindMissingGraphs.standardize_diazo_charge(missing_part)
                     missing_parts_list.append(missing_part)
                     boundary_atoms_lists.extend(boundary_atoms_list)
                     nearest_neighbor_lists.extend(nearest_neighbor_list)
@@ -288,4 +291,20 @@ class FindMissingGraphs:
         
         curate_mol = Chem.RemoveHs(mol_with_h)
         return curate_mol
+    
+    @staticmethod
+    def standardize_diazo_charge(mol: Chem.Mol) -> Chem.Mol:
+        """
+        Convert a diazo compound with charged atoms to its neutral form.
+
+        Args:
+        mol (Chem.Mol): A RDKit molecule object representing a diazo compound.
+
+        Returns:
+        Chem.Mol: The neutralized molecule, or the original molecule if the reaction doesn't occur.
+        """
+        uncharger = rdMolStandardize.Uncharger()
+        mol =  uncharger.uncharge(mol)
+        neutral_mol = AllChem.ReactionFromSmarts('[N-]=[NH2+]>>[N:1]#[N:2]').RunReactants((mol,))
+        return neutral_mol[0][0] if neutral_mol else mol
     
