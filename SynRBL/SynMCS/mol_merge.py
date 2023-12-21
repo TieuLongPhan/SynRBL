@@ -89,65 +89,6 @@ class AtomTracker:
         return sealed_dict
 
 
-class CompoundRule:
-    """
-    Class for defining a compound expansion rule. The compound is added if the
-    boundary atom meets the condition. A compound rule can be configured by
-    providing a suitable dictionary. Examples on how to configure compound
-    rules can be found in SynRBL/SynMCS/compound_rules.json file.
-
-    Attributes:
-        name (str, optional): A descriptive name for the rule. This attribute
-            is just for readability and does not serve a functional purpose.
-        condition (SynRBL.SynMCS.mol_merge.AtomCondition, optional): Condition
-            for the boundary atom.
-        compound (dict): The compound to add as dictionary in the following
-            form: {'smiles': <SMILES>, 'index': <boundary atom index>}.
-    """
-
-    def __init__(self, **kwargs):
-        self.name = kwargs.get("name", "unnamed")
-        self.condition = AtomCondition(**kwargs.get("condition", {}))
-        self.compound = kwargs.get("compound", None)
-
-    def can_apply(self, atom, neighbor):
-        """
-        Checks if the compound rule can be applied to the atom.
-
-        Arguments:
-            atom (rdkit.Chem.Atom): The boundary atom which is checked for the
-                compound expansion.
-            neighbor (str): The neighboring atom to the boundary. This
-                additional information is required to find the correct
-                compound.
-
-        Returns:
-            bool: True if the compound rule can be applied, false otherwise.
-        """
-        return self.condition.check(atom, neighbor=neighbor)
-
-    def apply(self, atom, neighbor):
-        """
-        Apply the compound rule.
-
-        Arguments:
-            atom (rdkit.Chem.Atom): The boundary atom.
-            neighbor (str): The neighboring atom to the boundary atom.
-
-        Returns:
-            rdkit.Chem.Mol: Returns the compound for expansion.
-        """
-        if not self.can_apply(atom, neighbor):
-            raise ValueError("Can not apply compound rule.")
-        result = None
-        if self.compound is not None and all(
-            k in self.compound.keys() for k in ("smiles", "index")
-        ):
-            result = {
-                "mol": rdmolfiles.MolFromSmiles(self.compound["smiles"]),
-                "index": self.compound["index"],
-            }
-        return result
 
 
 def plot_mols(mols, includeAtomNumbers=False, titles=None, figsize=None):
@@ -170,22 +111,6 @@ def plot_mols(mols, includeAtomNumbers=False, titles=None, figsize=None):
         a.imshow(mol_img)
 
 
-def get_compound(atom, neighbor):
-    """
-    Get the second compound for the specified boundary atom.
-
-    Arguments:
-        atom (rdkit.Chem.Atom): The boundary atom for which to find an
-            extension compound.
-        neighbor (str): The neighboring atom to the boundary atom.
-
-    Returns:
-        rdkit.Chem.Mol: Returns the extension molecule.
-    """
-    for rule in get_compound_rules():
-        if rule.can_apply(atom, neighbor):
-            return rule.apply(atom, neighbor), rule
-    raise NoCompoundRuleError(atom.GetSymbol(), neighbor)
 
 
 def merge_mols(mol1, mol2, idx1, idx2, mol1_track=None, mol2_track=None):
@@ -514,5 +439,16 @@ for i, ci in enumerate(ccs):
             for bj in cj.boundaries:
                 print(bi[0].GetSymbol(), bj[0].GetSymbol())
 
+#r = Reaction('CCO>>C(=O)C')
+#cc = CompletionCompound.from_missing_product_substructure('', '')
+#r.add_completion_compound(cc)
+#r.impute_missing()
+#r.merge()
 
+# r.merge():
+#   reactant_collection.merge()
+#   procut_collection.merge()
+
+# compound_collection.merge():
+#   for i, comp_i in enumerate(compounds):
 # cc.add_missing_bond({})

@@ -1,3 +1,5 @@
+from __future__ import annotations
+import rdkit.Chem as Chem
 import rdkit.Chem.rdChemReactions as rdChemReactions
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.rdmolops as rdmolops
@@ -5,86 +7,114 @@ import rdkit.Chem.rdmolops as rdmolops
 from .utils import check_atom_dict
 
 
-class Reaction:
-    """
-    Container class for balancing a reaction.
+class Boundary:
+    def __init__(
+        self,
+        compound: Compound,
+        index: int,
+        symbol: str | None = None,
+        neighbor_symbol: str | None = None,
+    ):
+        self.index = index
+        self.symbol = symbol
+        self.neighbor_symbol = neighbor_symbol
+        self.is_merged = False
 
-    Attributes:
-        reaction: (rdkit.Chem.rdChem.Reactions.ChemicalReaction): The rdkit
-            reaction object.
-    """
-
-    def __init__(self, reaction_smiles):
-        """
-        Container class for balancing a reaction.
-
-        Arguments:
-            reaction_smiles (str): The reaction smiles string of the unbalanced
-                reaction.
-        """
-        self.reaction = rdChemReactions.ReactionFromSmarts(
-            reaction_smiles, useSmiles=True
-        )
+        self.__compound = compound
 
     @property
-    def smiles(self) -> str:
-        """
-        Returns the smiles representation of the reaction.
-        """
-        return rdChemReactions.ReactionToSmiles(self.reaction)
+    def compound(self) -> Compound:
+        return self.__compound
+
+    def verify(self):
+        if self.symbol is None:
+            return
+        mol = self.compound.mol
+        sym = mol.GetAtomWithIdx(self.index).GetSymbol()
+        if sym != self.symbol:
+            raise ValueError(
+                (
+                    "Invalid boundary atom symbol. "
+                    + "Expected '{}' but found '{}' at index {}."
+                ).format(self.symbol, sym, self.index)
+            )
 
 
-class ReactionCompound:
-    """
-    Class for managing a compound in a reaction. This includes the transition
-    from reactant to product.
+class Compound:
+    def __init__(
+        self,
+        smiles: str,
+        src_smiles: str | None = None,
+    ):
+        self.mol = rdmolfiles.MolFromSmiles(smiles)
+        self.src_smiles = src_smiles
+        self.__boundaries: list[Boundary] = []
 
-    Attributes:
-        reactant (str): The source structure of the compound.
-        product (str): The structure on the product side.
-        is_new_reactant (bool): True if the reactant is already part of the
-            reaction or False if the compound should be added.
-        is_new_product (bool): True if the product is already part of the
-            reaction or False if the compound should be added.
-        boundaries (list[(rdkit.Chem.rdchem.Atom, rdkit.Chem.rdchem.Atom | None)]):
-            A list of atom tuples for the boundaries, where the first atom is
-            the boundary atom in the product compound and the second atom is
-            the neighboring atom in the source structure if available.
-    """
+    @property
+    def boundary_len(self) -> int:
+        return len(self.__boundaries)
 
-    def __init__(self, reactant, product, is_new_reactant, is_new_product):
-        self.reactant = rdmolfiles.MolFromSmiles(reactant)
-        self.product = rdmolfiles.MolFromSmiles(product)
-        self.is_new_reactant = is_new_reactant
-        self.is_new_product = is_new_product
-        self.boundaries = []
+    def add_boundary(
+        self, index, symbol: str | None = None, neighbor_symbol: str | None = None
+    ):
+        b = Boundary(self, index, symbol, neighbor_symbol)
+        b.verify()
+        self.__boundaries.append(b)
 
-    def add_broken_bond(self, boundary_atom: dict, dock_atom: dict | None = None):
-        """
-        Add a missing bond to the completion compound. A missing bond is the
-        bond how the compound was connected in the source molecule. This is
-        most likly the bond that was broken in the reaction.
+    def get_boundary(self, i) -> Boundary:
+        return self.__boundaries[i]
 
-        Arguments:
-            boundary_atom (dict): The atom that was connected to the MCS.
-                Dictionary in the form: {'<symbol>': index}.
-            dock_atom (dict): The atom in the MCS that was connected to the
-                boundary_atom. Dictionary in the form: {'<symbol>': index}.
-        """
-        check_atom_dict(self.product, boundary_atom)
-        b_idx = list(boundary_atom.values())[0]
-        b_atom = self.product.GetAtomWithIdx(b_idx)
-        if dock_atom is not None:
-            check_atom_dict(self.reactant, dock_atom)
-            d_idx = list(dock_atom.values())[0]
-            d_atom = self.reactant.GetAtomWithIdx(d_idx)
-        else:
-            d_atom = None
-        self.boundaries.append((b_atom, d_atom))
 
-    def complete_reaction(self, reactants, products):
-        if self.is_new_reactant:
-            reactants = rdmolops.CombineMols(reactants, self.reactant)
-        if self.is_new_product:
-            products = rdmolops.CombineMols(products, self.product)
-        return reactants, products
+def merge(boundary1: Boundary, boundary2: Boundary):
+    boundary1.is_merged = True
+    boundary2.is_merged = True
+
+
+class CompoundCollection:
+    def __init__(self):
+        self.compounds: list[Compound] = []
+
+    def merge(self):
+        j_b = 0
+        for i, comp_i in enumerate(self.compounds):
+            for i_b in range(comp_i.boundary_len):
+                bound_i = comp_i.get_boundary(i_b)
+                for _, comp_j in enumerate(self.compounds[i + 1 :], start=i + 1):
+                    for j_b in range(comp_j.boundary_len):
+                        bound_j = comp_j.get_boundary(j_b)
+                        assert (
+                            bound_i is not bound_j
+                        ), "Bounds should never be the same."
+                        merge(bound_i, bound_j)
+                if not bound_i.is_merged:
+                    raise ValueError("Merge failed. Missing compound.")
+
+
+    def get_merge_list(self):
+        i_c = 0
+        j_c = 0
+        j_b = 0
+        merge_list = []
+        while i_c < len(self.compounds):
+            comp_i = self.compounds[i_c]
+            for i_b in range(len(comp_i.boundaries)):
+                j_c = i_c + 1
+                if len(self.compounds) <= j_c:
+                    raise ValueError(
+                        "Failed to merge compound collection. "
+                        + "Missing second compound."
+                    )
+                comp_j = self.compounds[j_c]
+                merge_list.append((i_c, i_b, j_c, j_b))
+                j_b += 1
+                if j_b >= len(comp_j.boundaries):
+                    j_b = 0
+                    j_c += 1
+            i_c = j_c + 1
+        return merge_list
+
+
+class Reaction:
+    def __init__(self, reaction_smiles: str | None = None):
+        self.reactant_collection = CompoundCollection()
+        self.product_collection = CompoundCollection()

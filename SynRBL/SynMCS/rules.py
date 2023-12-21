@@ -202,3 +202,64 @@ class MergeRule:
                 return self.__apply(mol, atom1, atom2)
         except Exception as e:
             raise MergeError(self.name, str(e)) from e
+
+
+class CompoundRule:
+    """
+    Class for defining a compound expansion rule. The compound is added if the
+    boundary atom meets the condition. A compound rule can be configured by
+    providing a suitable dictionary. Examples on how to configure compound
+    rules can be found in SynRBL/SynMCS/compound_rules.json file.
+
+    Attributes:
+        name (str, optional): A descriptive name for the rule. This attribute
+            is just for readability and does not serve a functional purpose.
+        condition (SynRBL.SynMCS.mol_merge.AtomCondition, optional): Condition
+            for the boundary atom.
+        compound (dict): The compound to add as dictionary in the following
+            form: {'smiles': <SMILES>, 'index': <boundary atom index>}.
+    """
+
+    def __init__(self, **kwargs):
+        self.name = kwargs.get("name", "unnamed")
+        self.condition = AtomCondition(**kwargs.get("condition", {}))
+        self.compound = kwargs.get("compound", None)
+
+    def can_apply(self, atom, neighbor):
+        """
+        Checks if the compound rule can be applied to the atom.
+
+        Arguments:
+            atom (rdkit.Chem.Atom): The boundary atom which is checked for the
+                compound expansion.
+            neighbor (str): The neighboring atom to the boundary. This
+                additional information is required to find the correct
+                compound.
+
+        Returns:
+            bool: True if the compound rule can be applied, false otherwise.
+        """
+        return self.condition.check(atom, neighbor=neighbor)
+
+    def apply(self, atom, neighbor):
+        """
+        Apply the compound rule.
+
+        Arguments:
+            atom (rdkit.Chem.Atom): The boundary atom.
+            neighbor (str): The neighboring atom to the boundary atom.
+
+        Returns:
+            rdkit.Chem.Mol: Returns the compound for expansion.
+        """
+        if not self.can_apply(atom, neighbor):
+            raise ValueError("Can not apply compound rule.")
+        result = None
+        if self.compound is not None and all(
+            k in self.compound.keys() for k in ("smiles", "index")
+        ):
+            result = {
+                "mol": rdmolfiles.MolFromSmiles(self.compound["smiles"]),
+                "index": self.compound["index"],
+            }
+        return result
