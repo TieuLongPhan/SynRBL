@@ -118,14 +118,12 @@ class MCSMissingGraphAnalyzer:
             if not mcs_result.canceled if method == 'MCIS' else hasattr(mcs_result, 'atomMatches'):
                 mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
                 mcs_list.append(mcs_mol)
-
                 # Conditional substructure removal
                 if remove_substructure:
 
                     # Identify the optimal substructure
                     analyzer = SubstructureAnalyzer()
                     optimal_substructure = analyzer.identify_optimal_substructure(parent_mol=current_product, child_mol=mcs_mol)
-
                     if optimal_substructure:
                         rw_mol = Chem.RWMol(current_product)
                         # Remove atoms in descending order of their indices
@@ -174,8 +172,8 @@ class MCSMissingGraphAnalyzer:
         elif method == 'MCES':
             params = rdRascalMCES.RascalOptions()
             params.returnEmptyMCES = True
-            params.singleLargestFrag = True
-            params.Timeout = Timeout
+            params.singleLargestFrag = False
+            params.timeout = Timeout
             params.similarityThreshold = similarityThreshold
 
 
@@ -187,4 +185,4 @@ class MCSMissingGraphAnalyzer:
         mcs_list, sorted_reactants = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(reactant_mol_list, product_mol,  params, 
                                                                                        method=method, sort = sort, remove_substructure=remove_substructure)
 
-        return mcs_list , sorted_reactants, product_mol
+        return mcs_list , sorted_reactants, reactant_mol_list, product_mol

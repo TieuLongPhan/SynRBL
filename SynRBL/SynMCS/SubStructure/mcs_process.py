@@ -24,7 +24,7 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Time
 
     try:
         analyzer = MCSMissingGraphAnalyzer()
-        mcs_list, sorted_reactants, _ = analyzer.fit(data_dict, RingMatchesRingOnly=RingMatchesRingOnly,
+        mcs_list, sorted_reactants, reactant_mol_list, _ = analyzer.fit(data_dict, RingMatchesRingOnly=RingMatchesRingOnly,
                                                      CompleteRingsOnly=CompleteRingsOnly, sort=sort, method=method,
                                                      remove_substructure=remove_substructure, Timeout=Timeout,
                                                      similarityThreshold=similarityThreshold, ignore_bond_order=ignore_bond_order)
@@ -32,6 +32,9 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Time
         sorted_reactants_smiles = [Chem.MolToSmiles(mol) for mol in sorted_reactants]
         mcs_results_dict['mcs_results'] = mcs_list_smiles
         mcs_results_dict['sorted_reactants'] = sorted_reactants_smiles
+
+        if len(reactant_mol_list) != len(sorted_reactants):
+            mcs_results_dict['issue'] = 'MCS_Uncertainty'
 
     except Exception as e:
         mcs_results_dict['issue'] = data_dict

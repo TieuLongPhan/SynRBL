@@ -26,10 +26,13 @@ def main():
     # Load data
     data_path = root_dir / 'Data/Unsolved_reactions.json.gz'
     filtered_data = load_database(data_path)
+    #filtered_data = filtered_data[0:4000]
+    #print(filtered_data)
+    #print(len(filtered_data))
 
 
     # Run and save conditions
-    ensemble_mcs(filtered_data, root_dir, conditions, batch_size=4000, Timeout=60)
+    ensemble_mcs(filtered_data, root_dir, conditions, batch_size=4000, Timeout=90)
 
 # Execute main function
 if __name__ == "__main__":

@@ -141,10 +141,10 @@ class FindMissingGraphs:
                                     if renumerate_idx != -1:
                                         boundary_atoms.append({neighbor.GetSymbol(): renumerate_idx})
 
-                if boundary_atoms:
-                    boundary_atoms_list.append(boundary_atoms)
-                if nearest_atoms:
-                    nearest_neighbor_list.append(nearest_atoms)
+            if boundary_atoms:
+                boundary_atoms_list.append(boundary_atoms)
+            if nearest_atoms:
+                nearest_neighbor_list.append(nearest_atoms)
 
             try:
                 Chem.SanitizeMol(missing_part)

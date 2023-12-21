@@ -25,7 +25,7 @@ class ExtractMCS:
         int: The number of atoms in the molecule. Returns 0 if the SMILES string is invalid or an error occurs.
         """
         try:
-            molecule = Chem.MolFromSmiles(smiles, sanitize=False)
+            molecule = Chem.MolFromSmarts(smiles)
             if molecule is not None:
                 return molecule.GetNumAtoms()
             else:
