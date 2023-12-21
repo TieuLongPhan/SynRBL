@@ -1,27 +1,32 @@
 from __future__ import annotations
 import json
 import SynRBL.SynMCS
-from importlib.resources import files
-from rdkit.Chem import rdmolops
-from SynRBL.SynMCS.rule_formation import AtomCondition, ActionSet
-from rdkit import Chem
+import importlib.resources
+import rdkit.Chem as Chem
+import rdkit.Chem.rdmolfiles as rdmolfiles
+import rdkit.Chem.rdmolops as rdmolops
 
-_merge_rules = None
+from .rule_formation import AtomCondition, ActionSet
 
 
-def get_merge_rules() -> list[MergeRule]:
+def parse_bond_type(bond):
     """
-    Get a list of merge rules. The rules are configured in
-    SynRBL/SynMCS/merge_rules.json.
+    Convert bond name into the correct rdkit type.
+
+    Arguments:
+        bond (str): Bond type name. E.g.: single, double
 
     Returns:
-        list[SynRBL.SynMCS.mol_merge.MergeRule]: Returns a list of merge rules.
+        rdkit.Chem.rdchem.BondType: The rdkit bond type.
     """
-    global _merge_rules
-    if _merge_rules is None:
-        json_data = files(SynRBL.SynMCS).joinpath("merge_rules.json").read_text()
-        _merge_rules = [MergeRule(**c) for c in json.loads(json_data)]
-    return _merge_rules
+    if bond is None:
+        return None
+    elif bond == "single":
+        return Chem.rdchem.BondType.SINGLE
+    elif bond == "double":
+        return Chem.rdchem.BondType.DOUBLE
+    else:
+        raise NotImplementedError("Bond type '{}' is not implemented.".format(bond))
 
 
 class NoMergeRuleError(Exception):
@@ -46,8 +51,8 @@ class NoMergeRuleError(Exception):
             ).format(
                 boundary_atom1.GetSymbol(),
                 boundary_atom2.GetSymbol(),
-                Chem.MolToSmiles(Chem.RemoveHs(mol1)),
-                Chem.MolToSmiles(Chem.RemoveHs(mol2)),
+                rdmolfiles.MolToSmiles(rdmolops.RemoveHs(mol1)),
+                rdmolfiles.MolToSmiles(rdmolops.RemoveHs(mol2)),
             )
         )
 
@@ -105,9 +110,9 @@ class MergeRule:
     Attributes:
         name (str, optional): A descriptive name for the rule. This attribute
             is just for readability and does not serve a functional purpose.
-        condition1 (SynRBL.SynMCS.mol_merge.AtomCondition, optional): Condition
+        condition1 (AtomCondition, optional): Condition
             for the first boundary atom.
-        condition2 (SynRBL.SynMCS.mol_merge.AtomCondition, optional): Condition
+        condition2 (AtomCondition, optional): Condition
             for the second boundary atom.
         action1 (SynRBL.SynMCS.rule_formation.ActionSet, optional): Actions to
             performe on the first boundary atom.
@@ -118,6 +123,8 @@ class MergeRule:
             and passed compounds does not matter. Default: True
     """
 
+    _merge_rules: list[MergeRule] | None = None
+
     def __init__(self, **kwargs):
         self.name = kwargs.get("name", "unnamed")
         self.condition1 = AtomCondition(**kwargs.get("condition1", {}))
@@ -127,29 +134,23 @@ class MergeRule:
         self.bond = kwargs.get("bond", None)
         self.sym = kwargs.get("sym", True)
 
-    @staticmethod
-    def get_bond_type(bond):
+    @classmethod
+    def get_all(cls) -> list[MergeRule]:
         """
-        Convert bond name into the correct rdkit type.
-
-        Arguments:
-            bond (str): Bond type name. E.g.: single, double
+        Get a list of merge rules. The rules are configured in
+        SynRBL/SynMCS/merge_rules.json.
 
         Returns:
-            rdkit.Chem.rdchem.BondType: The rdkit bond type.
+            list[MergeRule]: Returns a list of merge rules.
         """
-        if bond is None:
-            return None
-        elif bond == "single":
-            return Chem.rdchem.BondType.SINGLE
-        elif bond == "double":
-            return Chem.rdchem.BondType.DOUBLE
-        else:
-            raise NotImplementedError("Bond type '{}' is not implemented.".format(bond))
-
-    @staticmethod
-    def get_all() -> list[MergeRule]:
-        return get_merge_rules()
+        if cls._merge_rules is None:
+            json_data = (
+                importlib.resources.files(SynRBL.SynMCS)
+                .joinpath("merge_rules.json")
+                .read_text()
+            )
+            cls._merge_rules = [MergeRule(**c) for c in json.loads(json_data)]
+        return cls._merge_rules
 
     def __can_apply(self, atom1, atom2):
         return self.condition1.check(atom1) and self.condition2.check(atom2)
@@ -159,7 +160,7 @@ class MergeRule:
             raise ValueError("Can not apply merge rule.")
         self.actions1(mol, atom1)
         self.actions2(mol, atom2)
-        bond_type = MergeRule.get_bond_type(self.bond)
+        bond_type = parse_bond_type(self.bond)
         if bond_type is not None:
             mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type)
         return mol
@@ -214,16 +215,36 @@ class CompoundRule:
     Attributes:
         name (str, optional): A descriptive name for the rule. This attribute
             is just for readability and does not serve a functional purpose.
-        condition (SynRBL.SynMCS.mol_merge.AtomCondition, optional): Condition
+        condition (AtomCondition, optional): Condition
             for the boundary atom.
         compound (dict): The compound to add as dictionary in the following
             form: {'smiles': <SMILES>, 'index': <boundary atom index>}.
     """
 
+    _compound_rules: list[CompoundRule] | None = None
+
     def __init__(self, **kwargs):
         self.name = kwargs.get("name", "unnamed")
         self.condition = AtomCondition(**kwargs.get("condition", {}))
         self.compound = kwargs.get("compound", None)
+
+    @classmethod
+    def get_all(cls) -> list[CompoundRule]:
+        """
+        Get a list of compound rules. The rules are configured in
+        SynRBL/SynMCS/compound_rules.json.
+
+        Returns:
+            list[CompoundRule]: Returns a list of compound rules.
+        """
+        if cls._compound_rules is None:
+            json_data = (
+                importlib.resources.files(SynRBL.SynMCS)
+                .joinpath("merge_rules.json")
+                .read_text()
+            )
+            cls._compound_rules = [CompoundRule(**c) for c in json.loads(json_data)]
+        return cls._compound_rules
 
     def can_apply(self, atom, neighbor):
         """
@@ -263,3 +284,25 @@ class CompoundRule:
                 "index": self.compound["index"],
             }
         return result
+
+
+def get_merge_rules() -> list[MergeRule]:
+    """
+    Get a list of merge rules. The rules are configured in
+    SynRBL/SynMCS/merge_rules.json.
+
+    Returns:
+        list[MergeRule]: Returns a list of merge rules.
+    """
+    return MergeRule.get_all()
+
+
+def get_compound_rules() -> list[CompoundRule]:
+    """
+    Get a list of compound rules. The rules are configured in
+    SynRBL/SynMCS/compound_rules.json.
+
+    Returns:
+        list[CompoundRule]: Returns a list of compound rules.
+    """
+    return CompoundRule.get_all()

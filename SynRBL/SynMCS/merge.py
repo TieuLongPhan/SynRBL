@@ -1,4 +1,9 @@
+import rdkit.Chem.rdchem as rdchem
 import rdkit.Chem.rdmolops as rdmolops
+import rdkit.Chem.rdmolfiles as rdmolfiles
+
+from .rules import MergeRule
+from .structure import Boundary, Compound
 
 
 class AtomTracker:
@@ -71,9 +76,9 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
     mol1_tracker = AtomTracker(mol1_track)
     mol2_tracker = AtomTracker(mol2_track)
 
-    mol1 = rdmolops.AddHs(mol1)
-    mol2 = rdmolops.AddHs(mol2)
-    mol = rdmolops.RWMol(rdmolops.CombineMols(mol1, mol2))
+    #mol1 = rdmolops.AddHs(mol1)
+    #mol2 = rdmolops.AddHs(mol2)
+    mol = rdchem.RWMol(rdmolops.CombineMols(mol1, mol2))
 
     mol2_offset = len(mol1.GetAtoms())
     mol1_tracker.add_atoms(mol)
@@ -91,3 +96,20 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
         "aam1": mol1_tracker.to_dict(),
         "aam2": mol2_tracker.to_dict(),
     }
+
+
+def expand(comp: Compound) -> Compound | None:
+    return None
+
+
+def merge(boundary1: Boundary, boundary2: Boundary, rule: MergeRule) -> Compound | None:
+    result = merge_two_mols(
+        boundary1.compound.mol,
+        boundary2.compound.mol,
+        boundary1.index,
+        boundary2.index,
+        rule,
+    )
+    # TODO
+    comp = Compound(rdmolfiles.MolToSmiles(result["mol"]))
+    return comp
