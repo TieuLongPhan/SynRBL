@@ -101,8 +101,6 @@ class MCSMissingGraphAnalyzer:
             if params == None:
                 params = rdRascalMCES.RascalOptions()
             mcs_results = [(reactant, rdRascalMCES.FindMCES(reactant, product_mol, params)[0]) for reactant in reactant_mol_list]
-            #mcs_results = [(reactant, MCSMissingGraphAnalyzer.find_mces_with_timeout(reactant, product_mol, params)) for reactant in reactant_mol_list]
-            #print(mcs_results)
             mcs_results = [(reactant, mcs_result) for reactant, mcs_result in mcs_results if hasattr(mcs_result, 'atomMatches')]
             sorted_reactants = sorted(mcs_results, key=lambda x: len(x[1].atomMatches()), reverse=True)
         elif sort == 'Fragments':
@@ -119,9 +117,6 @@ class MCSMissingGraphAnalyzer:
                 mcs_result = rdFMCS.FindMCS([reactant, current_product], params)
             elif method == 'MCES':
                 mcs_result = rdRascalMCES.FindMCES(reactant, current_product, params)[0]
-                #mcs_result = MCSMissingGraphAnalyzer.find_mces_with_timeout(reactant, current_product, params)
- 
-
             else:
                 raise ValueError("Invalid method. Choose 'MCIS' or 'MCES'.")
             
