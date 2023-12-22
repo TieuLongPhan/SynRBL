@@ -6,7 +6,8 @@ import rdkit.Chem as Chem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.rdmolops as rdmolops
 
-from .rule_formation import AtomCondition, ActionSet
+from .structure import Boundary
+from .rule_formation import BoundaryCondition
 
 
 def parse_bond_type(bond):
@@ -76,11 +77,10 @@ class MergeError(Exception):
 class MergeRule:
     """
     Class for defining a merge rule between two compounds. If boundary atom1
-    meets condition1 and boundary atom2 meets condition2 action1 is applied to
-    atom1, action2 is applied to atom2 and a bond is formed between atom1 and
-    atom2. A merge rule can be configured by providing a suitable dictionary.
-    Examples on how to configure merge rules can be found in
-    SynRBL/SynMCS/merge_rules.json file.
+    meets condition1 and boundary atom2 meets condition2 a bond is formed
+    between atom1 and atom2. A merge rule can be configured by providing a
+    suitable dictionary. Examples on how to configure merge rules can be found
+    in SynRBL/SynMCS/merge_rules.json file.
 
     Example:
         The following example shows a complete default configuration for a merge rule.
@@ -88,20 +88,12 @@ class MergeRule:
             "name": "unnamed",
             "condition1": {
                 "atom": None,
-                "rad_e": None,
-                "charge": None,
                 "neighbors": None,
-                "compound": None
             },
             "condition2": {
                 "atom": None,
-                "rad_e": None,
-                "charge": None,
                 "neighbors": None,
-                "compound": None
             },
-            "action1": [],
-            "action2": [],
             "bond": None,
             "sym": True
         }
@@ -114,10 +106,6 @@ class MergeRule:
             for the first boundary atom.
         condition2 (AtomCondition, optional): Condition
             for the second boundary atom.
-        action1 (SynRBL.SynMCS.rule_formation.ActionSet, optional): Actions to
-            performe on the first boundary atom.
-        action2 (SynRBL.SynMCS.rule_formation.ActionSet, optional): Actions to
-            performe on the second boundary atom.
         bond (str, optional): The bond type to form between the two compounds.
         sym (bool): If the rule is symmetric. If set to True order of condition
             and passed compounds does not matter. Default: True
@@ -127,10 +115,8 @@ class MergeRule:
 
     def __init__(self, **kwargs):
         self.name = kwargs.get("name", "unnamed")
-        self.condition1 = AtomCondition(**kwargs.get("condition1", {}))
-        self.condition2 = AtomCondition(**kwargs.get("condition2", {}))
-        self.actions1 = ActionSet(kwargs.get("action1", []))
-        self.actions2 = ActionSet(kwargs.get("action2", []))
+        self.condition1 = BoundaryCondition(**kwargs.get("condition1", {}))
+        self.condition2 = BoundaryCondition(**kwargs.get("condition2", {}))
         self.bond = kwargs.get("bond", None)
         self.sym = kwargs.get("sym", True)
 
@@ -152,34 +138,34 @@ class MergeRule:
             cls._merge_rules = [MergeRule(**c) for c in json.loads(json_data)]
         return cls._merge_rules
 
-    def __can_apply(self, atom1, atom2):
-        return self.condition1.check(atom1) and self.condition2.check(atom2)
+    def __can_apply(self, boundary1, boundary2):
+        return self.condition1.check(boundary1) and self.condition2.check(boundary2)
 
     def __apply(self, mol, atom1, atom2):
         if not self.__can_apply(atom1, atom2):
             raise ValueError("Can not apply merge rule.")
-        self.actions1(mol, atom1)
-        self.actions2(mol, atom2)
         bond_type = parse_bond_type(self.bond)
         if bond_type is not None:
             mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type)
         return mol
 
-    def can_apply(self, atom1, atom2):
+    def can_apply(self, boundary1: Boundary, boundary2: Boundary):
         """
         Check if the rule can be applied to merge atom1 and atom2.
 
         Arguments:
-            atom1 (rdkit.Chem.Atom): Atom in first compound.
-            atom2 (rdkit.Chem.Atom): Atom in second compound.
+            boundary1 (SynRBL.SynMCS.structure.Boundary): First boundary.
+            boundary2 (SynRBL.SynMCS.structure.Boundary): Second boundary.
 
         Returns:
             bool: True if the rule can be applied, false otherwise.
         """
         if self.sym:
-            return self.__can_apply(atom1, atom2) or self.__can_apply(atom2, atom1)
+            return self.__can_apply(boundary1, boundary2) or self.__can_apply(
+                boundary2, boundary1
+            )
         else:
-            return self.__can_apply(atom1, atom2)
+            return self.__can_apply(boundary1, boundary2)
 
     def apply(self, mol, atom1, atom2):
         """
@@ -225,7 +211,7 @@ class CompoundRule:
 
     def __init__(self, **kwargs):
         self.name = kwargs.get("name", "unnamed")
-        self.condition = AtomCondition(**kwargs.get("condition", {}))
+        self.condition = BoundaryCondition(**kwargs.get("condition", {}))
         self.compound = kwargs.get("compound", None)
 
     @classmethod
@@ -246,7 +232,7 @@ class CompoundRule:
             cls._compound_rules = [CompoundRule(**c) for c in json.loads(json_data)]
         return cls._compound_rules
 
-    def can_apply(self, atom, neighbor):
+    def can_apply(self, boundary: Boundary):
         """
         Checks if the compound rule can be applied to the atom.
 
@@ -260,21 +246,17 @@ class CompoundRule:
         Returns:
             bool: True if the compound rule can be applied, false otherwise.
         """
-        return self.condition.check(atom, neighbor=neighbor)
+        return self.condition.check(boundary)
 
-    def apply(self, atom, neighbor):
+    def apply(self):
         """
         Apply the compound rule.
 
-        Arguments:
-            atom (rdkit.Chem.Atom): The boundary atom.
-            neighbor (str): The neighboring atom to the boundary atom.
-
         Returns:
-            rdkit.Chem.Mol: Returns the compound for expansion.
+            SynRBL.SynMCS.structure.Compound: The compound generated by this
+                rule.
         """
-        if not self.can_apply(atom, neighbor):
-            raise ValueError("Can not apply compound rule.")
+        # TODO continue
         result = None
         if self.compound is not None and all(
             k in self.compound.keys() for k in ("smiles", "index")

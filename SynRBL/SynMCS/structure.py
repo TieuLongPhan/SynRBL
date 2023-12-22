@@ -33,6 +33,10 @@ class Boundary:
                 ).format(self.symbol, sym, self.index)
             )
 
+    def get_atom(self) -> rdchem.Atom:
+        mol = self.compound.mol
+        return mol.GetAtomWithIdx(self.index)
+
 
 class Compound:
     def __init__(

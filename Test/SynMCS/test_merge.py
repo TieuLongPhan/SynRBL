@@ -60,6 +60,17 @@ class TestMerge(unittest.TestCase):
         self.assertEqual(0, len(cm.boundaries))  # type: ignore
 
 
+class TestMergeRule(unittest.TestCase):
+    def test_phosphor_double_bond(self):
+        c1 = structure.Compound("O")
+        c2 = structure.Compound("c1ccc(P(c2ccccc2)c2ccccc2)cc1")
+        b1 = c1.add_boundary(0, "O")
+        b2 = c2.add_boundary(4, "P")
+        cm = merge.merge_boundaries(b1, b2)
+        self.assertIsNot(None, cm)
+        self.assertEqual("c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1", cm.smiles)  # type: ignore
+
+
 class TestCompoundCollection(unittest.TestCase):
     def test(self):
         pass
