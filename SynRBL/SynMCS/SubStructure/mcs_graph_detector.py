@@ -3,6 +3,11 @@ from rdkit.Chem import rdmolops
 from rdkit.Chem import rdFMCS
 from rdkit.Chem import rdRascalMCES
 from SynRBL.SynMCS.SubStructure.substructure_analyzer import SubstructureAnalyzer
+import concurrent.futures
+import functools
+import time
+import multiprocessing
+
 class MCSMissingGraphAnalyzer:
     """A class for detecting missing graph in reactants and products using MCS and RDKit."""
 
@@ -96,6 +101,8 @@ class MCSMissingGraphAnalyzer:
             if params == None:
                 params = rdRascalMCES.RascalOptions()
             mcs_results = [(reactant, rdRascalMCES.FindMCES(reactant, product_mol, params)[0]) for reactant in reactant_mol_list]
+            #mcs_results = [(reactant, MCSMissingGraphAnalyzer.find_mces_with_timeout(reactant, product_mol, params)) for reactant in reactant_mol_list]
+            #print(mcs_results)
             mcs_results = [(reactant, mcs_result) for reactant, mcs_result in mcs_results if hasattr(mcs_result, 'atomMatches')]
             sorted_reactants = sorted(mcs_results, key=lambda x: len(x[1].atomMatches()), reverse=True)
         elif sort == 'Fragments':
@@ -112,11 +119,15 @@ class MCSMissingGraphAnalyzer:
                 mcs_result = rdFMCS.FindMCS([reactant, current_product], params)
             elif method == 'MCES':
                 mcs_result = rdRascalMCES.FindMCES(reactant, current_product, params)[0]
+                #mcs_result = MCSMissingGraphAnalyzer.find_mces_with_timeout(reactant, current_product, params)
+ 
+
             else:
                 raise ValueError("Invalid method. Choose 'MCIS' or 'MCES'.")
             
             if not mcs_result.canceled if method == 'MCIS' else hasattr(mcs_result, 'atomMatches'):
-                mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
+                mcs_smarts = mcs_result.smartsString if method == 'MCIS' else mcs_result.smartsString.split('.')[0]
+                mcs_mol = Chem.MolFromSmarts(mcs_smarts)
                 mcs_list.append(mcs_mol)
                 # Conditional substructure removal
                 if remove_substructure:
@@ -171,8 +182,9 @@ class MCSMissingGraphAnalyzer:
 
         elif method == 'MCES':
             params = rdRascalMCES.RascalOptions()
-            params.returnEmptyMCES = True
             params.singleLargestFrag = False
+            params.returnEmptyMCES = True
+            #params.singleLargestFrag = False
             params.timeout = Timeout
             params.similarityThreshold = similarityThreshold
 
@@ -183,6 +195,44 @@ class MCSMissingGraphAnalyzer:
         product_mol = MCSMissingGraphAnalyzer.convert_smiles_to_molecule(product_smiles)
 
         mcs_list, sorted_reactants = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(reactant_mol_list, product_mol,  params, 
-                                                                                       method=method, sort = sort, remove_substructure=remove_substructure)
+                                                                                      method=method, sort = sort, remove_substructure=remove_substructure)
 
         return mcs_list , sorted_reactants, reactant_mol_list, product_mol
+    
+    @staticmethod
+    def run_with_timeout(func, timeout, *args, **kwargs):
+        """
+        Runs a function with a specified timeout using multiprocessing.
+
+        Args:
+        - func (callable): The function to run.
+        - timeout (float): The timeout in seconds.
+        - *args: Positional arguments to pass to the function.
+        - **kwargs: Keyword arguments to pass to the function.
+
+        Returns:
+        - The result of the function if it completes within the timeout, or None otherwise.
+        """
+        def worker(q, func, *args, **kwargs):
+            result = func(*args, **kwargs)
+            q.put(result)
+
+        q = multiprocessing.Queue()
+        p = multiprocessing.Process(target=worker, args=(q, func) + args, kwargs=kwargs)
+        p.start()
+        p.join(timeout)
+
+        if p.is_alive():
+            p.terminate()
+            p.join()  # Ensure the process is cleaned up
+            print(f"Function '{func.__name__}' exceeded the timeout of {timeout} seconds.")
+            return None
+        else:
+            return q.get()
+
+    @staticmethod
+    def find_mces_with_timeout(reactant, product, params, timeout=60):
+        try:
+            return MCSMissingGraphAnalyzer.run_with_timeout(rdRascalMCES.FindMCES, timeout, reactant, product, params)[0]
+        except TypeError:
+            return None

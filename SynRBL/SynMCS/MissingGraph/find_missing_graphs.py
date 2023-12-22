@@ -6,6 +6,7 @@ import copy
 from rdkit.Chem import AllChem
 from rdkit.Chem.MolStandardize import rdMolStandardize
 from SynRBL.SynMCS.SubStructure.substructure_analyzer import SubstructureAnalyzer
+from SynRBL.SynMCS.MissingGraph.molcurator import MoleculeCurator
 class FindMissingGraphs:
     """
     A class for finding missing parts, boundary atoms, and nearest neighbors in a list of reactant molecules.
@@ -109,9 +110,15 @@ class FindMissingGraphs:
                    
 
                     if missing_part is not None:
-                        missing_part = Chem.MolFromSmiles(Chem.MolToSmiles(missing_part))
+                        missing_part_smiles = Chem.MolToSmiles(missing_part)
+                        try:
+                            missing_part = Chem.MolFromSmiles(missing_part_smiles, sanitize=False)
+                            Chem.SanitizeMol(missing_part)
+
+                        except:
+                            missing_part = MoleculeCurator.manual_kekulize(missing_part_smiles)
                      
-                        missing_part = FindMissingGraphs.add_hydrogens_to_radicals(missing_part)
+                        missing_part = MoleculeCurator.add_hydrogens_to_radicals(missing_part)
                         atom_mapping = FindMissingGraphs.map_parent_to_child(missing_part_old, missing_part, left_number)
                         
                     
@@ -149,7 +156,7 @@ class FindMissingGraphs:
             try:
                 Chem.SanitizeMol(missing_part)
                 if missing_part.GetNumAtoms() > 0:
-                    missing_part = FindMissingGraphs.standardize_diazo_charge(missing_part)
+                    missing_part = MoleculeCurator.standardize_diazo_charge(missing_part)
                     missing_parts_list.append(missing_part)
                     boundary_atoms_lists.extend(boundary_atoms_list)
                     nearest_neighbor_lists.extend(nearest_neighbor_list)
@@ -163,79 +170,6 @@ class FindMissingGraphs:
                 nearest_neighbor_lists.extend([])
 
         return missing_parts_list, boundary_atoms_lists, nearest_neighbor_lists
-    
-
-    @staticmethod
-    def find_single_graph(mcs_mol_list, sorted_reactants_mol_list, use_findMCS=True):
-        """
-        Find missing parts, boundary atoms, and nearest neighbors for a list of reactant molecules
-        using a corresponding list of MCS (Maximum Common Substructure) molecules.
-
-        Parameters:
-        - mcs_mol_list (list of rdkit.Chem.Mol): List of RDKit molecule objects representing the MCS,
-        corresponding to each molecule in sorted_reactants_mol_list.
-        - sorted_reactants_mol_list (list of rdkit.Chem.Mol): The list of RDKit molecule objects to analyze.
-
-        Returns:
-        - Dictionary containing:
-        - 'smiles' (list of list of str): SMILES representations of the missing parts for each molecule.
-        - 'boundary_atoms_products' (list of list of dict): Lists of boundary atoms for each molecule.
-        - 'nearest_neighbor_products' (list of list of dict): Lists of nearest neighbors for each molecule.
-        - 'issue' (list): Any issues encountered during processing.
-        """
-        missing_results = {'smiles': [], 'boundary_atoms_products': [], 'nearest_neighbor_products': [], 'issue': []}
-        for i in zip(sorted_reactants_mol_list, mcs_mol_list):
-            try:
-                mols, boundary_atoms_products, nearest_neighbor_products = FindMissingGraphs.find_missing_parts_pairs(i[0], i[1], use_findMCS=use_findMCS)
-                missing_results['smiles'].append([Chem.MolToSmiles(mol) for mol in mols])
-                missing_results['boundary_atoms_products'].append(boundary_atoms_products)
-                missing_results['nearest_neighbor_products'].append(nearest_neighbor_products)
-                missing_results['issue'].append([])
-            except Exception as e:
-                missing_results['smiles'].append([])
-                missing_results['boundary_atoms_products'].append([])
-                missing_results['nearest_neighbor_products'].append([])
-                missing_results['issue'].append(str(e))
-        return missing_results
-
-    @staticmethod
-    def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-1, use_findMCS=True):
-        """
-        Find missing parts, boundary atoms, and nearest neighbors for a list of reactant molecules
-        using a corresponding list of MCS (Maximum Common Substructure) molecules in parallel.
-
-        Parameters:
-        - mcs_mol_list (list of rdkit.Chem.Mol): List of RDKit molecule objects representing the MCS,
-        corresponding to each molecule in sorted_reactants_mol_list.
-        - sorted_reactants_mol_list (list of rdkit.Chem.Mol): The list of RDKit molecule objects to analyze.
-        - n_jobs (int): The number of parallel jobs to run. Default is -1, which uses all available CPU cores.
-
-        Returns:
-        - List of dictionaries, where each dictionary contains:
-        - 'smiles' (list of str): SMILES representations of the missing parts for each molecule.
-        - 'boundary_atoms_products' (list of dict): Lists of boundary atoms for each molecule.
-        - 'nearest_neighbor_products' (list of dict): Lists of nearest neighbors for each molecule.
-        - 'issue' (str): Any issues encountered during processing.
-        """
-        def process_single_pair(reactant_mol, mcs_mol, use_findMCS=True):
-            try:
-                mols, boundary_atoms_products, nearest_neighbor_products = FindMissingGraphs.find_missing_parts_pairs(reactant_mol, mcs_mol, use_findMCS=use_findMCS)
-                return {
-                    'smiles': [Chem.MolToSmiles(mol) for mol in mols],
-                    'boundary_atoms_products': boundary_atoms_products,
-                    'nearest_neighbor_products': nearest_neighbor_products,
-                    'issue': ''
-                }
-            except Exception as e:
-                return {
-                    'smiles': [],
-                    'boundary_atoms_products': [],
-                    'nearest_neighbor_products': [],
-                    'issue': str(e)
-                }
-
-        results = Parallel(n_jobs=n_jobs)(delayed(process_single_pair)(reactant_mol, mcs_mol, use_findMCS=use_findMCS) for reactant_mol, mcs_mol in zip(sorted_reactants_mol_list, mcs_mol_list))
-        return results
     
  
     @staticmethod
@@ -264,47 +198,4 @@ class FindMissingGraphs:
                 return False
         
         return True
-    
-    @staticmethod
-    def add_hydrogens_to_radicals(mol: Chem.Mol) -> Chem.Mol:
-        """
-        Add hydrogen atoms to radical sites in a molecule.
-
-        Args:
-        - mol (Chem.Mol): RDKit molecule object.
-
-        Returns:
-        - Chem.Mol: The modified molecule with added hydrogens.
-        """
-        # Create a copy of the molecule
-        mol_with_h = Chem.RWMol(mol)
-
-        # Add explicit hydrogens (not necessary if they are already present in the input molecule)
-        mol_with_h = rdmolops.AddHs(mol_with_h)
-
-        # Find and process radical atoms
-        for atom in mol_with_h.GetAtoms():
-            num_radical_electrons = atom.GetNumRadicalElectrons()
-            if num_radical_electrons > 0:
-                atom.SetNumExplicitHs(atom.GetNumExplicitHs() + num_radical_electrons)
-                atom.SetNumRadicalElectrons(0)
-        
-        curate_mol = Chem.RemoveHs(mol_with_h)
-        return curate_mol
-    
-    @staticmethod
-    def standardize_diazo_charge(mol: Chem.Mol) -> Chem.Mol:
-        """
-        Convert a diazo compound with charged atoms to its neutral form.
-
-        Args:
-        mol (Chem.Mol): A RDKit molecule object representing a diazo compound.
-
-        Returns:
-        Chem.Mol: The neutralized molecule, or the original molecule if the reaction doesn't occur.
-        """
-        uncharger = rdMolStandardize.Uncharger()
-        mol =  uncharger.uncharge(mol)
-        neutral_mol = AllChem.ReactionFromSmarts('[N-]=[NH2+]>>[N:1]#[N:2]').RunReactants((mol,))
-        return neutral_mol[0][0] if neutral_mol else mol
     
