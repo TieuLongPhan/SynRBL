@@ -28,20 +28,20 @@ def main():
 
     data = load_database(f'{root_dir}/Data/Unsolved_reactions.json.gz')
     mcs = load_database(f'{root_dir}/Data/MCS/largest_mcs.json.gz')
-    missing_results_largest  = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/largest_mcs.json.gz', save_path=f'{root_dir}/Data/MCS/Final_first_Graph_macth_largest.json.gz')
-    for key, _ in enumerate(missing_results_largest):
-        missing_results_largest[key]['R-id'] = data[key]['R-id']
-        missing_results_largest[key]['old_reaction'] = data[key]['reactions']
-    save_database(missing_results_largest, root_dir / 'Data/MCS/Final_first_Graph_macth_largest.json.gz')
+    # missing_results_largest  = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/largest_mcs.json.gz', save_path=f'{root_dir}/Data/MCS/Final_first_Graph_macth_largest.json.gz')
+    # for key, _ in enumerate(missing_results_largest):
+    #     missing_results_largest[key]['R-id'] = data[key]['R-id']
+    #     missing_results_largest[key]['old_reaction'] = data[key]['reactions']
+    # save_database(missing_results_largest, root_dir / 'Data/MCS/Final_first_Graph_macth_largest.json.gz')
 
 
-    # for i in range(1,6):
-    #     missing_results_largest  = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Condition_{i}.json.gz', 
-    #                                                save_path=root_dir / f'Data/MCS/Final_graph_macth_condition_{i}.json.gz')
-    #     for key, _ in enumerate(missing_results_largest):
-    #         missing_results_largest[key]['R-id'] = data[key]['R-id']
-    #         missing_results_largest[key]['old_reaction'] = data[key]['reactions']
-    #     save_database(missing_results_largest, root_dir / f'Data/MCS/Final_graph_macth_condition_{i}.json.gz')
+    for i in range(1,6):
+        missing_results_largest  = find_graph_dict(msc_dict_path=f'{root_dir}/Data/MCS/Condition_{i}.json.gz', 
+                                                   save_path=root_dir / f'Data/MCS/Final_graph_macth_condition_{i}.json.gz')
+        for key, _ in enumerate(missing_results_largest):
+            missing_results_largest[key]['R-id'] = data[key]['R-id']
+            missing_results_largest[key]['old_reaction'] = data[key]['reactions']
+        save_database(missing_results_largest, root_dir / f'Data/MCS/Final_graph_macth_condition_{i}.json.gz')
 
     
     
