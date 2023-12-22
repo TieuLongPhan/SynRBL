@@ -2,7 +2,7 @@ import rdkit.Chem.rdchem as rdchem
 import rdkit.Chem.rdmolops as rdmolops
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
-from .rules import MergeRule
+from .rules import MergeRule, CompoundRule
 from .structure import Boundary, Compound
 
 
@@ -76,8 +76,6 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
     mol1_tracker = AtomTracker(mol1_track)
     mol2_tracker = AtomTracker(mol2_track)
 
-    #mol1 = rdmolops.AddHs(mol1)
-    #mol2 = rdmolops.AddHs(mol2)
     mol = rdchem.RWMol(rdmolops.CombineMols(mol1, mol2))
 
     mol2_offset = len(mol1.GetAtoms())
@@ -98,18 +96,21 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
     }
 
 
-def expand(comp: Compound) -> Compound | None:
+def expand(boundary: Boundary) -> Compound | None:
     return None
 
 
-def merge(boundary1: Boundary, boundary2: Boundary, rule: MergeRule) -> Compound | None:
-    result = merge_two_mols(
-        boundary1.compound.mol,
-        boundary2.compound.mol,
-        boundary1.index,
-        boundary2.index,
-        rule,
-    )
-    # TODO
-    comp = Compound(rdmolfiles.MolToSmiles(result["mol"]))
-    return comp
+def merge_boundaries(boundary1: Boundary, boundary2: Boundary) -> Compound | None:
+    for rule in MergeRule.get_all():
+        if not rule.can_apply(boundary1, boundary2):
+            continue
+        result = merge_two_mols(
+            boundary1.compound.mol,
+            boundary2.compound.mol,
+            boundary1.index,
+            boundary2.index,
+            rule,
+        )
+        boundary1.compound.update(result["mol"], boundary1)
+        return boundary1.compound
+    return None

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import rdkit.Chem as Chem
+import rdkit.Chem.rdchem as rdchem
 import rdkit.Chem.rdChemReactions as rdChemReactions
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.rdmolops as rdmolops
@@ -36,16 +37,23 @@ class Boundary:
 class Compound:
     def __init__(
         self,
-        smiles: str,
+        mol: str | rdchem.Mol,
         src_smiles: str | None = None,
     ):
-        self.mol = rdmolfiles.MolFromSmiles(smiles)
+        if isinstance(mol, str):
+            self.mol = rdmolfiles.MolFromSmiles(mol)
+        elif isinstance(mol, rdchem.Mol):
+            self.mol = mol
+        else:
+            raise ValueError(
+                "Argument 'mol' must be either a valid smiles or an rdkit molecule."
+            )
         self.src_smiles = src_smiles
         self.boundaries: list[Boundary] = []
 
     @property
     def smiles(self) -> str:
-        return rdmolfiles.MolToSmiles(self.mol) 
+        return rdmolfiles.MolToSmiles(self.mol)
 
     def add_boundary(
         self, index, symbol: str | None = None, neighbor_symbol: str | None = None
@@ -54,6 +62,11 @@ class Compound:
         b.verify()
         self.boundaries.append(b)
         return b
+
+    def update(self, new_mol: rdchem.Mol, merged_boundary: Boundary):
+        self.mol = new_mol
+        self.boundaries.remove(merged_boundary)
+
 
 class CompoundCollection:
     def __init__(self):
