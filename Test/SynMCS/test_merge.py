@@ -68,7 +68,25 @@ class TestMergeRule(unittest.TestCase):
         b2 = c2.add_boundary(4, "P")
         cm = merge.merge_boundaries(b1, b2)
         self.assertIsNot(None, cm)
-        self.assertEqual("c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1", cm.smiles)  # type: ignore
+        self.assertEqual("O=P(c1ccccc1)(c1ccccc1)c1ccccc1", cm.smiles)  # type: ignore
+
+    def test_merge_restriction(self):
+        c1 = structure.Compound("Cl")
+        c2 = structure.Compound("CCCC[Sn](CCCC)CCCC")
+        b1 = c1.add_boundary(0)
+        b2 = c2.add_boundary(4, "Sn")
+        cm = merge.merge_boundaries(b1, b2)
+        self.assertIsNot(None, cm)
+        self.assertEqual("CCCC[Sn](CCCC)CCCC.Cl", cm.smiles)  # type: ignore
+
+    def test_default_single_bond(self):
+        c1 = structure.Compound("CC1(C)OBOC1(C)C")
+        b1 = c1.add_boundary(4, "B")
+        c2 = structure.Compound("CCC")
+        b2 = c2.add_boundary(1, "C")
+        cm = merge.merge_boundaries(b1, b2)
+        self.assertIsNot(None, cm)
+        self.assertEqual("CC(C)B1OC(C)(C)C(C)(C)O1", cm.smiles)  # type: ignore
 
 
 class TestCompoundCollection(unittest.TestCase):

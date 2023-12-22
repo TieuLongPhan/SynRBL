@@ -1,10 +1,11 @@
 import unittest
 import rdkit.Chem.rdmolfiles as rdmolfiles
-from SynRBL.SynMCS.rule_formation import *
+import SynRBL.SynMCS.rules as rules
+
 
 class TestProperty(unittest.TestCase):
     def __test_prop(self, config, in_p=[], in_n=[], dtype: type[str | int] = str):
-        prop = Property(config, dtype=dtype)
+        prop = rules.Property(config, dtype=dtype)
         self.assertTrue(all(e in prop.pos_values for e in in_p))
         self.assertTrue(all(e in prop.neg_values for e in in_n))
         self.assertTrue(all(e not in prop.pos_values for e in in_n))
@@ -22,62 +23,64 @@ class TestProperty(unittest.TestCase):
         self.__test_prop(["1", "!2"], in_p=[1], in_n=[2], dtype=int)
 
     def test_parsing_none(self):
-        prop = Property(None)
+        prop = rules.Property(None)
         self.assertEqual(0, len(prop.neg_values))
         self.assertEqual(0, len(prop.pos_values))
 
     def test_passthrough_behaviour(self):
-        prop = Property(None)
+        prop = rules.Property(None)
         self.assertTrue(prop.check("A"))
 
     def test_allow_none(self):
-        prop = Property(allow_none=True)
+        prop = rules.Property(allow_none=True)
         self.assertTrue(prop.check(None))
 
     def test_dont_allow_non(self):
-        prop = Property(allow_none=False)
+        prop = rules.Property(allow_none=False)
         with self.assertRaises(ValueError):
             prop.check(None)
 
     def test_check_value_error(self):
-        prop = Property("1", dtype=int)
+        prop = rules.Property("1", dtype=int)
         with self.assertRaises(ValueError):
             prop.check("2")
 
     def test_check_property(self):
-        prop = Property("A")
+        prop = rules.Property("A")
         self.assertTrue(prop.check("A"))
         self.assertFalse(prop.check("B"))
-        prop = Property("!A")
+        prop = rules.Property("!A")
         self.assertTrue(prop.check("B"))
         self.assertFalse(prop.check("A"))
-        prop = Property(["A", "B"])
+        prop = rules.Property(["A", "B"])
         self.assertTrue(prop.check("A"))
         self.assertTrue(prop.check("B"))
         self.assertFalse(prop.check("C"))
-        prop = Property(["!A", "!B"])
+        prop = rules.Property(["!A", "!B"])
         self.assertFalse(prop.check("A"))
         self.assertFalse(prop.check("B"))
         self.assertTrue(prop.check("C"))
 
     def test_invalid_config_type(self):
         with self.assertRaises(ValueError):
-            Property(8) # type: ignore
+            rules.Property(8)  # type: ignore
 
-class TestAtomCondition(unittest.TestCase):
+
+class TestBoundaryCondition(unittest.TestCase):
     def __check_cond(self, cond, smiles, idx, expected_result, neighbor=None):
-        mol = rdmolfiles.MolFromSmiles(smiles)
-        actual_result = cond.check(mol.GetAtomWithIdx(idx), neighbor)
+        c = rules.Compound(smiles)
+        b = c.add_boundary(idx, neighbor_symbol=neighbor)
+        actual_result = cond.check(b)
         self.assertEqual(expected_result, actual_result)
 
     def test_positive_check(self):
-        cond = AtomCondition(atom=["C", "O"])
+        cond = rules.BoundaryCondition(atom=["C", "O"])
         self.__check_cond(cond, "CO", 0, True)
         self.__check_cond(cond, "CO", 1, True)
         self.__check_cond(cond, "[Na+].[Cl-]", 0, False)
 
     def test_negative_check(self):
-        cond = AtomCondition(atom=["!Si", "!Cl"])
+        cond = rules.BoundaryCondition(atom=["!Si", "!Cl"])
         self.__check_cond(cond, "C=[Si](C)C", 0, True)
         self.__check_cond(cond, "CO", 1, True)
         self.__check_cond(cond, "[Na+]", 0, True)
@@ -85,15 +88,5 @@ class TestAtomCondition(unittest.TestCase):
         self.__check_cond(cond, "[Na+].[Cl-]", 1, False)
 
     def test_positive_check_with_neighbors(self):
-        cond = AtomCondition(atom="C", neighbors=["O", "N"])
+        cond = rules.BoundaryCondition(atom="C", neighbors=["O", "N"])
         self.__check_cond(cond, "CO", 0, True, neighbor="O")
-
-    def test_invalid_neighbor(self):
-        cond = AtomCondition(atom="C", neighbors=["O"])
-        with self.assertRaises(ValueError):
-            self.__check_cond(cond, "CO", 0, True, neighbor=["O"])
-
-
-class TestAction(unittest.TestCase):
-    def test_remove_H_action(self):
-        action = ActionSet()

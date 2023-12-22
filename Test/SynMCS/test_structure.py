@@ -21,7 +21,6 @@ class TestCompound(unittest.TestCase):
         self.assertEqual(0, len(c.boundaries))
         self.assertEqual(new_smiles, c.smiles)
 
-
     def test_add_boundary(self):
         c = Compound("CCO")
         c.add_boundary(0, "C")
@@ -39,7 +38,7 @@ class TestCompound(unittest.TestCase):
         c = Compound("CCO")
         b = c.add_boundary(1, "C")
         self.assertEqual(1, b.index)
-        self.assertEqual('C', b.symbol)
+        self.assertEqual("C", b.symbol)
 
     def test_get_boundary_atom(self):
         mol = rdmolfiles.MolFromSmiles("CCO")
@@ -49,3 +48,8 @@ class TestCompound(unittest.TestCase):
         act_atom = b.get_atom()
         self.assertEqual(exp_atom.GetSymbol(), act_atom.GetSymbol())
         self.assertEqual(exp_atom.GetIdx(), act_atom.GetIdx())
+
+    def test_get_boundary_symbol(self):
+        c = Compound("CCO")
+        b = c.add_boundary(2)
+        self.assertEqual("O", b.symbol)

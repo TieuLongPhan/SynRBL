@@ -14,10 +14,12 @@ class Boundary:
         symbol: str | None = None,
         neighbor_symbol: str | None = None,
     ):
+        self.compound = compound
         self.index = index
         self.symbol = symbol
+        if self.symbol is None:
+            self.symbol = self.compound.mol.GetAtomWithIdx(index).GetSymbol()
         self.neighbor_symbol = neighbor_symbol
-        self.compound = compound
         self.is_merged = False
 
     def verify(self):

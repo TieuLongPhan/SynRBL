@@ -196,3 +196,15 @@ def main():
 if __name__ == "__main__":
     main()
     
+#|%%--%%| <OWu15Qd2s0|ntYKIvfOQs>
+import rdkit.Chem.rdmolfiles as rdmolfiles
+import rdkit.Chem.Draw as Draw
+import matplotlib.pyplot as plt
+
+s = "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+mol = rdmolfiles.MolFromSmiles(s)
+print(rdmolfiles.MolToSmiles(mol))
+img = Draw.MolToImage(mol)
+plt.imshow(img)
+plt.show()
+
