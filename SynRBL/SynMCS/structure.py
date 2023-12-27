@@ -56,6 +56,7 @@ class Compound:
             )
         self.src_smiles = src_smiles
         self.boundaries: list[Boundary] = []
+        self.rules = []
 
     @property
     def smiles(self) -> str:

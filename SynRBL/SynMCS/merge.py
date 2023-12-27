@@ -96,7 +96,14 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
     }
 
 
-def expand(boundary: Boundary) -> Compound | None:
+def expand_boundary(boundary: Boundary) -> Compound | None:
+    for rule in CompoundRule.get_all():
+        if rule.can_apply(boundary):
+            compound = rule.apply()
+            if compound is None:
+                raise ValueError("Rule '{}' did not return a compound.", rule.name)
+            compound.rules.append(rule)
+            return compound
     return None
 
 
@@ -112,5 +119,23 @@ def merge_boundaries(boundary1: Boundary, boundary2: Boundary) -> Compound | Non
             rule,
         )
         boundary1.compound.update(result["mol"], boundary1)
+        boundary1.compound.rules.extend(boundary2.compound.rules)
+        boundary1.compound.rules.append(rule)
         return boundary1.compound
     return None
+
+
+def merge(compounds: Compound | list[Compound]) -> Compound:
+    if isinstance(compounds, Compound):
+        compounds = list([compounds])
+    merged_compound = compounds.pop(0)
+    while len(merged_compound.boundaries) > 0:
+        boundary1 = merged_compound.boundaries[0]
+        if len(compounds) == 0:
+            compound2 = expand_boundary(boundary1)
+            if compound2 is None:
+                raise ValueError("No compound rule found.")
+        else:
+            compound2 = compounds.pop(0)
+        boundary2 = compound2.boundaries[0]
+        merged_compound = merge_boundaries(boundary1, boundary2)

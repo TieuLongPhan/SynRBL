@@ -341,7 +341,7 @@ class CompoundRule:
         if cls._compound_rules is None:
             json_data = (
                 importlib.resources.files(SynRBL.SynMCS)
-                .joinpath("merge_rules.json")
+                .joinpath("compound_rules.json")
                 .read_text()
             )
             cls._compound_rules = [CompoundRule(**c) for c in json.loads(json_data)]
