@@ -125,17 +125,45 @@ def merge_boundaries(boundary1: Boundary, boundary2: Boundary) -> Compound | Non
     return None
 
 
+def _merge_one_compound(compound: Compound) -> Compound:
+    merged_compound = compound
+    while len(merged_compound.boundaries) > 0:
+        boundary1 = merged_compound.boundaries[0]
+        compound2 = expand_boundary(boundary1)
+        if compound2 is None:
+            raise ValueError("No expansion rule found.")
+        if len(compound2.boundaries) != 1:
+            raise NotImplementedError(
+                "Compound expansion and merge is only supported for "
+                + "compounds with a single boundary atom."
+            )
+        merged_compound = merge_boundaries(boundary1, compound2.boundaries[0])
+        if merged_compound is None:
+            raise ValueError("No merge rule found.")
+    return merged_compound
+
+
+def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
+    boundaries1 = compound1.boundaries
+    boundaries2 = compound2.boundaries
+    if len(boundaries1) != 1:
+        raise NotImplementedError("Can only merge compounds with single boundary atom.")
+    if len(boundaries1) != len(boundaries2):
+        raise NotImplementedError(
+            "Can only merge compounds with the same number of boundaries."
+        )
+    merged_compound = merge_boundaries(boundaries1[0], boundaries2[0])
+    if merged_compound is None:
+        raise ValueError("No merge rule found.")
+    return merged_compound
+
+
 def merge(compounds: Compound | list[Compound]) -> Compound:
     if isinstance(compounds, Compound):
         compounds = list([compounds])
-    merged_compound = compounds.pop(0)
-    while len(merged_compound.boundaries) > 0:
-        boundary1 = merged_compound.boundaries[0]
-        if len(compounds) == 0:
-            compound2 = expand_boundary(boundary1)
-            if compound2 is None:
-                raise ValueError("No compound rule found.")
-        else:
-            compound2 = compounds.pop(0)
-        boundary2 = compound2.boundaries[0]
-        merged_compound = merge_boundaries(boundary1, boundary2)
+    if len(compounds) == 1:
+        return _merge_one_compound(compounds[0])
+    elif len(compounds) == 2:
+        return _merge_two_compounds(compounds[0], compounds[1])
+    else:
+        raise NotImplementedError()

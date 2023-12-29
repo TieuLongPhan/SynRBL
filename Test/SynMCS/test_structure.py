@@ -12,6 +12,15 @@ class TestCompound(unittest.TestCase):
         Compound("C")
         Compound(rdmolfiles.MolFromSmiles("C"))
 
+    def test_init_src_mol(self):
+        c = Compound("C")
+        self.assertEqual(None, c.src_smiles)
+        c = Compound("C", src_mol="CCO")
+        self.assertEqual("CCO", c.src_smiles)
+        c = Compound("C", src_mol=rdmolfiles.MolFromSmiles("CCO"))
+        self.assertEqual("CCO", c.src_smiles)
+
+
     def test_resolve_merge(self):
         c = Compound("CCO")
         b = c.add_boundary(1)
@@ -53,3 +62,20 @@ class TestCompound(unittest.TestCase):
         c = Compound("CCO")
         b = c.add_boundary(2)
         self.assertEqual("O", b.symbol)
+
+    def test_add_boundary_with_neighbor(self):
+        c = Compound("CCC", src_mol="CC(=O)OCCC")
+        b = c.add_boundary(0, neighbor_index=3)
+        self.assertEqual("C", b.get_atom().GetSymbol())
+        self.assertEqual("O", b.get_neighbor_atom().GetSymbol()) # type: ignore
+
+    def test_add_boundary_with_missing_src(self):
+        c = Compound("CCC")
+        with self.assertRaises(ValueError):
+            c.add_boundary(0, neighbor_index=3)
+
+    def test_add_boundary_with_invalid_neighbor(self):
+        c = Compound("CCC", src_mol="CC(=O)OCCC")
+        with self.assertRaises(ValueError):
+            c.add_boundary(0, "C", 3, "C")
+

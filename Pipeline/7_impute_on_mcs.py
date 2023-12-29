@@ -150,39 +150,39 @@ def get_export_dict(
 
 
 def main():
-    dataset = "3+" #"0-50"
+    dataset = "3+"  # "0-50"
     reactions = load_data(dataset)
     print(reactions[0])
     failed = []
     missing_parts_lengths = defaultdict(lambda: 0)
     for i in range(len(reactions)):
         reaction = reactions[i]
-        k = len(reaction['reactions'].split('.'))
+        k = len(reaction["reactions"].split("."))
         print(reaction)
         break
-        mol1 = Chem.MolFromSmiles(reaction['reactants'])
-        mol2 = Chem.MolFromSmiles(reaction['products'])
+        mol1 = Chem.MolFromSmiles(reaction["reactants"])
+        mol2 = Chem.MolFromSmiles(reaction["products"])
         plot_mols([mol1, mol2], includeAtomNumbers=True)
-        missing_parts = reaction['missing_parts']
-        #print(len(missing_parts['smiles']))
+        missing_parts = reaction["missing_parts"]
+        # print(len(missing_parts['smiles']))
         missing_parts_lengths[k] += 1
         break
     print(missing_parts_lengths)
     plot_summary(reaction)
     return
-        #try:
-        #    impute(reaction)
-        #except Exception as e:
-        #    #traceback.print_exc()
-        #    failed.append(i)
-        #    reaction["issue"] = [str(e)]
-        #    print("[ERROR] [{}] {}".format(i, e))
+    # try:
+    #    impute(reaction)
+    # except Exception as e:
+    #    #traceback.print_exc()
+    #    failed.append(i)
+    #    reaction["issue"] = [str(e)]
+    #    print("[ERROR] [{}] {}".format(i, e))
 
-    #export_reactions = get_export_dict(reactions)
-    #save_database(
+    # export_reactions = get_export_dict(reactions)
+    # save_database(
     #    export_reactions,
     #    "./Data/MCS/After_Merge_and_Expansion_{}.json.gz".format(dataset),
-    #)
+    # )
     return
     id = 0
     try:
@@ -195,16 +195,70 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-#|%%--%%| <OWu15Qd2s0|ntYKIvfOQs>
+
+# |%%--%%| <OWu15Qd2s0|ntYKIvfOQs>
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw as Draw
+import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import matplotlib.pyplot as plt
 
-s = "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "O=COCc1ccccc1"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 mol = rdmolfiles.MolFromSmiles(s)
 print(rdmolfiles.MolToSmiles(mol))
+for i, atom in enumerate(mol.GetAtoms()):
+    atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
 img = Draw.MolToImage(mol)
 plt.imshow(img)
 plt.show()
+# |%%--%%| <ntYKIvfOQs|4Efw41ErNz>
+from SynRBL.rsmi_utils import load_database, save_database
 
+
+def load_data(dataset="3+"):
+    if dataset == "3+":
+        mcs_data = load_database("./Data/MCS/Final_Graph_macth_3+.json.gz")
+        reactions = load_database(
+            "./Data/MCS/Original_data_Intersection_MCS_3+_matching_ensemble.json.gz"
+        )
+    elif dataset == "0-50":
+        mcs_data = load_database("./Data/MCS/Final_Graph_macth_under2-.json.gz")
+        reactions = load_database(
+            "./Data/MCS/Original_data_Intersection_MCS_0_50_largest.json.gz"
+        )
+    else:
+        raise ValueError("Unknown dataset '{}'.".format(dataset))
+    if len(mcs_data) != len(reactions):
+        raise ValueError(
+            "Graph data and reaction data must be of same length. ({} != {})".format(
+                len(mcs_data), len(reactions)
+            )
+        )
+    for i, mcs_item in enumerate(mcs_data):
+        reactions[i]["missing_parts"] = mcs_item
+    return reactions
+
+
+data = load_data()
+print(data[0])
+matches = []
+for i, item in enumerate(data):
+    if "O=COCc1ccccc1" in item["missing_parts"]["smiles"]:
+        matches.append(i)
+print(matches[0:5])
+
+# |%%--%%| <4Efw41ErNz|mqphgzX5mM>
+
+import rdkit.Chem.rdmolfiles as rdmolfiles
+import rdkit.Chem.Draw as Draw
+import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
+import rdkit.Chem.rdChemReactions as rdChemReactions
+import matplotlib.pyplot as plt
+
+print(matches[0:5])
+index = 30
+reaction_data = data[index]
+smiles = reaction_data["reactions"]
+print(reaction_data["reactants"])
+reaction = rdChemReactions.ReactionFromSmarts(smiles, useSmiles=True)
+img = Draw.ReactionToImage(reaction)
+plt.imshow(img)

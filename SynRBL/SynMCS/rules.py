@@ -3,6 +3,7 @@ import json
 import SynRBL.SynMCS
 import importlib.resources
 import rdkit.Chem as Chem
+import rdkit.Chem.rdchem as rdchem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.rdmolops as rdmolops
 
@@ -76,7 +77,7 @@ class Property:
                 else:
                     self.pos_values.append(dtype(item))
 
-    def check(self, value):
+    def check(self, value) -> bool:
         """
         Check if the property is true for the given value.
 
@@ -106,6 +107,80 @@ class Property:
         return True
 
 
+def reduce(mol: rdchem.Mol, index, depth) -> rdchem.Mol:
+    def _dfs(
+        mol: rdchem.RWMol,
+        atom: rdchem.Atom,
+        parent: rdchem.Atom | None,
+        depth,
+        max_depth,
+    ):
+        for neighbor in atom.GetNeighbors():
+            if parent is not None and neighbor.GetIdx() == parent.GetIdx():
+                continue
+            _dfs(mol, neighbor, atom, depth + 1, max_depth)
+        if depth > max_depth:
+            mol.RemoveAtom(atom.GetIdx())
+
+    rwmol = rdchem.RWMol(mol)
+    atom = rwmol.GetAtomWithIdx(index)
+    _dfs(rwmol, atom, None, 0, depth)
+    return rwmol, atom.GetIdx()
+
+
+def is_functional_group(mol: rdchem.Mol, group: rdchem.Mol, index: int) -> bool:
+    g_len = len(group.GetAtoms())
+    #s1 = mol.GetAtomWithIdx(index).GetSymbol()
+    #i1 = index
+    rmol, index = reduce(mol, index, g_len - 1)
+    #s2 = rmol.GetAtomWithIdx(index).GetSymbol()
+    match_atoms = list(rmol.GetSubstructMatch(group))
+    #print(
+    #    rdmolfiles.MolToSmiles(rmol),
+    #    "{} [{}] -> {} [{}] match: {}".format(s1, i1, s2, index, match_atoms),
+    #)
+    return index in match_atoms
+
+
+def functional_group_name_to_mol(name: str) -> rdchem.Mol:
+    if name == "ether":
+        return rdmolfiles.MolFromSmiles("CO")
+    elif name == "ester":
+        return rdmolfiles.MolFromSmiles("C(=O)O")
+    elif name == "amine":
+        return rdmolfiles.MolFromSmiles("CN")
+    raise NotImplementedError("Functional group '{}' is not implemented.".format(name))
+
+class FunctionalGroupProperty(Property):
+    def __init__(self, functional_groups=None):
+        super().__init__(functional_groups, allow_none=False)
+
+    def check(self, value: Boundary) -> bool:
+        if not isinstance(value, Boundary):
+            raise TypeError("Value must be of type boundary.")
+        if len(self.pos_values) + len(self.neg_values) == 0:
+            return True
+        src_mol = value.promise_src()
+        neighbor_index = value.promise_neighbor_index()
+        if len(self.pos_values) > 0: 
+            found = False
+            for v in self.pos_values:
+                group = functional_group_name_to_mol(v)
+                if is_functional_group(src_mol, group, neighbor_index):
+                    print("Found:", v)
+                    found = True
+                    break
+            if not found:
+                return False
+        if len(self.neg_values) > 0:
+            for v in self.neg_values:
+                group = functional_group_name_to_mol(v)
+                if is_functional_group(src_mol, group, neighbor_index):
+                    print("!Found:", v)
+                    return False
+        return True
+
+
 class BoundaryCondition:
     """
     Atom condition class to check if a rule is applicable to a specific
@@ -124,7 +199,7 @@ class BoundaryCondition:
         neighbors (SynRBL.SynMCS.rule_formation.Property): Neighbors property
     """
 
-    def __init__(self, atom=None, neighbors=None, **kwargs):
+    def __init__(self, atom=None, neighbors=None, functional_groups=None, **kwargs):
         """
         Atom condition class to check if a rule is applicable to a specific
         molecule. Property configs can be prefixed with '!' to negate the
@@ -133,12 +208,15 @@ class BoundaryCondition:
         Arguments:
             atom: Atom property configuration.
             neighbors: Neighbors property configuration.
+            functional_groups: Functional group property configuration.
         """
         atom = kwargs.get("atom", atom)
         neighbors = kwargs.get("neighbors", neighbors)
+        functional_groups = kwargs.get("functional_groups", functional_groups)
 
         self.atom = Property(atom)
         self.neighbors = Property(neighbors, allow_none=True)
+        self.functional_groups = FunctionalGroupProperty(functional_groups)
 
     def check(self, boundary: Boundary):
         """
@@ -155,6 +233,7 @@ class BoundaryCondition:
             [
                 self.atom.check(boundary.symbol),
                 self.neighbors.check(boundary.neighbor_symbol),
+                self.functional_groups.check(boundary)
             ]
         )
 

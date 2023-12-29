@@ -1,20 +1,22 @@
 [
-	{
-		"name": "append O when next to O or N",
-		"condition": {"atom": ["!O", "!N"], "neighbors": ["O", "N"]}, 
-		"compound": {"smiles": "O", "index": 0}
-	},
-	{
-		"name": "append O to C-C bond",
-		"condition": {"atom": ["C"], "neighbors": ["C"]},
-		"compound": {"smiles": "O", "index": 0}
-	},
-	{
-		"name": "I expandsion on C and O bond",
-		"condition": {"atom": ["C"], "neighbors": ["O"], "smiles_cond": ["!OC(=O)"]},
-		"compound": {"smiles": "I", "index": 0}
-	},
-	{
-		"name": "no expansion"
-	}
+    {
+        "name": "append I to C - O/S (Thio)-ether",
+        "condition": {
+            "atom": ["C"],
+            "neighbors": ["O", "S"],
+            "function_groups": ["ether", "thioether"]
+        },
+        "compound": {"smiles": "I", "index": 0}
+    },
+    {
+        "name": "append O when next to O or N",
+        "condition": {"atom": ["!O", "!N"], "neighbors": ["O", "N"]},
+        "compound": {"smiles": "O", "index": 0}
+    },
+    {
+        "name": "append O to C-C bond",
+        "condition": {"atom": ["C"], "neighbors": ["C"]},
+        "compound": {"smiles": "O", "index": 0}
+    },
+    {"name": "no expansion"}
 ]
