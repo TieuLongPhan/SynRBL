@@ -4,7 +4,7 @@
         "condition": {
             "atom": ["C"],
             "neighbors": ["O", "S"],
-            "function_groups": ["ether", "thioether"]
+            "functional_groups": ["ether", "thioether", "!ester", "!thioester"]
         },
         "compound": {"smiles": "I", "index": 0}
     },

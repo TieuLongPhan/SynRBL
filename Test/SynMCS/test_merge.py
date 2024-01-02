@@ -198,7 +198,7 @@ class TestMerge(unittest.TestCase):
 class TestCompounds(unittest.TestCase):
     def test_1(self):
         # broken bond: C (boundary) - O (neighbor)
-        # O was part of Ether -> C forms C - I
+        # O is part of Ether -> C forms C - I
         compound = structure.Compound("C", src_mol="COc1ccccc1")
         compound.add_boundary(0, neighbor_index=1, neighbor_symbol="O")
         merged = merge.merge(compound)
@@ -206,7 +206,7 @@ class TestCompounds(unittest.TestCase):
 
     def test_2(self):
         # broken bond: C (boundary) - S (neighbor)
-        # S was part of Thioether -> C forms C - I
+        # S is part of Thioether -> C forms C - I
         compound = structure.Compound("C", src_mol="CSc1ccccc1")
         compound.add_boundary(0, neighbor_index=1, neighbor_symbol="S")
         merged = merge.merge(compound)
@@ -214,8 +214,16 @@ class TestCompounds(unittest.TestCase):
 
     def test_3(self):
         # broken bond: C (boundary) - O (neighbor)
-        # O was NOT part of Ether -> C forms C - O
-        compound = structure.Compound("C", src_mol="COc1ccccc1")
-        compound.add_boundary(0, neighbor_index=1, neighbor_symbol="O")
+        # O is NOT part of Ether -> C forms C - O
+        compound = structure.Compound("CC(C)(C)", src_mol="OC(=O)CONC(=O)NCc1cccc2ccccc12")
+        compound.add_boundary(1, neighbor_index=4, neighbor_symbol="O")
         merged = merge.merge(compound)
-        self.assertEqual("CI", merged.smiles)
+        self.assertEqual("CC(C)(C)O", merged.smiles)
+
+    def test_4(self):
+        # broken bond: C (boundary) - S (neighbor)
+        # S is NOT part of Thioether -> C forms C - O
+        compound = structure.Compound("C", src_mol="CSc1ccccc1")
+        compound.add_boundary(0, neighbor_index=1, neighbor_symbol="S")
+        merged = merge.merge(compound)
+        self.assertEqual("CO", merged.smiles)

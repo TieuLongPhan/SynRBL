@@ -242,8 +242,13 @@ data = load_data()
 print(data[0])
 matches = []
 for i, item in enumerate(data):
-    if "O=COCc1ccccc1" in item["missing_parts"]["smiles"]:
-        matches.append(i)
+    try:
+        n = list(item['missing_parts']['nearest_neighbor_products'][0][0].keys())[0]
+        b = list(item['missing_parts']['boundary_atoms_products'][0][0].keys())[0]
+        if b == "C" and n == "O":
+            matches.append(i)
+    except:
+        continue
 print(matches[0:5])
 
 # |%%--%%| <4Efw41ErNz|mqphgzX5mM>
@@ -255,10 +260,15 @@ import rdkit.Chem.rdChemReactions as rdChemReactions
 import matplotlib.pyplot as plt
 
 print(matches[0:5])
-index = 30
+index = 2
 reaction_data = data[index]
-smiles = reaction_data["reactions"]
-print(reaction_data["reactants"])
-reaction = rdChemReactions.ReactionFromSmarts(smiles, useSmiles=True)
+reactant = rdmolfiles.MolFromSmiles(reaction_data["reactants"])
+print(rdmolfiles.MolToSmiles(reactant))
+reaction = rdChemReactions.ReactionFromSmarts(reaction_data["reactions"], useSmiles=True)
+fig, ax = plt.subplots(2, 1, figsize=(1, 1.5))
 img = Draw.ReactionToImage(reaction)
-plt.imshow(img)
+ax[0].imshow(img)
+for i, atom in enumerate(reactant.GetAtoms()):
+    atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
+img = Draw.MolToImage(reactant)
+ax[1].imshow(img)

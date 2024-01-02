@@ -84,6 +84,11 @@ class TestReduce(unittest.TestCase):
         mol_r, _ = rules.reduce(mol, 4, 1)
         self.assertEqual("CC(=O)O", rdmolfiles.MolToSmiles(mol_r))
 
+    def test_4(self):
+        mol = rdmolfiles.MolFromSmiles("COc1ccccc1")
+        mol_r, _ = rules.reduce(mol, 1, 1)
+        self.assertEqual("COC", rdmolfiles.MolToSmiles(mol_r))
+
 class TestIsFunctionalGroup(unittest.TestCase):
     def __mol(self, smiles) -> rdchem.Mol:
         return rdmolfiles.MolFromSmiles(smiles)

@@ -115,13 +115,16 @@ def reduce(mol: rdchem.Mol, index, depth) -> rdchem.Mol:
         depth,
         max_depth,
     ):
+        if depth > 20:
+            return
+        print(atom.GetSymbol(), atom.GetIdx(), depth, max_depth)
         for neighbor in atom.GetNeighbors():
             if parent is not None and neighbor.GetIdx() == parent.GetIdx():
                 continue
             _dfs(mol, neighbor, atom, depth + 1, max_depth)
         if depth > max_depth:
             mol.RemoveAtom(atom.GetIdx())
-
+    
     rwmol = rdchem.RWMol(mol)
     atom = rwmol.GetAtomWithIdx(index)
     _dfs(rwmol, atom, None, 0, depth)
@@ -158,6 +161,7 @@ class FunctionalGroupProperty(Property):
     def check(self, value: Boundary) -> bool:
         if not isinstance(value, Boundary):
             raise TypeError("Value must be of type boundary.")
+        print("Check", self.pos_values, self.neg_values)
         if len(self.pos_values) + len(self.neg_values) == 0:
             return True
         src_mol = value.promise_src()

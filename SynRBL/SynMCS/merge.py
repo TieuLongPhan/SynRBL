@@ -98,6 +98,7 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
 
 def expand_boundary(boundary: Boundary) -> Compound | None:
     for rule in CompoundRule.get_all():
+        print(rule.name, rule.can_apply(boundary))
         if rule.can_apply(boundary):
             compound = rule.apply()
             if compound is None:
