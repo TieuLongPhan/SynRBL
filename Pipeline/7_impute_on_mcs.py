@@ -197,14 +197,18 @@ if __name__ == "__main__":
     main()
 
 # |%%--%%| <OWu15Qd2s0|ntYKIvfOQs>
+import rdkit.Chem as Chem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw as Draw
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import matplotlib.pyplot as plt
 
-s = "O=COCc1ccccc1"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "CC(N)=O" # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = Chem.CanonSmiles(s)
+print(s)
 mol = rdmolfiles.MolFromSmiles(s)
-print(rdmolfiles.MolToSmiles(mol))
+match = mol.GetSubstructMatch(rdmolfiles.MolFromSmiles("C=O"))
+print(match)
 for i, atom in enumerate(mol.GetAtoms()):
     atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
 img = Draw.MolToImage(mol)
@@ -241,12 +245,17 @@ def load_data(dataset="3+"):
 data = load_data()
 print(data[0])
 matches = []
+match_smiles = "Si"
 for i, item in enumerate(data):
     try:
+        smiles = item['reactions'] 
+        missing_smiles = item['missing_parts']["smiles"]
         n = list(item['missing_parts']['nearest_neighbor_products'][0][0].keys())[0]
         b = list(item['missing_parts']['boundary_atoms_products'][0][0].keys())[0]
-        if b == "C" and n == "O":
+        if match_smiles in smiles:
             matches.append(i)
+        #if b == "C" and n == "O":
+        #    matches.append(i)
     except:
         continue
 print(matches[0:5])
@@ -260,7 +269,7 @@ import rdkit.Chem.rdChemReactions as rdChemReactions
 import matplotlib.pyplot as plt
 
 print(matches[0:5])
-index = 2
+index = 104
 reaction_data = data[index]
 reactant = rdmolfiles.MolFromSmiles(reaction_data["reactants"])
 print(rdmolfiles.MolToSmiles(reactant))

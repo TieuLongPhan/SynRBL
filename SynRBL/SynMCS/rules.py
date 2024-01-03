@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import numpy as np
 import SynRBL.SynMCS
 import importlib.resources
 import rdkit.Chem as Chem
@@ -111,48 +112,85 @@ def reduce(mol: rdchem.Mol, index, depth) -> rdchem.Mol:
     def _dfs(
         mol: rdchem.RWMol,
         atom: rdchem.Atom,
-        parent: rdchem.Atom | None,
-        depth,
-        max_depth,
+        dist: int,
+        dist_array: list[int],
     ):
-        if depth > 20:
-            return
-        print(atom.GetSymbol(), atom.GetIdx(), depth, max_depth)
+        dist_array[atom.GetIdx()] = dist
         for neighbor in atom.GetNeighbors():
-            if parent is not None and neighbor.GetIdx() == parent.GetIdx():
-                continue
-            _dfs(mol, neighbor, atom, depth + 1, max_depth)
-        if depth > max_depth:
-            mol.RemoveAtom(atom.GetIdx())
-    
+            idx = neighbor.GetIdx()
+            if dist + 1 < dist_array[idx]:
+                _dfs(mol, neighbor, dist + 1, dist_array)
+
+    atom_cnt = len(mol.GetAtoms())
+    dist_array = [atom_cnt + 1 for _ in range(atom_cnt)]
     rwmol = rdchem.RWMol(mol)
     atom = rwmol.GetAtomWithIdx(index)
-    _dfs(rwmol, atom, None, 0, depth)
+    _dfs(mol, atom, 0, dist_array)
+    for i, d in reversed(list(enumerate(dist_array))):
+        if d > depth:
+            rwmol.RemoveAtom(i)
     return rwmol, atom.GetIdx()
 
 
-def is_functional_group(mol: rdchem.Mol, group: rdchem.Mol, index: int) -> bool:
-    g_len = len(group.GetAtoms())
-    #s1 = mol.GetAtomWithIdx(index).GetSymbol()
-    #i1 = index
-    rmol, index = reduce(mol, index, g_len - 1)
-    #s2 = rmol.GetAtomWithIdx(index).GetSymbol()
-    match_atoms = list(rmol.GetSubstructMatch(group))
-    #print(
-    #    rdmolfiles.MolToSmiles(rmol),
-    #    "{} [{}] -> {} [{}] match: {}".format(s1, i1, s2, index, match_atoms),
-    #)
-    return index in match_atoms
+class FGConfig:
+    def __init__(self, contain, not_contain=[], depth=None):
+        self.contain = contain if isinstance(contain, list) else [contain]
+        self.not_contain = (
+            not_contain if isinstance(not_contain, list) else [not_contain]
+        )
+        self.depth = (
+            depth
+            if depth is not None
+            else np.max([len(c) for c in self.contain + self.not_contain]) - 1
+        )
 
 
-def functional_group_name_to_mol(name: str) -> rdchem.Mol:
-    if name == "ether":
-        return rdmolfiles.MolFromSmiles("CO")
-    elif name == "ester":
-        return rdmolfiles.MolFromSmiles("C(=O)O")
-    elif name == "amine":
-        return rdmolfiles.MolFromSmiles("CN")
-    raise NotImplementedError("Functional group '{}' is not implemented.".format(name))
+functional_group_config = {
+    "ether": FGConfig("COC", "C=O"),
+    "ester": FGConfig("C(O)=O"),
+    "amine": FGConfig("CN", "C=O"),
+    "amide": FGConfig("C(N)=O"),
+    "thioether": FGConfig("CSC", "C=O"),
+    "thioester": FGConfig("CS=O"),
+}
+
+
+def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
+    if group_name not in functional_group_config.keys():
+        raise NotImplementedError(
+            "Functional group '{}' is not implemented.".format(group_name)
+        )
+    config = functional_group_config[group_name]
+    rmol, index = reduce(mol, index, config.depth)
+    group_match = False
+    for s in config.contain:
+        g_mol = rdmolfiles.MolFromSmiles(s)
+        match_atoms = list(rmol.GetSubstructMatch(g_mol))
+        group_match = group_match or index in match_atoms
+        if group_match:
+            break
+    for s in config.not_contain:
+        g_mol = rdmolfiles.MolFromSmiles(s)
+        match_atoms = list(rmol.GetSubstructMatch(g_mol))
+        group_match = group_match and len(match_atoms) == 0
+    return group_match
+
+
+# def functional_group_name_to_mol(name: str) -> rdchem.Mol:
+#    if name == "ether":
+#        return rdmolfiles.MolFromSmiles("COC")
+#    elif name == "thioether":
+#        return rdmolfiles.MolFromSmiles("CSC")
+#    elif name == "ester":
+#        return rdmolfiles.MolFromSmiles("C(=O)O")
+#    elif name == "thioester":
+#        return rdmolfiles.MolFromSmiles("C(=O)S")
+#    elif name == "amine":
+#        return rdmolfiles.MolFromSmiles("CN")
+#    elif name == "amide":
+#        return rdmolfiles.MolFromSmiles("C(=O)N")
+#    raise NotImplementedError("Functional group '{}' is not implemented.".format(name))
+
 
 class FunctionalGroupProperty(Property):
     def __init__(self, functional_groups=None):
@@ -161,26 +199,21 @@ class FunctionalGroupProperty(Property):
     def check(self, value: Boundary) -> bool:
         if not isinstance(value, Boundary):
             raise TypeError("Value must be of type boundary.")
-        print("Check", self.pos_values, self.neg_values)
         if len(self.pos_values) + len(self.neg_values) == 0:
             return True
         src_mol = value.promise_src()
         neighbor_index = value.promise_neighbor_index()
-        if len(self.pos_values) > 0: 
+        if len(self.pos_values) > 0:
             found = False
             for v in self.pos_values:
-                group = functional_group_name_to_mol(v)
-                if is_functional_group(src_mol, group, neighbor_index):
-                    print("Found:", v)
+                if is_functional_group(src_mol, v, neighbor_index):
                     found = True
                     break
             if not found:
                 return False
         if len(self.neg_values) > 0:
             for v in self.neg_values:
-                group = functional_group_name_to_mol(v)
-                if is_functional_group(src_mol, group, neighbor_index):
-                    print("!Found:", v)
+                if is_functional_group(src_mol, v, neighbor_index):
                     return False
         return True
 
@@ -237,7 +270,7 @@ class BoundaryCondition:
             [
                 self.atom.check(boundary.symbol),
                 self.neighbors.check(boundary.neighbor_symbol),
-                self.functional_groups.check(boundary)
+                self.functional_groups.check(boundary),
             ]
         )
 

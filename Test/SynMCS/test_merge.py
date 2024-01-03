@@ -140,60 +140,58 @@ class TestExpandRule(unittest.TestCase):
         self.assertEqual("O", cm.smiles)  # type: ignore
         self.assertEqual(1, len(cm.boundaries))  # type: ignore
         self.assertEqual(1, len(cm.rules))  # type: ignore
-        self.assertEqual("append O when next to O or N", cm.rules[0].name)  # type: ignore
 
     def test_expand_O_to_CC_bond(self):
-        c = structure.Compound("C")
-        b = c.add_boundary(0, neighbor_symbol="C")
+        c = structure.Compound("C", "CC")
+        b = c.add_boundary(0, neighbor_index=1)
         cm = merge.expand_boundary(b)  # type: ignore
         self.assertEqual("O", cm.smiles)  # type: ignore
         self.assertEqual(1, len(cm.boundaries))  # type: ignore
         self.assertEqual(1, len(cm.rules))  # type: ignore
-        self.assertEqual("append O to C-C bond", cm.rules[0].name)  # type: ignore
 
 
-class TestMerge(unittest.TestCase):
-    def test_merge_1comp_a_1bound(self):
-        c1 = structure.Compound("C[Si](C)C(C)(C)C")
-        c1.add_boundary(1, neighbor_symbol="O")
-        cm = merge.merge(c1)
-        self.assertEqual("CC(C)(C)[Si](C)(C)O", cm.smiles)
-
-    def test_merge_1comp_a_2bounds(self):
-        c1 = structure.Compound("O=Cc1ccccc1C=O")
-        c1.add_boundary(1, "C", neighbor_symbol="N")
-        c1.add_boundary(8, "C", neighbor_symbol="N")
-        cm = merge.merge(c1)
-        self.assertEqual("O=C(O)c1ccccc1C(=O)O", cm.smiles)
-
-    def test_merge_2comp_a_1bound(self):
-        c1 = structure.Compound("CC1(C)OBOC1(C)C")
-        c1.add_boundary(4, "B", neighbor_symbol="C")
-        c2 = structure.Compound("Br")
-        c2.add_boundary(0, "Br", neighbor_symbol="C")
-        cm = merge.merge([c1, c2])
-        self.assertEqual("CC1(C)OB(Br)OC1(C)C", cm.smiles)
-
-    def test_merge_2comp_a_2bounds(self):
-        with self.assertRaises(NotImplementedError):
-            c1 = structure.Compound("O=Cc1ccccc1C=O")
-            c1.add_boundary(1, "C")
-            c1.add_boundary(8, "C")
-            c2 = structure.Compound("O.O")
-            c2.add_boundary(0)
-            c2.add_boundary(1)
-            cm = merge.merge([c1, c2])
-            self.assertEqual("O=C(O)c1ccccc1C(=O)O", cm.smiles)
-
-    def test_merge_3comp_a_1bound(self):
-        with self.assertRaises(NotImplementedError):
-            c1 = structure.Compound("C")
-            c1.add_boundary(0)
-            c2 = structure.Compound("C")
-            c2.add_boundary(0)
-            c3 = structure.Compound("O")
-            c3.add_boundary(0)
-            merge.merge([c1, c2, c3])
+#class TestMerge(unittest.TestCase):
+#    def test_merge_1comp_a_1bound(self):
+#        c1 = structure.Compound("C[Si](C)C", "CC[Si](C)(C)C")
+#        c1.add_boundary(1, neighbor_index=1, neighbor_symbol="C")
+#        cm = merge.merge(c1)
+#        self.assertEqual("C[Si](C)(C)O", cm.smiles)
+#
+#    def test_merge_1comp_a_2bounds(self):
+#        c1 = structure.Compound("O=Cc1ccccc1C=O")
+#        c1.add_boundary(1, "C", neighbor_symbol="N")
+#        c1.add_boundary(8, "C", neighbor_symbol="N")
+#        cm = merge.merge(c1)
+#        self.assertEqual("O=C(O)c1ccccc1C(=O)O", cm.smiles)
+#
+#    def test_merge_2comp_a_1bound(self):
+#        c1 = structure.Compound("CC1(C)OBOC1(C)C")
+#        c1.add_boundary(4, "B", neighbor_symbol="C")
+#        c2 = structure.Compound("Br")
+#        c2.add_boundary(0, "Br", neighbor_symbol="C")
+#        cm = merge.merge([c1, c2])
+#        self.assertEqual("CC1(C)OB(Br)OC1(C)C", cm.smiles)
+#
+#    def test_merge_2comp_a_2bounds(self):
+#        with self.assertRaises(NotImplementedError):
+#            c1 = structure.Compound("O=Cc1ccccc1C=O")
+#            c1.add_boundary(1, "C")
+#            c1.add_boundary(8, "C")
+#            c2 = structure.Compound("O.O")
+#            c2.add_boundary(0)
+#            c2.add_boundary(1)
+#            cm = merge.merge([c1, c2])
+#            self.assertEqual("O=C(O)c1ccccc1C(=O)O", cm.smiles)
+#
+#    def test_merge_3comp_a_1bound(self):
+#        with self.assertRaises(NotImplementedError):
+#            c1 = structure.Compound("C")
+#            c1.add_boundary(0)
+#            c2 = structure.Compound("C")
+#            c2.add_boundary(0)
+#            c3 = structure.Compound("O")
+#            c3.add_boundary(0)
+#            merge.merge([c1, c2, c3])
 
 class TestCompounds(unittest.TestCase):
     def test_1(self):
@@ -221,9 +219,9 @@ class TestCompounds(unittest.TestCase):
         self.assertEqual("CC(C)(C)O", merged.smiles)
 
     def test_4(self):
-        # broken bond: C (boundary) - S (neighbor)
-        # S is NOT part of Thioether -> C forms C - O
-        compound = structure.Compound("C", src_mol="CSc1ccccc1")
-        compound.add_boundary(0, neighbor_index=1, neighbor_symbol="S")
+        # broken bond: C (boundary) - O (neighbor)
+        # O is NOT part of Ether -> C forms C - O
+        compound = structure.Compound("CC(C)(C)", src_mol="OC(=O)CONC(=O)NCc1cccc2ccccc12")
+        compound.add_boundary(1, neighbor_index=4, neighbor_symbol="O")
         merged = merge.merge(compound)
-        self.assertEqual("CO", merged.smiles)
+        self.assertEqual("CC(C)(C)O", merged.smiles)

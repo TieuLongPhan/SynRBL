@@ -66,7 +66,7 @@ class TestProperty(unittest.TestCase):
     def test_invalid_config_type(self):
         with self.assertRaises(ValueError):
             rules.Property(8)  # type: ignore
-            
+
 
 class TestReduce(unittest.TestCase):
     def test_1(self):
@@ -87,96 +87,94 @@ class TestReduce(unittest.TestCase):
     def test_4(self):
         mol = rdmolfiles.MolFromSmiles("COc1ccccc1")
         mol_r, _ = rules.reduce(mol, 1, 1)
-        self.assertEqual("COC", rdmolfiles.MolToSmiles(mol_r))
+        self.assertEqual("COc", rdmolfiles.MolToSmiles(mol_r))
 
-class TestIsFunctionalGroup(unittest.TestCase):
-    def __mol(self, smiles) -> rdchem.Mol:
-        return rdmolfiles.MolFromSmiles(smiles)
-
-    def test_match_alcohole(self):
-        mol = self.__mol("CCO")
-        group = self.__mol("O")
-        result = rules.is_functional_group(mol, group, 2)
-        self.assertEqual(True, result)
-        result = rules.is_functional_group(mol, group, 1)
-        self.assertEqual(False, result)
-
-    def test_match_with_multiple_occurances(self):
-        mol = self.__mol("OCCCO")
-        group = self.__mol("O")
-        result = rules.is_functional_group(mol, group, 0)
-        self.assertEqual(True, result)
-        result = rules.is_functional_group(mol, group, 4)
-        self.assertEqual(True, result)
-
-    def test_match_exter(self):
-        mol = self.__mol("CCCOC(C)=O")
-        group = self.__mol("C(O)=O")
-        for i in [3, 4, 6]:
-            self.assertTrue(rules.is_functional_group(mol, group, i), msg=str(i)) 
-        for i in [0, 1, 2, 5]:
-            self.assertFalse(rules.is_functional_group(mol, group, i), msg=str(i)) 
 
 class TestFunctionalGroupProperty(unittest.TestCase):
     def test_init(self):
-        p = rules.FunctionalGroupProperty(['ether', '!ester'])
-        self.assertIn('ether', p.pos_values)
-        self.assertIn('ester', p.neg_values)
+        p = rules.FunctionalGroupProperty(["ether", "!ester"])
+        self.assertIn("ether", p.pos_values)
+        self.assertIn("ester", p.neg_values)
 
     def test_check_with_wrong_type(self):
-        p = rules.FunctionalGroupProperty(['ether', '!ester'])
-        values = ['test', 0, None]
+        p = rules.FunctionalGroupProperty(["ether", "!ester"])
+        values = ["test", 0, None]
         for v in values:
             with self.assertRaises(TypeError):
                 p.check(v)
 
     def test_check_with_incomplete_boundary(self):
-        p = rules.FunctionalGroupProperty(['ester'])
-        c = structure.Compound('CCC')
+        p = rules.FunctionalGroupProperty(["ester"])
+        c = structure.Compound("CCC")
         b = c.add_boundary(0)
-        with self.assertRaisesRegex(ValueError, r"^[Mm]issing.*$"): 
+        with self.assertRaisesRegex(ValueError, r"^[Mm]issing.*$"):
             p.check(b)
 
     def test_pos_successful_check(self):
-        p = rules.FunctionalGroupProperty(['ester'])
-        c = structure.Compound('CCC', src_mol='CC(=O)OCCC')
+        p = rules.FunctionalGroupProperty(["ester"])
+        c = structure.Compound("CCC", src_mol="CC(=O)OCCC")
         b = c.add_boundary(0, neighbor_index=3)
         result = p.check(b)
         self.assertEqual(True, result)
 
     def test_pos_fail_check(self):
-        p = rules.FunctionalGroupProperty(['amine'])
-        c = structure.Compound('CCC', src_mol='CC(=O)OCCC')
+        p = rules.FunctionalGroupProperty(["amine"])
+        c = structure.Compound("CCC", src_mol="CC(=O)OCCC")
         b = c.add_boundary(0, neighbor_index=3)
         result = p.check(b)
         self.assertEqual(False, result)
 
     def test_neg_successful_check(self):
-        p = rules.FunctionalGroupProperty(['!ester'])
-        c = structure.Compound('CCC', src_mol='CC(=O)OCCC')
+        p = rules.FunctionalGroupProperty(["!ester"])
+        c = structure.Compound("CCC", src_mol="CC(=O)OCCC")
         b = c.add_boundary(0, neighbor_index=3)
         result = p.check(b)
         self.assertEqual(False, result)
 
     def test_neg_fail_check(self):
-        p = rules.FunctionalGroupProperty(['!amine'])
-        c = structure.Compound('CCC', src_mol='CC(=O)OCCC')
+        p = rules.FunctionalGroupProperty(["!amine"])
+        c = structure.Compound("CCC", src_mol="CC(=O)OCCC")
         b = c.add_boundary(0, neighbor_index=3)
         result = p.check(b)
         self.assertEqual(True, result)
 
     def test_defaults_to_true(self):
         p = rules.FunctionalGroupProperty()
-        c = structure.Compound('C')
+        c = structure.Compound("C")
         b = c.add_boundary(0)
-        self.assertTrue(True, p.check(b))
+        self.assertTrue(p.check(b))
 
-    def test_invalid_group_name(self):
-        with self.assertRaises(NotImplementedError):
-            rules.functional_group_name_to_mol('test')
+    def __test_fg(self, group_name, compound, src, index, neighbor):
+        groups = list(rules.functional_group_config.keys())
+        assert group_name in groups
+        c = structure.Compound(compound, src_mol=src)
+        b = c.add_boundary(index, neighbor_index=neighbor)
+        for g in groups:
+            p = rules.FunctionalGroupProperty([g])
+            if g == group_name:
+                self.assertTrue(p.check(b), "{} should be {}.".format(src, g))
+            else:
+                self.assertFalse(p.check(b), "{} should not be {}.".format(src, g))
+
+    def test_ether(self):
+        self.__test_fg("ether", "C", "COC", 0, 1)
+
+    def test_ester(self):
+        self.__test_fg("ester", "C", "CC(=O)O", 0, 3)
+
+    def test_amine(self):
+        self.__test_fg("amine", "C", "CN", 0, 1)
+        self.__test_fg("amine", "C", "CNC", 0, 1)
+        self.__test_fg("amine", "C", "CN(C)C", 0, 1)
+
+    def test_amide(self):
+        self.__test_fg("amide", "C", "CC(=O)N", 0, 1)
+
 
 class TestBoundaryCondition(unittest.TestCase):
-    def __check_cond(self, cond, smiles, idx, expected_result, neighbor=None, src_smiles=None):
+    def __check_cond(
+        self, cond, smiles, idx, expected_result, neighbor=None, src_smiles=None
+    ):
         c = rules.Compound(smiles, src_mol=src_smiles)
         b = c.add_boundary(idx, neighbor_index=neighbor)
         actual_result = cond.check(b)
