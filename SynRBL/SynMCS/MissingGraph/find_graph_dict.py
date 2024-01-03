@@ -61,7 +61,7 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-
         try:
             mols, boundary_atoms_products, nearest_neighbor_products = FindMissingGraphs.find_missing_parts_pairs(reactant_mol, mcs_mol, use_findMCS=use_findMCS)
             return {
-                'smiles': [Chem.MolToSmiles(mol) for mol in mols],
+                'smiles': [Chem.MolToSmiles(mol) if mol is not None else None for mol in mols],
                 'boundary_atoms_products': boundary_atoms_products,
                 'nearest_neighbor_products': nearest_neighbor_products,
                 'issue': ''

@@ -55,7 +55,7 @@ class GraphMissingUncertainty:
 
         for key, entry in enumerate(data_list):
             for i in entry['smiles']:
-                if len(i.split('.')) >= threshold:
+                if i is not None and len(i.split('.')) >= threshold:
                     graph_uncertain_key.append(key)
 
         return graph_uncertain_key

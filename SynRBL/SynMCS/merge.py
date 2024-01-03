@@ -5,9 +5,11 @@ import rdkit.Chem.rdmolfiles as rdmolfiles
 from .rules import MergeRule, CompoundRule
 from .structure import Boundary, Compound
 
+
 class NoCompoundRule(Exception):
     def __str__(self):
-        return "No compound rule found." 
+        return "No compound rule found."
+
 
 class AtomTracker:
     """
@@ -90,7 +92,19 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
 
     rule.apply(mol, atom1, atom2)
 
-    rdmolops.SanitizeMol(mol)
+    try:
+        rdmolops.SanitizeMol(mol)
+    except Exception as e:
+        smiles1 = rdmolfiles.MolToSmiles(mol1)
+        sym1 = atom1.GetSymbol()
+        smiles2 = rdmolfiles.MolToSmiles(mol2)
+        sym2 = atom2.GetSymbol()
+        raise ValueError(
+            (
+                "Failed to merge '{}' @ Idx={} ({}) and '{}' Idx={} ({}) "
+                + "to a valid molecule. {}"
+            ).format(smiles1, idx1, sym1, smiles2, idx2, sym2, str(e))
+        )
 
     return {
         "mol": mol,
