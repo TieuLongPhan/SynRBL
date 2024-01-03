@@ -1,6 +1,5 @@
 import traceback
 from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCS.mol_merge import merge, plot_mols
 from rdkit import Chem
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -216,51 +215,84 @@ plt.imshow(img)
 plt.show()
 # |%%--%%| <ntYKIvfOQs|4Efw41ErNz>
 from SynRBL.rsmi_utils import load_database, save_database
+from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
+from SynRBL.SynMCS.structure import Compound
+from SynRBL.SynMCS.merge import merge, NoCompoundRule
+
+def get_reactant_src(reaction, smiles, neighbors):
+    match_mol = rdmolfiles.MolFromSmiles(smiles)
+    reactant = reaction.split(">>")[0]
+    matches = []
+    for compound in reactant.split("."):
+        c_mol = rdmolfiles.MolFromSmiles(compound)
+        match = c_mol.GetSubstructMatch(match_mol)
+        if len(match) > 0:
+            #found_all_neighbors = True
+            #for n in neighbors:
+            #    for ni_s, ni_i in n.items():
+            #        if c_mol.GetAtomWithIdx(ni_i).GetSymbol() != ni_s:
+            #            found_all_neighbors = False
+            #            break
+            #if found_all_neighbors:
+            matches.append(compound)
+    if len(matches) != 1:
+        raise ValueError("Found {} matches for structure '{}'.".format(len(matches), smiles))
+    return matches[0]
 
 
-def load_data(dataset="3+"):
-    if dataset == "3+":
-        mcs_data = load_database("./Data/MCS/Final_Graph_macth_3+.json.gz")
-        reactions = load_database(
-            "./Data/MCS/Original_data_Intersection_MCS_3+_matching_ensemble.json.gz"
-        )
-    elif dataset == "0-50":
-        mcs_data = load_database("./Data/MCS/Final_Graph_macth_under2-.json.gz")
-        reactions = load_database(
-            "./Data/MCS/Original_data_Intersection_MCS_0_50_largest.json.gz"
-        )
-    else:
-        raise ValueError("Unknown dataset '{}'.".format(dataset))
-    if len(mcs_data) != len(reactions):
-        raise ValueError(
-            "Graph data and reaction data must be of same length. ({} != {})".format(
-                len(mcs_data), len(reactions)
-            )
-        )
-    for i, mcs_item in enumerate(mcs_data):
-        reactions[i]["missing_parts"] = mcs_item
-    return reactions
+def build_compounds(item):
+    reaction = item['old_reaction']
+    smiles = item['smiles']
+    boundaries = item['boundary_atoms_products']
+    neighbors = item['nearest_neighbor_products']
+    if len(smiles) != len(neighbors) or len(smiles) != len(boundaries):
+        print(smiles, neighbors, boundaries)
+        raise ValueError("Unequal leghts.")
+    compounds = []
+    for s, b, n in zip(smiles, boundaries, neighbors):
+        src_mol = get_reactant_src(reaction, s, n)
+        c = Compound(s, src_mol=src_mol) 
+        if len(b) != len(n):
+            raise ValueError("Boundary and neighbor missmatch.")
+        for bi, ni in zip(b, n):
+            bi_s, bi_i = list(bi.items())[0]
+            ni_s, ni_i = list(ni.items())[0]
+            c.add_boundary(bi_i, symbol=bi_s, neighbor_index=ni_i, neighbor_symbol=ni_s)
+        compounds.append(c)
+    return compounds
 
 
-data = load_data()
-print(data[0])
-matches = []
-match_smiles = "Si"
+dataset = "USPTO_50K"
+data = load_database("./Data/Validation_set/{}/MCS/Final_Graph.json.gz".format(dataset))
 for i, item in enumerate(data):
-    try:
-        smiles = item['reactions'] 
-        missing_smiles = item['missing_parts']["smiles"]
-        n = list(item['missing_parts']['nearest_neighbor_products'][0][0].keys())[0]
-        b = list(item['missing_parts']['boundary_atoms_products'][0][0].keys())[0]
-        if match_smiles in smiles:
-            matches.append(i)
-        #if b == "C" and n == "O":
-        #    matches.append(i)
-    except:
+    if data[i]['issue'] != '':
+        print("[ERROR] [{}]".format(i), data[i]['issue'])
         continue
-print(matches[0:5])
+    data[i]["rules"] = []
+    data[i]["new_reaction"] = data[i]["old_reaction"]
+    try:
+        compounds = build_compounds(item)
+        result = merge(compounds)
+        new_reaction = "{}.{}".format(item['old_reaction'], result.smiles)
+        data[i]["new_reaction"] = new_reaction
+        data[i]["rules"] = [r.name for r in result.rules]
+    except NoCompoundRule as e:
+        #print("[WARN] [{}]".format(i), e)
+        pass
+    except Exception as e:
+        data[i]["issue"] = str(e)
+        print("[ERROR] [{}]".format(i), e)
 
-# |%%--%%| <4Efw41ErNz|mqphgzX5mM>
+#|%%--%%| <4Efw41ErNz|gcHol4kj8O>
+
+index = 8 
+print(data[index])
+visualizer = ReactionVisualizer(figsize=(10, 10))
+visualizer.plot_reactions(data[index], "old_reaction", "new_reaction", compare=True, show_atom_numbers=True)
+print("Rules:", data[index]['rules'])
+
+
+# |%%--%%| <gcHol4kj8O|mqphgzX5mM>
 
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw as Draw

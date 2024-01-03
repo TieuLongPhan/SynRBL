@@ -5,6 +5,9 @@ import rdkit.Chem.rdmolfiles as rdmolfiles
 from .rules import MergeRule, CompoundRule
 from .structure import Boundary, Compound
 
+class NoCompoundRule(Exception):
+    def __str__(self):
+        return "No compound rule found." 
 
 class AtomTracker:
     """
@@ -96,15 +99,16 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
     }
 
 
-def expand_boundary(boundary: Boundary) -> Compound | None:
+def expand_boundary(boundary: Boundary) -> Compound:
+    compound = None
     for rule in CompoundRule.get_all():
         if rule.can_apply(boundary):
             compound = rule.apply()
-            if compound is None:
-                raise ValueError("Rule '{}' did not return a compound.", rule.name)
             compound.rules.append(rule)
-            return compound
-    return None
+            break
+    if compound is None:
+        raise NoCompoundRule()
+    return compound
 
 
 def merge_boundaries(boundary1: Boundary, boundary2: Boundary) -> Compound | None:
@@ -130,8 +134,6 @@ def _merge_one_compound(compound: Compound) -> Compound:
     while len(merged_compound.boundaries) > 0:
         boundary1 = merged_compound.boundaries[0]
         compound2 = expand_boundary(boundary1)
-        if compound2 is None:
-            raise ValueError("No expansion rule found.")
         if len(compound2.boundaries) != 1:
             raise NotImplementedError(
                 "Compound expansion and merge is only supported for "
