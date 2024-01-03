@@ -161,11 +161,11 @@ class FindMissingGraphs:
                     boundary_atoms_lists.extend(boundary_atoms_list)
                     nearest_neighbor_lists.extend(nearest_neighbor_list)
                 else:
-                    #missing_parts_list.append(None)
+                    missing_parts_list.append(None)
                     boundary_atoms_lists.extend([])
                     nearest_neighbor_lists.extend([])
             except:
-                #missing_parts_list.append(None)
+                missing_parts_list.append(None)
                 boundary_atoms_lists.extend([])
                 nearest_neighbor_lists.extend([])
 

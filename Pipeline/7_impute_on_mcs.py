@@ -214,6 +214,7 @@ img = Draw.MolToImage(mol)
 plt.imshow(img)
 plt.show()
 # |%%--%%| <ntYKIvfOQs|4Efw41ErNz>
+import traceback
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 from SynRBL.SynMCS.structure import Compound
@@ -242,16 +243,22 @@ def get_reactant_src(reaction, smiles, neighbors):
 
 def build_compounds(item):
     reaction = item['old_reaction']
+    src_smiles = item['sorted_reactants']
     smiles = item['smiles']
     boundaries = item['boundary_atoms_products']
     neighbors = item['nearest_neighbor_products']
-    if len(smiles) != len(neighbors) or len(smiles) != len(boundaries):
-        print(smiles, neighbors, boundaries)
+    l = len(smiles)
+    if len(boundaries) != len(neighbors) or l != len(src_smiles):
+        print(smiles, src_smiles, boundaries, neighbors)
         raise ValueError("Unequal leghts.")
     compounds = []
-    for s, b, n in zip(smiles, boundaries, neighbors):
-        src_mol = get_reactant_src(reaction, s, n)
-        c = Compound(s, src_mol=src_mol) 
+    s_i = 0
+    for s, ss in zip(smiles, src_smiles):
+        if s is None:
+            continue
+        b = boundaries[s_i]
+        n = neighbors[s_i]
+        c = Compound(s, src_mol=ss) 
         if len(b) != len(n):
             raise ValueError("Boundary and neighbor missmatch.")
         for bi, ni in zip(b, n):
@@ -259,12 +266,13 @@ def build_compounds(item):
             ni_s, ni_i = list(ni.items())[0]
             c.add_boundary(bi_i, symbol=bi_s, neighbor_index=ni_i, neighbor_symbol=ni_s)
         compounds.append(c)
+        s_i += 1
     return compounds
 
 
 dataset = "USPTO_50K"
 data = load_database("./Data/Validation_set/{}/MCS/Final_Graph.json.gz".format(dataset))
-for i, item in enumerate(data):
+for i, item in enumerate(data[0:1000]):
     if data[i]['issue'] != '':
         print("[ERROR] [{}]".format(i), data[i]['issue'])
         continue
@@ -280,12 +288,13 @@ for i, item in enumerate(data):
         #print("[WARN] [{}]".format(i), e)
         pass
     except Exception as e:
+        #traceback.print_exc()
         data[i]["issue"] = str(e)
         print("[ERROR] [{}]".format(i), e)
 
 #|%%--%%| <4Efw41ErNz|gcHol4kj8O>
 
-index = 8 
+index = 224 
 print(data[index])
 visualizer = ReactionVisualizer(figsize=(10, 10))
 visualizer.plot_reactions(data[index], "old_reaction", "new_reaction", compare=True, show_atom_numbers=True)

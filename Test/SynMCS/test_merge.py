@@ -1,6 +1,7 @@
 import unittest
 import unittest.mock as mock
 import rdkit.Chem.rdchem as rdchem
+import rdkit.Chem.rdmolfiles as rdmolfiles
 
 import SynRBL.SynMCS.merge as merge
 import SynRBL.SynMCS.structure as structure
@@ -28,6 +29,11 @@ class DummyCompoundRule:
         comp.add_boundary(0)
         return comp
 
+class TestMergeTwoMols(unittest.TestCase):
+    def test_merge_with_explicit_H(self):
+        mol1 = rdmolfiles.MolFromSmiles("C[SH](=O)=O")
+        mol2 = rdmolfiles.MolFromSmiles("O")
+        
 
 class TestMergeBoundary(unittest.TestCase):
     @mock.patch("SynRBL.SynMCS.merge.MergeRule")
