@@ -53,11 +53,13 @@ def merge_mcs(data_name = 'golden_dataset'):
 def graph_find(data_name = 'golden_dataset'):
     data = load_database(f'{root_dir}/Data/Validation_set/{data_name}/Unsolved_reactions.json.gz')
     mcs_dir = root_dir / f'Data/Validation_set/{data_name}/MCS'
+    mcs = load_database(mcs_dir/ 'MCS_Largest.json.gz')
     missing_results_largest  = find_graph_dict(msc_dict_path=mcs_dir/ 'MCS_Largest.json.gz', 
                                                save_path= mcs_dir / 'Final_Graph.json.gz')
     for key, _ in enumerate(missing_results_largest):
         missing_results_largest[key]['R-id'] = data[key]['R-id']
         missing_results_largest[key]['old_reaction'] = data[key]['reactions']
+        missing_results_largest[key]['sorted_reactants'] = mcs[key]['sorted_reactants']
     save_database(missing_results_largest, mcs_dir / 'Final_Graph.json.gz')
 
     
@@ -67,6 +69,6 @@ def graph_find(data_name = 'golden_dataset'):
 if __name__ == "__main__":
     data_name = ['golden_dataset', 'nature', 'USPTO_50K']
     for i in data_name:
-        mcs(i)
-        merge_mcs(i)
+        #mcs(i)
+        #merge_mcs(i)
         graph_find(i)

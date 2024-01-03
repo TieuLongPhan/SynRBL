@@ -115,7 +115,7 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
 
 
     if data_name == 'USPTO_50K':
-        certain_reactions = get_random_samples_by_key(certain_reactions, num_samples_per_group=10, random_seed=42, stratify_key = 'Diff_formula')
+        certain_reactions = get_random_samples_by_key(certain_reactions, num_samples_per_group=20, random_seed=42, stratify_key = 'Diff_formula')
         print(len(certain_reactions))
 
     vis = ReactionVisualizer()
