@@ -42,9 +42,9 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Time
     return mcs_results_dict
 
 
-def ensemble_mcs(data, root_dir, conditions, batch_size=100, Timeout=60):
+def ensemble_mcs(data, root_dir, save_dir, conditions, batch_size=100, Timeout=60):
     # Configure logging
-    logging.basicConfig(filename=root_dir / f'Data/MCS/process.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=save_dir / f'process.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     if conditions is None:
         conditions = [
@@ -69,7 +69,7 @@ def ensemble_mcs(data, root_dir, conditions, batch_size=100, Timeout=60):
             logging.info(f"Condition {idx} | Batch Progress: {batch_progress:.2f}% | Data Progress: {data_progress:.2f}%")
 
         # Save all results for the current condition into a single file
-        save_database(all_results, pathname=root_dir / f'Data/MCS/Condition_{idx}.json.gz')
+        save_database(all_results, pathname= save_dir / f'Condition_{idx}.json.gz')
         logging.info(f"Condition {idx}: Finished")
 
     # After processing all conditions

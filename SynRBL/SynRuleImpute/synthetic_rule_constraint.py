@@ -41,8 +41,8 @@ class RuleConstraint:
         self.ban_atoms = ban_atoms or ['[H]','[O].[O]', 'F-F', 'Cl-Cl', 'Br-Br', 'I-I', 'Cl-Br', 'Cl-I', 'Br-I']
         self.ban_atoms = [Chem.CanonSmiles(atom) for atom in self.ban_atoms]
         self.ban_pattern = re.compile('|'.join(map(re.escape, self.ban_atoms)))
-        self.ban_atoms_reactants = ban_atoms_reactants or ['[H]', '[O]']
-        self.ban_atoms_reactants = [Chem.CanonSmiles(atom) for atom in self.ban_atoms_reactants]
+        self.ban_atoms_reactants = ban_atoms_reactants or ['.[H]']
+        #self.ban_atoms_reactants = [Chem.CanonSmiles(atom) for atom in self.ban_atoms_reactants]
         self.ban_pattern_reactants = re.compile('|'.join(map(re.escape, self.ban_atoms_reactants)))
   
     @staticmethod
@@ -61,29 +61,41 @@ class RuleConstraint:
         modified_data = []
         for entry in data:
             
-            if '[H]' in entry['products']:
-                if RuleConstraint.check_even(entry, 'products', '[H]'):
-                    entry['products'] = entry['products'].replace('.[H]', '').replace('[H]', '')
-                    entry['reactants'] += '.[O].[O]'
+            if '.[H]' in entry['products']:
+                if RuleConstraint.check_even(entry, 'products', '[H]', '.'):
+                    hydrogen_count = entry['products'].count('.[H]')
+                    hydrogen_count = int(hydrogen_count / 2)
+                    entry['products'] = entry['products'].replace('.[H]', '')
+                    entry['reactants'] += '.[O]' * hydrogen_count
 
                     if entry['products']:
-                        entry['products'] += '.O'
+                        entry['products'] += '.O' * hydrogen_count
                     else:
-                        entry['products'] = 'O'
+                        entry['products'] = 'O' * hydrogen_count
                 else:
                     pass
             
-            if '[O]' in entry['products']:
-                if RuleConstraint.check_even(entry, 'products', '[O]'):
+            if '.[O]' in entry['products']:
+                if RuleConstraint.check_even(entry, 'products', '[O]', '.'):
                     pass
                 else:
-                    entry['products'] = entry['products'].replace('.[O]', '').replace('[O]', '')
+                    entry['products'] = entry['products'].replace('.[O]', '')
                     entry['reactants'] += '.[H].[H]'
 
                     if entry['products']:
                         entry['products'] += '.O'
                     else:
                         entry['products'] = 'O'
+
+            elif '.OO' in entry['products']:
+                entry['products'] = entry['products'].replace('.OO', '')
+                entry['reactants'] += '.[H].[H]'
+
+                if entry['products']:
+                    entry['products'] += '.O.O'
+                else:
+                    entry['products'] = 'O.O'
+
 
             new_reaction = f"{entry['reactants']}>>{entry['products']}"
             entry['new_reaction'] = new_reaction

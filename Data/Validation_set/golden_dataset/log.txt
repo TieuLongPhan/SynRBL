@@ -1,0 +1,12 @@
+Wrong reaction:
+
+1. 'Unnamed: 0': 1341,
+ 'reactions': '[CH3:6][CH2:7][CH2:8][OH:9].[Cl:1][C:2]([Cl:3])([Cl:4])[Cl:5]>>[Cl:1][CH:2]([Cl:3])[Cl:4].[Cl:5][CH2:8][CH2:7][CH3:6]',
+ 'id': 'golden_1341',
+ 'reactants': '[CH3:6][CH2:7][CH2:8][OH:9].[Cl:1][C:2]([Cl:3])([Cl:4])[Cl:5].[H].[H]',
+ 'products': '[Cl:1][CH:2]([Cl:3])[Cl:4].[Cl:5][CH2:8][CH2:7][CH3:6].O',
+ 'R-id': 'R1138',
+ 'Unbalance': 'Products',
+ 'Diff_formula': {'O': 1, 'Q': 0},
+ 'new_reaction': '[CH3:6][CH2:7][CH2:8][OH:9].[Cl:1][C:2]([Cl:3])([Cl:4])[Cl:5].[H].[H]>>[Cl:1][CH:2]([Cl:3])[Cl:4].[Cl:5][CH2:8][CH2:7][CH3:6].O'}
+ => appel reactions: https://www.name-reaction.com/appel-reaction

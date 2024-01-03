@@ -216,4 +216,4 @@ class ReactionVisualizer:
         if savefig and pathname:
             fig.savefig(pathname, dpi=dpi)
 
-        plt.tight_layout()
+        #plt.tight_layout()

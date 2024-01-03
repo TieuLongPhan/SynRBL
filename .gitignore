@@ -7,3 +7,5 @@
 .jukit/
 
 *.ipynb
+*.png
+*.json.gz
