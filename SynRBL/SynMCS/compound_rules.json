@@ -25,7 +25,14 @@
 			"functional_groups": ["amide"]
 		},
 		"compound": {"smiles": "O", "index": 0}
-	},	
+	},
+	{
+		"name": "form M-OH",
+		"condition": {
+			"atom": ["Mg", "Zn", "Si"]
+		},
+		"compound": {"smiles": "O", "index": 0}
+	},
     {
         "name": "append O when next to O or N",
         "condition": {"atom": ["!O", "!N"], "neighbors": ["O", "N"]},

@@ -150,13 +150,18 @@ def _merge_one_compound(compound: Compound) -> Compound:
     merged_compound = compound
     while len(merged_compound.boundaries) > 0:
         boundary1 = merged_compound.boundaries[0]
-        compound2 = expand_boundary(boundary1)
-        if len(compound2.boundaries) != 1:
-            raise NotImplementedError(
-                "Compound expansion and merge is only supported for "
-                + "compounds with a single boundary atom."
-            )
-        merged_compound = merge_boundaries(boundary1, compound2.boundaries[0])
+        try:
+            compound2 = expand_boundary(boundary1)
+            if len(compound2.boundaries) != 1:
+                raise NotImplementedError(
+                    "Compound expansion and merge is only supported for "
+                    + "compounds with a single boundary atom."
+                )
+            merged_compound = merge_boundaries(boundary1, compound2.boundaries[0])
+        except NoCompoundRule:
+            # If no compound rule is found, leave the compound as is
+            merged_compound.update(merged_compound.mol, boundary1)
+            pass
         if merged_compound is None:
             raise ValueError("No merge rule found.")
     return merged_compound
