@@ -140,6 +140,7 @@ class TestExpansion(unittest.TestCase):
         self.assertEqual(1, len(cm.boundaries))  # type: ignore
 
 
+
 class TestExpandRule(unittest.TestCase):
     def test_expand_O_next_to_O_or_N(self):
         c = structure.Compound("O=COCc1ccccc1", src_mol="O=C(NCCOc1ccc(-c2cnoc2)cc1)OCc1ccccc1")
@@ -233,3 +234,11 @@ class TestCompounds(unittest.TestCase):
         compound.add_boundary(1, neighbor_index=4, neighbor_symbol="O")
         merged = merge.merge(compound)
         self.assertEqual("CC(C)(C)O", merged.smiles)
+    
+    def test_leave_single_compound_as_is(self):
+        s = "CS(C)=O"
+        compound = structure.Compound(s, src_mol="C[SH](C)(C)=O") 
+        compound.add_boundary(1, neighbor_index=0)
+        cm = merge.merge(compound)
+        self.assertEqual(s, cm.smiles)
+        self.assertEqual(0, len(cm.boundaries))
