@@ -79,13 +79,14 @@ class RuleConstraint:
                 if RuleConstraint.check_even(entry, 'products', '[O]', '.'):
                     pass
                 else:
+                    oxygen_count = int(entry['products'].count('.[O]'))
                     entry['products'] = entry['products'].replace('.[O]', '')
-                    entry['reactants'] += '.[H].[H]'
+                    entry['reactants'] += '.[H].[H]' * oxygen_count
 
                     if entry['products']:
-                        entry['products'] += '.O'
+                        entry['products'] += '.O' * oxygen_count
                     else:
-                        entry['products'] = 'O'
+                        entry['products'] = 'O' * oxygen_count
 
             elif '.OO' in entry['products']:
                 entry['products'] = entry['products'].replace('.OO', '')

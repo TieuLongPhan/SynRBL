@@ -21,10 +21,30 @@ from rdkit import  RDLogger
 import rdkit
 import matplotlib
 
+import re
+from rdkit import Chem
+def remove_atom_mapping(smiles, symbol = '>>'):
+    # Regular expression to find atom mappings (numbers following a colon)
+    mapping_pattern = re.compile(r':\d+')
+
+    reactants, products = smiles.split(symbol)
+    def remove_mapping(component):
+        return mapping_pattern.sub('', component)
+
+    # Apply the function to each component
+    reactants = remove_mapping(reactants)
+    products = remove_mapping(products)
+
+    # Recombine the reaction
+    return symbol.join([Chem.CanonSmiles(reactants), Chem.CanonSmiles(products)])
+
+
 def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= False):
 
 
-    df = pd.read_csv(root_dir /f'Data/Validation_set/{data_name}.csv')
+    df = pd.read_csv(root_dir /f'Data/Validation_set/{data_name}.csv', index_col=0)
+    df['mapped_rxn'] = df['reactions']
+    df['reactions'] = df['reactions'].apply(remove_atom_mapping)
 
     # Save solved and unsolved reactions
     save_dir = root_dir / 'Data/Validation_set' / data_name
