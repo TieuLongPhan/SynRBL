@@ -234,6 +234,17 @@ class TestCompounds(unittest.TestCase):
         compound.add_boundary(1, neighbor_index=4, neighbor_symbol="O")
         merged = merge.merge(compound)
         self.assertEqual("CC(C)(C)O", merged.smiles)
+
+    def test_5(self):
+        # broken bond: C (boundary) - S (neighbor)
+        # S is part of Thioether -> C forms C - I
+        # Reaction: "CCSC.[H]I>>CCSH.CI"
+        compound = structure.Compound("C", src_mol="CCSC")
+        compound.add_boundary(0, symbol="C", neighbor_index=2, neighbor_symbol="S")
+        merged = merge.merge(compound)
+        self.assertIn("C-S Thioether break", [r.name for r in merged.rules])
+        self.assertEqual("CI", merged.smiles)
+         
     
     def test_leave_single_compound_as_is(self):
         s = "CS(C)=O"
