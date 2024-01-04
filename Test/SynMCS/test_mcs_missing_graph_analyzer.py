@@ -5,7 +5,7 @@ import pandas as pd
 from rdkit.Chem import rdFMCS
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynMCS.mcs_missing_graph_analyzer import MCSMissingGraphAnalyzer  
+from SynRBL.SynMCS.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
 
 class TestMCSMissingGraphAnalyzer(unittest.TestCase):
 
@@ -44,14 +44,14 @@ class TestMCSMissingGraphAnalyzer(unittest.TestCase):
         params.BondCompareParameters.CompleteRingsOnly = True
         reactant_mols = [self.analyzer.convert_smiles_to_molecule(smiles) for smiles in reactants]
         product_mol = self.analyzer.convert_smiles_to_molecule(products)
-        mcs_list, sorted_reactants = self.analyzer.IterativeMCSReactionPairs(reactant_mols, product_mol, params)
+        mcs_list, sorted_reactants = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(reactant_mols, product_mol, params)
         self.assertIsNotNone(mcs_list)
         self.assertEqual(len(sorted_reactants), len(reactants))
 
     def test_fit(self):
         # Test the fit method
         reaction_dict = {'reactants': 'CCO.CC', 'products': 'CCOCC'}
-        mcs_list, sorted_reactants, product_mol = self.analyzer.fit(reaction_dict)
+        mcs_list, sorted_reactants, reactant_mol_list, product_mol = MCSMissingGraphAnalyzer.fit(reaction_dict)
         self.assertIsNotNone(mcs_list)
         self.assertEqual(len(sorted_reactants), 2)
         self.assertIsNotNone(product_mol)
