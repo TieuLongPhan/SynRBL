@@ -73,11 +73,11 @@ def get_database_path(dataset, name):
 
 
 if __name__ == "__main__":
-    dataset = "USPTO_50K"
+    dataset = "USPTO_test"
     parser = argparse.ArgumentParser(
         prog="MCSImpute", description="Imputes new compounds based on the MCS results."
     )
     data = load_database(get_database_path(dataset, "Final_Graph"))
-    rule_map = impute_new_reaction(data[0:100])
+    rule_map = impute_new_reaction(data)
     save_database(data, get_database_path(dataset, "MCS_Impute"))
     print_rule_summary(rule_map)
