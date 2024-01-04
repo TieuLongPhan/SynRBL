@@ -5,7 +5,7 @@ import pandas as pd
 from rdkit.Chem import rdFMCS
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynMCS import ExtractMCS  
+from SynRBL.SynMCS.SubStructure.extract_common_mcs import ExtractMCS  
 class TestExtractMCS(unittest.TestCase):
 
     def setUp(self):

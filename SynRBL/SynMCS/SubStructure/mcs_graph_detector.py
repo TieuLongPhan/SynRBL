@@ -67,6 +67,7 @@ class MCSMissingGraphAnalyzer:
         mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
         return mcs_mol
     
+    @staticmethod
     def IterativeMCSReactionPairs(reactant_mol_list, product_mol, params=None, method = 'MCIS', sort='MCIS', remove_substructure=True):
         """
         Find the MCS for each reactant fragment with the product, updating the product after each step.
