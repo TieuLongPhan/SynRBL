@@ -17,6 +17,24 @@
         },
         "compound": {"smiles": "I", "index": 0}
     },
+    {
+        "name": "C-O Ester break",
+        "condition": {
+            "atom": ["C"],
+            "neighbors": ["O"],
+            "functional_groups": ["ester"]
+        },
+        "compound": {"smiles": "O", "index": 0}
+    },
+    {
+        "name": "C-S Thioester break",
+        "condition": {
+            "atom": ["C"],
+            "neighbors": ["S"],
+            "functional_groups": ["thioester"]
+        },
+        "compound": {"smiles": "O", "index": 0}
+    },
 	{
 		"name": "C-N Amide break",
 		"condition": {
