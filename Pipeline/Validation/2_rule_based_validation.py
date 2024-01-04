@@ -126,6 +126,6 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
         
 
 if __name__ == "__main__":
-    main('Jaworski')
-    #main('nature')
+    #main('Jaworski')
+    main('golden_dataset')
     #main('USPTO_50K')
