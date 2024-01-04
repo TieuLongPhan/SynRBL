@@ -33,6 +33,8 @@ class TestMergeTwoMols(unittest.TestCase):
     def test_merge_with_explicit_H(self):
         mol1 = rdmolfiles.MolFromSmiles("C[SH](=O)=O")
         mol2 = rdmolfiles.MolFromSmiles("O")
+        result = merge.merge_two_mols(mol1, mol2, 1, 0, DummyMergeRule())
+        self.assertEqual("CS(=O)(=O)O", rdmolfiles.MolToSmiles(result['mol']))
         
 
 class TestMergeBoundary(unittest.TestCase):

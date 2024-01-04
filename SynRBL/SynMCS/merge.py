@@ -90,6 +90,9 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
     atom1 = mol.GetAtoms()[idx1]
     atom2 = mol.GetAtoms()[mol2_offset + idx2]
 
+    atom1.SetNumExplicitHs(0)
+    atom2.SetNumExplicitHs(0)
+
     rule.apply(mol, atom1, atom2)
 
     try:
@@ -101,7 +104,7 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
         sym2 = atom2.GetSymbol()
         raise ValueError(
             (
-                "Failed to merge '{}' @ Idx={} ({}) and '{}' Idx={} ({}) "
+                "Failed to merge '{}' Idx={} ({}) and '{}' Idx={} ({}) "
                 + "to a valid molecule. {}"
             ).format(smiles1, idx1, sym1, smiles2, idx2, sym2, str(e))
         )
