@@ -1,7 +1,6 @@
 .DS_Store
 *.pyc
-.vscode/launch.json
-.DS_Store
+.vscode
 
 .DS_Store
 .jukit/
