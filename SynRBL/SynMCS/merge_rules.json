@@ -6,8 +6,8 @@
 	},
 	{
 		"name": "bond restriction",
-		"condition1": {"atom": ["N", "O", "Fl"]},
-		"condition2": {"atom": ["N", "O", "F", "Cl", "Br", "I", "At"]}
+		"condition1": {"atom": ["N", "O", "F", "Cl", "Br", "I"]},
+		"condition2": {"atom": ["N", "O", "F", "Cl", "Br", "I"]}
 	},
 	{
 		"name": "default single bond",
