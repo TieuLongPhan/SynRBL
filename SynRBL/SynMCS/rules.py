@@ -147,11 +147,11 @@ class FGConfig:
 
 functional_group_config = {
     "ether": FGConfig("COC", "C=O"),
-    "ester": FGConfig("C(O)=O"),
+    "ester": FGConfig("O=CO"),
     "amine": FGConfig("CN", "C=O"),
     "amide": FGConfig("C(N)=O"),
     "thioether": FGConfig("CSC", "C=O"),
-    "thioester": FGConfig("CS=O"),
+    "thioester": FGConfig("O=CS"),
 }
 
 

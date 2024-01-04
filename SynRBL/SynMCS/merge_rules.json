@@ -6,7 +6,7 @@
 	},
 	{
 		"name": "bond restriction",
-		"condition1": {"atom": ["N", "O", "Sn", "Zn", "Cu", "Fl", "Mg"]},
+		"condition1": {"atom": ["N", "O", "Fl"]},
 		"condition2": {"atom": ["N", "O", "F", "Cl", "Br", "I", "At"]}
 	},
 	{
