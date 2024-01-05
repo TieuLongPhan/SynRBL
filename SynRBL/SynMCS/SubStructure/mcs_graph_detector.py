@@ -114,39 +114,42 @@ class MCSMissingGraphAnalyzer:
         current_product = product_mol
         for reactant, _ in sorted_reactants:
             # Calculate the MCS with the current product
-            if method == 'MCIS':
-                mcs_result = rdFMCS.FindMCS([reactant, current_product], params)
-            elif method == 'MCES':
-                mcs_result = rdRascalMCES.FindMCES(reactant, current_product, params)[0]
-            else:
-                raise ValueError("Invalid method. Choose 'MCIS' or 'MCES'.")
-            
-            if not mcs_result.canceled if method == 'MCIS' else hasattr(mcs_result, 'atomMatches'):
-                mcs_smarts = mcs_result.smartsString if method == 'MCIS' else mcs_result.smartsString.split('.')[0]
-                mcs_mol = Chem.MolFromSmarts(mcs_smarts)
-                mcs_list.append(mcs_mol)
-                # Conditional substructure removal
-                if remove_substructure:
+            try:
+                if method == 'MCIS':
+                    mcs_result = rdFMCS.FindMCS([reactant, current_product], params)
+                elif method == 'MCES':
+                    mcs_result = rdRascalMCES.FindMCES(reactant, current_product, params)[0]
+                else:
+                    raise ValueError("Invalid method. Choose 'MCIS' or 'MCES'.")
+                
+                if not mcs_result.canceled if method == 'MCIS' else hasattr(mcs_result, 'atomMatches'):
+                    mcs_smarts = mcs_result.smartsString if method == 'MCIS' else mcs_result.smartsString.split('.')[0]
+                    mcs_mol = Chem.MolFromSmarts(mcs_smarts)
+                    mcs_list.append(mcs_mol)
+                    # Conditional substructure removal
+                    if remove_substructure:
 
-                    # Identify the optimal substructure
-                    analyzer = SubstructureAnalyzer()
-                    optimal_substructure = analyzer.identify_optimal_substructure(parent_mol=current_product, child_mol=mcs_mol)
-                    if optimal_substructure:
-                        rw_mol = Chem.RWMol(current_product)
-                        # Remove atoms in descending order of their indices
-                        for atom_idx in sorted(optimal_substructure, reverse=True):
-                            if atom_idx < rw_mol.GetNumAtoms():  # Check if the index is valid
-                                rw_mol.RemoveAtom(atom_idx)
-                            else:
-                                pass
-                        current_product = rw_mol.GetMol()
+                        # Identify the optimal substructure
+                        analyzer = SubstructureAnalyzer()
+                        optimal_substructure = analyzer.identify_optimal_substructure(parent_mol=current_product, child_mol=mcs_mol)
+                        if optimal_substructure:
+                            rw_mol = Chem.RWMol(current_product)
+                            # Remove atoms in descending order of their indices
+                            for atom_idx in sorted(optimal_substructure, reverse=True):
+                                if atom_idx < rw_mol.GetNumAtoms():  # Check if the index is valid
+                                    rw_mol.RemoveAtom(atom_idx)
+                                else:
+                                    pass
+                            current_product = rw_mol.GetMol()
 
-                try:
-                    Chem.SanitizeMol(current_product)
-                except:
-                    pass
-            else:
+                    try:
+                        Chem.SanitizeMol(current_product)
+                    except:
+                        pass
+            except:
+                print('Bug')
                 mcs_list.append(None)
+                pass
 
 
         return mcs_list, [reactant for reactant, _ in sorted_reactants]
