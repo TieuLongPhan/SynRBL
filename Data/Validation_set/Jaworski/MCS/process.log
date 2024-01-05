@@ -1,22 +1,37 @@
-2024-01-04 22:00:24,475 - INFO - Condition 1 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 22:00:24,477 - INFO - Condition 1: Finished
-2024-01-04 22:00:51,491 - INFO - Condition 2 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 22:00:51,494 - INFO - Condition 2: Finished
-2024-01-04 22:00:52,734 - INFO - Condition 3 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 22:00:52,736 - INFO - Condition 3: Finished
-2024-01-04 22:01:01,145 - INFO - Condition 4 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 22:01:01,147 - INFO - Condition 4: Finished
-2024-01-04 22:01:01,280 - INFO - Condition 5 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 22:01:01,282 - INFO - Condition 5: Finished
-2024-01-04 22:01:01,282 - INFO - All conditions have been processed.
-2024-01-04 23:33:47,834 - INFO - Condition 1 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 23:33:47,837 - INFO - Condition 1: Finished
-2024-01-04 23:34:15,296 - INFO - Condition 2 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 23:34:15,299 - INFO - Condition 2: Finished
-2024-01-04 23:34:16,638 - INFO - Condition 3 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 23:34:16,639 - INFO - Condition 3: Finished
-2024-01-04 23:34:25,725 - INFO - Condition 4 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 23:34:25,727 - INFO - Condition 4: Finished
-2024-01-04 23:34:25,948 - INFO - Condition 5 | Batch Progress: 359.71% | Data Progress: 0.00%
-2024-01-04 23:34:25,950 - INFO - Condition 5: Finished
-2024-01-04 23:34:25,950 - INFO - All conditions have been processed.
+2024-01-05 10:23:53,961 - INFO - Condition 1 | Batch Progress: 636.94% | Data Progress: 0.00%
+2024-01-05 10:23:53,966 - INFO - Condition 1: Finished
+2024-01-05 10:25:25,857 - INFO - Condition 2 | Batch Progress: 636.94% | Data Progress: 0.00%
+2024-01-05 10:25:25,862 - INFO - Condition 2: Finished
+2024-01-05 10:28:42,523 - INFO - Condition 1 | Batch Progress: 127.39% | Data Progress: 0.00%
+2024-01-05 10:28:42,529 - INFO - Condition 1: Finished
+2024-01-05 10:30:14,233 - INFO - Condition 2 | Batch Progress: 127.39% | Data Progress: 0.00%
+2024-01-05 10:30:14,238 - INFO - Condition 2: Finished
+2024-01-05 10:31:46,841 - INFO - Condition 3 | Batch Progress: 127.39% | Data Progress: 0.00%
+2024-01-05 10:31:46,845 - INFO - Condition 3: Finished
+2024-01-05 10:33:18,424 - INFO - Condition 4 | Batch Progress: 127.39% | Data Progress: 0.00%
+2024-01-05 10:33:18,429 - INFO - Condition 4: Finished
+2024-01-05 10:33:19,074 - INFO - Condition 5 | Batch Progress: 127.39% | Data Progress: 0.00%
+2024-01-05 10:33:19,078 - INFO - Condition 5: Finished
+2024-01-05 10:33:19,078 - INFO - All conditions have been processed.
+2024-01-05 10:33:20,976 - INFO - Condition 1 | Batch Progress: 277.78% | Data Progress: 0.00%
+2024-01-05 10:33:20,978 - INFO - Condition 1: Finished
+2024-01-05 10:33:21,484 - INFO - Condition 2 | Batch Progress: 277.78% | Data Progress: 0.00%
+2024-01-05 10:33:21,487 - INFO - Condition 2: Finished
+2024-01-05 10:33:21,619 - INFO - Condition 3 | Batch Progress: 277.78% | Data Progress: 0.00%
+2024-01-05 10:33:21,622 - INFO - Condition 3: Finished
+2024-01-05 10:33:21,757 - INFO - Condition 4 | Batch Progress: 277.78% | Data Progress: 0.00%
+2024-01-05 10:33:21,759 - INFO - Condition 4: Finished
+2024-01-05 10:33:21,865 - INFO - Condition 5 | Batch Progress: 277.78% | Data Progress: 0.00%
+2024-01-05 10:33:21,867 - INFO - Condition 5: Finished
+2024-01-05 10:33:21,867 - INFO - All conditions have been processed.
+2024-01-05 10:33:23,423 - INFO - Condition 1 | Batch Progress: 454.55% | Data Progress: 0.00%
+2024-01-05 10:33:23,425 - INFO - Condition 1: Finished
+2024-01-05 10:33:23,568 - INFO - Condition 2 | Batch Progress: 454.55% | Data Progress: 0.00%
+2024-01-05 10:33:23,570 - INFO - Condition 2: Finished
+2024-01-05 10:33:23,693 - INFO - Condition 3 | Batch Progress: 454.55% | Data Progress: 0.00%
+2024-01-05 10:33:23,696 - INFO - Condition 3: Finished
+2024-01-05 10:33:23,819 - INFO - Condition 4 | Batch Progress: 454.55% | Data Progress: 0.00%
+2024-01-05 10:33:23,821 - INFO - Condition 4: Finished
+2024-01-05 10:33:23,943 - INFO - Condition 5 | Batch Progress: 454.55% | Data Progress: 0.00%
+2024-01-05 10:33:23,945 - INFO - Condition 5: Finished
+2024-01-05 10:33:23,945 - INFO - All conditions have been processed.

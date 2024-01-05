@@ -20,6 +20,33 @@ from SynRBL.SynVis import ReactionVisualizer
 from rdkit import  RDLogger
 import rdkit
 import matplotlib
+from collections import defaultdict
+
+def count_carbons(smiles):
+    return smiles.count('C')
+
+def sample_reactions(reactions, N, random_state=None):
+    np.random.seed(random_state)
+
+    grouped_reactions = defaultdict(lambda: defaultdict(list))
+    for reaction in reactions:
+        unbalance_category = reaction.get('Unbalance', 'None')
+        grouped_reactions[reaction['class']][unbalance_category].append(reaction)
+
+    sampled_reactions = []
+
+    for class_, unbalance_groups in grouped_reactions.items():
+        for unbalance, reactions in unbalance_groups.items():
+            sample_size = min(N, len(reactions))  # Adjust sample size if necessary
+
+            carbon_counts = [count_carbons(reaction['reactants']) for reaction in reactions]
+            total_carbons = sum(carbon_counts)
+            probabilities = [count / total_carbons for count in carbon_counts]
+
+            sampled_indices = np.random.choice(len(reactions), size=sample_size, replace=False, p=probabilities)
+            sampled_reactions.extend([reactions[i] for i in sampled_indices])
+
+    return sampled_reactions
 
 def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= False):
 
@@ -115,8 +142,27 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
 
 
     if data_name == 'USPTO_50K':
-        certain_reactions = get_random_samples_by_key(certain_reactions, num_samples_per_group=20, random_seed=42, stratify_key = 'Diff_formula')
-        print(len(certain_reactions))
+        check_dir_diff = root_dir / 'Data/Validation_set' / data_name / 'check_diff'
+        if not check_dir_diff.exists():
+            os.mkdir(check_dir_diff)
+        certain_reactions_diff = get_random_samples_by_key(certain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
+        uncertain_reactions_diff = get_random_samples_by_key(uncertain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
+
+        save_database(certain_reactions_diff, save_dir / 'Solved_reactions_diff.json.gz')
+        save_database(uncertain_reactions_diff, save_dir / 'Unsolved_reactions_diff.json.gz')
+        vis = ReactionVisualizer()
+        for i in range(0, len(certain_reactions_diff),1):
+            vis.plot_reactions(certain_reactions_diff[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=check_dir_diff/ f'{i}.png')
+            matplotlib.pyplot.close()
+
+
+        certain_reactions_class = sample_reactions(certain_reactions, N=30, random_state=42)
+        uncertain_reactions_class = sample_reactions(uncertain_reactions, N=30, random_state=42)
+        save_database(certain_reactions_class, save_dir / 'Solved_reactions_class.json.gz')
+        save_database(uncertain_reactions_class, save_dir / 'Unsolved_reactions_class.json.gz')
+        
+        
+        certain_reactions = certain_reactions_class
 
     vis = ReactionVisualizer()
     for i in range(0, len(certain_reactions),1):
@@ -126,6 +172,7 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
         
 
 if __name__ == "__main__":
-    #main('Jaworski')
+    main('Jaworski')
     main('golden_dataset')
-    #main('USPTO_50K')
+    main('USPTO_50K')
+    main('USPTO_random_class')
