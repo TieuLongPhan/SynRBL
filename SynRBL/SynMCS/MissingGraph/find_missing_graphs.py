@@ -78,11 +78,63 @@ class FindMissingGraphs:
                         smarts_pattern = '[OH]'
                         smarts_mol = Chem.MolFromSmarts(smarts_pattern)
                         substructure_match = mol.GetSubstructMatch(smarts_mol)
-                        rw_mol = Chem.RWMol(mol)
-                        rw_mol.RemoveAtom(substructure_match[0])
-                        missing_part = rw_mol.GetMol()
-                        boundary_atoms = [{'O': 0}]
-                        nearest_atoms = [{'O': 0}]
+
+                        left_number = []
+                        for i in range(mol.GetNumAtoms()):
+                            if i not in substructure_match:
+                                left_number.append(i)
+
+                        
+                        # Creating the molecule of missing parts
+                        missing_part = Chem.RWMol(mol)
+                        for idx in sorted(atoms_to_remove, reverse=True):
+                            missing_part.RemoveAtom(idx)
+
+
+                        missing_part_old = copy.deepcopy(missing_part)
+                    
+
+                        if missing_part is not None:
+                            missing_part_smiles = Chem.MolToSmiles(missing_part)
+                            try:
+                                missing_part = Chem.MolFromSmiles(missing_part_smiles, sanitize=False)
+                                Chem.SanitizeMol(missing_part)
+
+                            except:
+                                missing_part = MoleculeCurator.manual_kekulize(missing_part_smiles)
+                        
+                            missing_part = MoleculeCurator.add_hydrogens_to_radicals(missing_part)
+                            atom_mapping = FindMissingGraphs.map_parent_to_child(missing_part_old, missing_part, left_number)
+                            
+                        
+                        else:
+                            index_mapping = {idx: i for i, idx in enumerate(sorted(set(range(mol.GetNumAtoms())) - atoms_to_remove))}
+
+                        boundary_atoms = []
+                        nearest_atoms = []
+
+                        # Identifying boundary atoms and nearest neighbors
+                        for atom_idx in substructure_match:
+                            #display(mol)
+                            if atom_idx < mol.GetNumAtoms():
+                                atom_symbol = mol.GetAtomWithIdx(atom_idx).GetSymbol()
+                                neighbors = mol.GetAtomWithIdx(atom_idx).GetNeighbors()
+                                # Loop through neighbors to find boundary atoms and nearest neighbors
+                                for neighbor in neighbors:
+                                    if neighbor.GetIdx() not in substructure_match:
+                                        nearest_atoms.append({atom_symbol: atom_idx})
+                                    
+                                        #boundary_atoms.append({neighbor.GetSymbol(): atom_mapping[neighbor.GetIdx()]})
+                                        #renumerate_idx = atom_mapping.get(neighbor.GetIdx(), -1)
+                                        if missing_part:
+                                            renumerate_idx = atom_mapping.get(neighbor.GetIdx(), -1)
+                                        else:
+                                            renumerate_idx = index_mapping.get(neighbor.GetIdx(), -1)
+                                        if renumerate_idx != -1:
+                                            boundary_atoms.append({neighbor.GetSymbol(): renumerate_idx})
+
+                        
+                        
                     else:
                         raise ValueError
             except:

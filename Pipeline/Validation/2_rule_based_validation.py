@@ -121,7 +121,7 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
     #print('Total unsolved:', len(unsolve))
 
     # Handle uncertainty in imputation
-    constrain = RuleConstraint(solve, ban_atoms=['[H]','[O].[O]', 'F-F', 'Cl-Cl', 'Br-Br', 'I-I', 'Cl-Br', 'Cl-I', 'Br-I'])
+    constrain = RuleConstraint(solve, ban_atoms=['[O].[O]', 'F-F', 'Cl-Cl', 'Br-Br', 'I-I', 'Cl-Br', 'Cl-I', 'Br-I'])
     certain_reactions, uncertain_reactions = constrain.fit()
 
     id_uncertain = [entry['R-id'] for entry in uncertain_reactions]
@@ -172,7 +172,7 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
         
 
 if __name__ == "__main__":
-    main('Jaworski')
+    #main('Jaworski')
     main('golden_dataset')
-    main('USPTO_50K')
-    main('USPTO_random_class')
+    #main('USPTO_50K')
+    #main('USPTO_random_class')

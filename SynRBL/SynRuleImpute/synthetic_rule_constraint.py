@@ -60,20 +60,26 @@ class RuleConstraint:
         """
         modified_data = []
         for entry in data:
-            
             if '.[H]' in entry['products']:
-                if RuleConstraint.check_even(entry, 'products', '[H]', '.'):
-                    hydrogen_count = entry['products'].count('.[H]')
-                    hydrogen_count = int(hydrogen_count / 2)
-                    entry['products'] = entry['products'].replace('.[H]', '')
-                    entry['reactants'] += '.[O]' * hydrogen_count
-
-                    if entry['products']:
-                        entry['products'] += '.O' * hydrogen_count
-                    else:
-                        entry['products'] = 'O' * hydrogen_count
-                else:
+                reactants = entry['reactants'].split('.')
+                reactants = [RuleConstraint.remove_atom_mapping(smiles) for smiles in reactants]
+                no_constraint = ['[Na]', '[K]', '[Li]', '[H-]']
+                contains_no_constraint = RuleConstraint.check_no_constraint(reactants, no_constraint)
+                if contains_no_constraint:
                     pass
+                else:
+                    if RuleConstraint.check_even(entry, 'products', '[H]', '.'):
+                        hydrogen_count = entry['products'].count('.[H]')
+                        hydrogen_count = int(hydrogen_count / 2)
+                        entry['products'] = entry['products'].replace('.[H]', '')
+                        entry['reactants'] += '.[O]' * hydrogen_count
+
+                        if entry['products']:
+                            entry['products'] += '.O' * hydrogen_count
+                        else:
+                            entry['products'] = 'O' * hydrogen_count
+                    else:
+                        pass
             
             if '.[O]' in entry['products']:
                 if RuleConstraint.check_even(entry, 'products', '[O]', '.'):
@@ -160,4 +166,47 @@ class RuleConstraint:
         """
         data_modified = self.reduction_oxidation_rules_modify(self.list_dict)
         return self.remove_banned_reactions(data_modified, self.ban_pattern, self.ban_pattern_reactants)
+    
+
+    
+    @staticmethod
+    def remove_atom_mapping(smiles: str) -> str:
+        """
+        Remove atom mapping numbers from a SMILES string.
+
+        Atom mappings are typically represented by numbers following a colon (':') after the atom symbol.
+        This function removes these mappings to return a SMILES string without them.
+
+        Args:
+            smiles (str): A SMILES string with atom mappings.
+
+        Returns:
+            str: A SMILES string without atom mappings.
+        """
+        # Regular expression to find and remove atom mappings (numbers following a colon)
+        mapping_pattern = re.compile(r':\d+')
+        return mapping_pattern.sub('', smiles)
+
+
+    @staticmethod
+    def check_no_constraint(reactants, no_constraint):
+        """
+        Check if any elements in the no_constraint list match exactly with any elements in the reactants list.
+
+        Args:
+            reactants (List[str]): A list of reactant elements or compounds.
+            no_constraint (List[str]): A list of elements to check against in the reactants list.
+
+        Returns:
+            bool: True if any element from no_constraint is found in reactants, False otherwise.
+        """
+        # Convert lists to sets for efficient membership testing
+        reactants_set = set(reactants)
+        no_constraint_set = set(no_constraint)
+
+        # Check for intersection
+        return not reactants_set.isdisjoint(no_constraint_set)
+
+
+    
         
