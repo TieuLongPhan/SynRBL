@@ -3,6 +3,7 @@ from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynMCS.rules import MergeRule, CompoundRule
 from SynRBL.SynMCS.merge import merge
 import SynRBL.SynMCS.structure as structure
+import SynRBL.SynMCS.utils as utils
 
 
 def impute_new_reaction(data):
@@ -26,6 +27,7 @@ def impute_new_reaction(data):
             else:
                 for r in data[i]["rules"]:
                     rule_map[r].add(i)
+            utils.carbon_equality_check(new_reaction)
         except Exception as e:
             # traceback.print_exc()
             data[i]["issue"] = str(e)

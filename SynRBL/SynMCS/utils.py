@@ -1,6 +1,27 @@
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
 
+def carbon_equality_check(reaction_smiles):
+    def _cnt_C(mol):
+        return len([a for a in mol.GetAtoms() if a.GetSymbol() == "C"])
+
+    smiles_token = reaction_smiles.split(">>")
+    reactant_smiles = smiles_token[0]
+    product_smiles = smiles_token[1]
+    reactant = rdmolfiles.MolFromSmiles(reactant_smiles)
+    product = rdmolfiles.MolFromSmiles(product_smiles)
+    reactant_Cs = _cnt_C(reactant)
+    product_Cs = _cnt_C(product)
+    if reactant_Cs != product_Cs:
+        raise RuntimeError(
+            (
+                "Failed to impute the correct structure. "
+                + "Carbon atom count in reactants and products does not match. "
+                + "(Reactants={}, Products={})"
+            ).format(reactant_Cs, product_Cs)
+        )
+
+
 class InvalidAtomDict(Exception):
     """
     Exception if the atom dictionary is invalid.
