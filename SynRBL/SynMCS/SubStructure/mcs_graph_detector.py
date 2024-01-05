@@ -145,6 +145,9 @@ class MCSMissingGraphAnalyzer:
                     Chem.SanitizeMol(current_product)
                 except:
                     pass
+            else:
+                mcs_list.append(None)
+
 
         return mcs_list, [reactant for reactant, _ in sorted_reactants]
 
