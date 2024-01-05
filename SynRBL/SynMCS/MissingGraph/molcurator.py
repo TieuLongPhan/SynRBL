@@ -49,8 +49,6 @@ class MoleculeCurator:
         Returns:
         - Chem.Mol: The neutralized molecule, or the original molecule if the reaction doesn't occur.
         """
-        uncharger = rdMolStandardize.Uncharger()
-        mol = uncharger.uncharge(mol)
         neutral_mol = AllChem.ReactionFromSmarts('[N-]=[NH2+]>>[N:1]#[N:2]').RunReactants((mol,))
         return neutral_mol[0][0] if neutral_mol else mol
 
