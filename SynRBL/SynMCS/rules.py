@@ -22,11 +22,11 @@ def parse_bond_type(bond):
         rdkit.Chem.rdchem.BondType: The rdkit bond type.
     """
     if bond is None:
-        return None
+        return None, 0
     elif bond == "single":
-        return Chem.rdchem.BondType.SINGLE
+        return Chem.rdchem.BondType.SINGLE, 1
     elif bond == "double":
-        return Chem.rdchem.BondType.DOUBLE
+        return Chem.rdchem.BondType.DOUBLE, 2
     else:
         raise NotImplementedError("Bond type '{}' is not implemented.".format(bond))
 
@@ -416,8 +416,14 @@ class MergeRule:
         Returns:
             rdkit.Chem.Mol: The merged molecule.
         """
-        bond_type = parse_bond_type(self.bond)
+        def _fix_Hs(atom, bond_nr):
+            if atom.GetNumExplicitHs() > 0:
+                atom.SetNumExplicitHs(atom.GetNumExplicitHs() - bond_nr)
+
+        bond_type, bond_nr = parse_bond_type(self.bond)
         if bond_type is not None:
+            _fix_Hs(atom1, bond_nr)
+            _fix_Hs(atom2, bond_nr)
             mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type)
         return mol
 

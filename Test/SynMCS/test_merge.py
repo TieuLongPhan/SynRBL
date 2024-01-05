@@ -30,14 +30,6 @@ class DummyCompoundRule:
         return comp
 
 
-class TestMergeTwoMols(unittest.TestCase):
-    def test_merge_with_explicit_H(self):
-        mol1 = rdmolfiles.MolFromSmiles("C[SH](=O)=O")
-        mol2 = rdmolfiles.MolFromSmiles("O")
-        result = merge.merge_two_mols(mol1, mol2, 1, 0, DummyMergeRule())
-        self.assertEqual("CS(=O)(=O)O", rdmolfiles.MolToSmiles(result["mol"]))
-
-
 class TestMergeBoundary(unittest.TestCase):
     @mock.patch("SynRBL.SynMCS.merge.MergeRule")
     def test_simple_merge(self, m_MergeRule):
@@ -260,3 +252,19 @@ class TestCompounds(unittest.TestCase):
         cm = merge.merge(compound)
         self.assertEqual(s, cm.smiles)
         self.assertEqual(0, len(cm.boundaries))
+
+    def test_merge_with_charge(self):
+        compound1 = structure.Compound("CNOC", src_mol="CON(C)C(=O)C1CCN(Cc2ccccc2)CC1")
+        compound1.add_boundary(1, symbol="N", neighbor_index=4, neighbor_symbol="C")
+        compound2 = structure.Compound("[MgH+]", src_mol="C[Mg+]")
+        compound2.add_boundary(0, symbol="Mg", neighbor_index=0, neighbor_symbol="C")
+        cm = merge.merge([compound1, compound2])
+        self.assertEqual("CON(C)[Mg+]", cm.smiles)
+
+    def test_merge_with_explicit_H_1(self):
+        compound = structure.Compound(
+            "C[SH](=O)=O", src_mol="CS(=O)(=O)Oc1ccc(C(=N)N)cc1C(=O)c1ccccc1"
+        )
+        compound.add_boundary(1, symbol="S", neighbor_index=4, neighbor_symbol="O")
+        cm = merge.merge(compound)
+        self.assertEqual("CS(=O)(=O)O", cm.smiles)

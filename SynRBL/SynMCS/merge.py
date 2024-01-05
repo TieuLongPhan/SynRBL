@@ -90,14 +90,10 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
     atom1 = mol.GetAtoms()[idx1]
     atom2 = mol.GetAtoms()[mol2_offset + idx2]
 
-    atom1.SetNumExplicitHs(0)
-    atom2.SetNumExplicitHs(0)
-
     rule.apply(mol, atom1, atom2)
 
     try:
         rdmolops.SanitizeMol(mol)
-        # TODO change radical to pos charge (should only happen for Mg, Zn)
     except Exception as e:
         smiles1 = rdmolfiles.MolToSmiles(mol1)
         sym1 = atom1.GetSymbol()
