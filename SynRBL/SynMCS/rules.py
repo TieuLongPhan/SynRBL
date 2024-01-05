@@ -416,9 +416,12 @@ class MergeRule:
         Returns:
             rdkit.Chem.Mol: The merged molecule.
         """
+
         def _fix_Hs(atom, bond_nr):
             if atom.GetNumExplicitHs() > 0:
-                atom.SetNumExplicitHs(atom.GetNumExplicitHs() - bond_nr)
+                atom.SetNumExplicitHs(
+                    int(np.max([0, atom.GetNumExplicitHs() - bond_nr]))
+                )
 
         bond_type, bond_nr = parse_bond_type(self.bond)
         if bond_type is not None:

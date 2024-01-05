@@ -268,3 +268,11 @@ class TestCompounds(unittest.TestCase):
         compound.add_boundary(1, symbol="S", neighbor_index=4, neighbor_symbol="O")
         cm = merge.merge(compound)
         self.assertEqual("CS(=O)(=O)O", cm.smiles)
+
+    def test_merge_P_with_explicit_H(self):
+        compound1 = structure.Compound("CCO[PH](=O)OCC", src_mol="CCOP(=O)(Cc1cccc(C#N)c1)OCC")
+        compound1.add_boundary(3, symbol="P", neighbor_index=5, neighbor_symbol="C")
+        compound2 = structure.Compound("O", src_mol="CC(C)=O")
+        compound2.add_boundary(0, symbol="O", neighbor_index=1, neighbor_symbol="C")
+        cm = merge.merge([compound1, compound2])
+        self.assertEqual("CCO[P](=O)(=O)OCC", cm.smiles)
