@@ -35,7 +35,7 @@ def find_single_graph(mcs_mol_list, sorted_reactants_mol_list, use_findMCS=True)
             missing_results['smiles'].append([])
             missing_results['boundary_atoms_products'].append([])
             missing_results['nearest_neighbor_products'].append([])
-            missing_results['issue'].append(str(e))
+            missing_results['issue'].append('FindMissingGraphs.find_missing_parts() failed:' + str(e))
     return missing_results
 
 
