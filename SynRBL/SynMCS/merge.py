@@ -187,4 +187,6 @@ def merge(compounds: Compound | list[Compound]) -> Compound:
     elif len(compounds) == 2:
         return _merge_two_compounds(compounds[0], compounds[1])
     else:
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Merging {} compounds is not implemented.".format(len(compounds))
+        )
