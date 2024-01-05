@@ -128,3 +128,49 @@ class Compound:
     def update(self, new_mol: rdchem.Mol, merged_boundary: Boundary):
         self.mol = new_mol
         self.boundaries.remove(merged_boundary)
+
+
+def build_compounds(data_dict) -> list[Compound]:
+    src_smiles = data_dict["sorted_reactants"]
+    smiles = data_dict["smiles"]
+    boundaries = data_dict["boundary_atoms_products"]
+    neighbors = data_dict["nearest_neighbor_products"]
+    if len(smiles) != len(src_smiles):
+        raise ValueError(
+            "Smiles and sorted reactants are not of the same length. ({} != {})".format(
+                len(smiles), len(src_smiles)
+            )
+        )
+    if len(boundaries) != len(neighbors):
+        raise ValueError(
+            "Boundaries and nearest neighbors are not of the same length. ({} != {})".format(
+                len(boundaries), len(neighbors)
+            )
+        )
+    compounds = []
+    s_i = 0
+    for s, ss in zip(smiles, src_smiles):
+        if s is None:
+            continue
+        b = boundaries[s_i]
+        n = neighbors[s_i]
+        c = Compound(s, src_mol=ss)
+        if len(b) != len(n):
+            raise ValueError(
+                "Boundary and neighbor missmatch. (boundary={}, neighbor={})".format(
+                    b, n
+                )
+            )
+        for bi, ni in zip(b, n):
+            bi_s, bi_i = list(bi.items())[0]
+            ni_s, ni_i = list(ni.items())[0]
+            c.add_boundary(bi_i, symbol=bi_s, neighbor_index=ni_i, neighbor_symbol=ni_s)
+        compounds.append(c)
+        s_i += 1
+    if len(boundaries) != s_i:
+        raise ValueError(
+            "Not enough compounds for boundaries. (smiles={}, boundaries={})".format(
+                smiles, boundaries
+            )
+        )
+    return compounds

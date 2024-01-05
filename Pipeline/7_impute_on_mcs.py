@@ -1,38 +1,8 @@
 import argparse
 from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCS.structure import Compound
 from SynRBL.SynMCS.rules import MergeRule, CompoundRule
 from SynRBL.SynMCS.merge import merge
-
-
-def build_compounds(item):
-    src_smiles = item["sorted_reactants"]
-    smiles = item["smiles"]
-    boundaries = item["boundary_atoms_products"]
-    neighbors = item["nearest_neighbor_products"]
-    l = len(smiles)
-    if len(boundaries) != len(neighbors) or l != len(src_smiles):
-        print(smiles, src_smiles, boundaries, neighbors)
-        raise ValueError("Unequal leghts.")
-    compounds = []
-    s_i = 0
-    for s, ss in zip(smiles, src_smiles):
-        if s is None:
-            continue
-        b = boundaries[s_i]
-        n = neighbors[s_i]
-        c = Compound(s, src_mol=ss)
-        if len(b) != len(n):
-            raise ValueError("Boundary and neighbor missmatch.")
-        for bi, ni in zip(b, n):
-            bi_s, bi_i = list(bi.items())[0]
-            ni_s, ni_i = list(ni.items())[0]
-            c.add_boundary(bi_i, symbol=bi_s, neighbor_index=ni_i, neighbor_symbol=ni_s)
-        compounds.append(c)
-        s_i += 1
-    if len(boundaries) != s_i:
-        raise ValueError("Compounds do not match boundaries and neighbors.")
-    return compounds
+import SynRBL.SynMCS.structure as structure
 
 
 def impute_new_reaction(data):
@@ -45,7 +15,7 @@ def impute_new_reaction(data):
         data[i]["rules"] = []
         data[i]["new_reaction"] = data[i]["old_reaction"]
         try:
-            compounds = build_compounds(item)
+            compounds = structure.build_compounds(item)
             result = merge(compounds)
             new_reaction = "{}.{}".format(item["old_reaction"], result.smiles)
             data[i]["new_reaction"] = new_reaction

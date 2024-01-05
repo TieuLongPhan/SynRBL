@@ -20,7 +20,6 @@ class TestCompound(unittest.TestCase):
         c = Compound("C", src_mol=rdmolfiles.MolFromSmiles("CCO"))
         self.assertEqual("CCO", c.src_smiles)
 
-
     def test_resolve_merge(self):
         c = Compound("CCO")
         b = c.add_boundary(1)
@@ -67,7 +66,7 @@ class TestCompound(unittest.TestCase):
         c = Compound("CCC", src_mol="CC(=O)OCCC")
         b = c.add_boundary(0, neighbor_index=3)
         self.assertEqual("C", b.get_atom().GetSymbol())
-        self.assertEqual("O", b.get_neighbor_atom().GetSymbol()) # type: ignore
+        self.assertEqual("O", b.get_neighbor_atom().GetSymbol())  # type: ignore
 
     def test_add_boundary_with_missing_src(self):
         c = Compound("CCC")
@@ -79,3 +78,18 @@ class TestCompound(unittest.TestCase):
         with self.assertRaises(ValueError):
             c.add_boundary(0, "C", 3, "C")
 
+
+class TestBuildCompound(unittest.TestCase):
+    def _get_dict(self, smiles, src_smiles, bounds, neighbors):
+        return {
+            "smiles": smiles,
+            "sorted_reactants": src_smiles,
+            "boundary_atoms_products": bounds,
+            "nearest_neighbor_products": neighbors,
+        }
+
+    def test_invalid_lengths(self):
+        data = self._get_dict(["C"], ["CC"], [[{"C": 0}]], [[{"C": 1}]])
+        compounds = build_compounds(data)
+        self.assertEqual(1, len(compounds))
+        self.assertEqual(1, len(compounds[0].boundaries))
