@@ -9,11 +9,11 @@ def impute_new_reaction(data):
     rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
+        data[i]["rules"] = []
+        data[i]["new_reaction"] = data[i]["old_reaction"]
         if data[i]["issue"] != "":
             print("[ERROR] [{}]".format(i), "Skip because of previous issue.")
             continue
-        data[i]["rules"] = []
-        data[i]["new_reaction"] = data[i]["old_reaction"]
         try:
             compounds = structure.build_compounds(item)
             result = merge(compounds)
