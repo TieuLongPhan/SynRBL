@@ -147,7 +147,7 @@ class MCSMissingGraphAnalyzer:
                     except:
                         pass
             except:
-                print('Bug')
+                #print('Bug')
                 mcs_list.append(None)
                 pass
 

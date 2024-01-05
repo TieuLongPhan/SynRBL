@@ -28,7 +28,7 @@ def mcs(data_name = 'golden_dataset'):
         save_dir.mkdir(parents=True)
 
     # Run and save conditions
-    ensemble_mcs(filtered_data, root_dir, save_dir, conditions, batch_size=6000, Timeout=90)
+    ensemble_mcs(filtered_data, root_dir, save_dir, conditions, batch_size=1000, Timeout=90)
 
 
 

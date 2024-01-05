@@ -117,11 +117,14 @@ def convert_smiles_to_mols(
     """
     mol_list = []
     for smiles in smiles_list:
-        if useSmiles:
-            mol = Chem.MolFromSmiles(smiles, sanitize=True)
-        else:
-            mol = Chem.MolFromSmarts(smiles)
-        mol_list.append(mol)
+        try:
+            if useSmiles:
+                mol = Chem.MolFromSmiles(smiles, sanitize=True)
+            else:
+                mol = Chem.MolFromSmarts(smiles)
+            mol_list.append(mol)
+        except:
+            mol_list.append(None)
     return mol_list
 
 def smiles_to_mol_parallel(
