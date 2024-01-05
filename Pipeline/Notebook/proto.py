@@ -26,7 +26,6 @@ import SynRBL.SynMCS.structure as structure
 import SynRBL.SynMCS.utils as utils
 import traceback
 
-
 def impute_new_reaction(data):
     rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
     rule_map["no rule"] = set()
@@ -60,8 +59,9 @@ def impute_new_reaction(data):
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynMCS.rules import CompoundRule, MergeRule
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "Final_Graph")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Condition_1")
 data = load_database(path)
+print(data[0].keys())
 impute_new_reaction(data)
 rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
 rule_map["no rule"] = set()
@@ -82,12 +82,12 @@ print_rule_summary(rule_map)
 
 # |%%--%%| <tx0z4CFgIc|FtdgkzRxV9>
 
-
 def plot_reaction(entry):
     visualizer = ReactionVisualizer(figsize=(10, 10))
     visualizer.plot_reactions(
-        entry, "old_reaction", "new_reaction", compare=True, show_atom_numbers=True
+        entry, "old_reaction", "new_reaction", compare=True, show_atom_numbers=False
     )
+    print("ID:", entry["R-id"])
     print("Compounds:", entry["smiles"])
     print("Boundaries:", entry["boundary_atoms_products"])
     print("Neighbors:", entry["nearest_neighbor_products"])
@@ -95,9 +95,21 @@ def plot_reaction(entry):
     print("Rules:", entry["rules"])
 
 
-plot_reaction(data[759])
+plot_reaction(data[3])
 
-# |%%--%%| <FtdgkzRxV9|mWahMtVBFr>
+#|%%--%%| <FtdgkzRxV9|dZjkHmncQW>
+import collections
+error_map = collections.defaultdict(lambda: []) 
+for i, r in enumerate(data):
+    err = r['issue']
+    if len(err) > 0:
+        error_map[err[:20]].append(i)
+
+for k, v in error_map.items():
+    print("{:<20} {:>4} {}".format(k, len(v), v[:10]))
+
+
+# |%%--%%| <dZjkHmncQW|mWahMtVBFr>
 import SynRBL.SynMCS.structure as structure
 
 for i, entry in enumerate(data):
@@ -132,33 +144,13 @@ ax[1].imshow(img)
 
 # |%%--%%| <T6IJBZXUlT|7zydJ3VZZW>
 
-
 def get_reaction_by_id(id):
-    path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("USPTO_50K", "Final_Graph")
+    path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph")
     data = load_database(path)
-    for item in data:
+    for i, item in enumerate(data):
         if item["R-id"] == id:
-            return item
+            return i, item
     return None
 
-
-entry = get_reaction_by_id("R26990")
+entry = get_reaction_by_id("R235")
 print(entry)
-
-
-# |%%--%%| <7zydJ3VZZW|mXrwYaTsEp>
-from SynRBL.SynMCS.MissingGraph.find_missing_graphs import FindMissingGraphs
-import rdkit.Chem.rdmolfiles as rdmolfiles
-
-mol1 = rdmolfiles.MolFromSmiles("CON(C)C(=O)C1CCN(Cc2ccccc2)CC1")
-mol2 = rdmolfiles.MolFromSmiles("C[Mg+]")
-mol3 = rdmolfiles.MolFromSmiles("CC(=O)C1CCN(Cc2ccccc2)CC1")
-mol_h1 = rdmolfiles.MolFromSmiles("C")
-mol_h2 = rdmolfiles.MolFromSmiles("C(=O)C1CCN(Cc2ccccc2)CC1")
-result = FindMissingGraphs.find_missing_parts_pairs([mol1, mol2], [mol_h2, mol_h1])
-
-print([rdmolfiles.MolToSmiles(m) for m in result[0]])
-print(result[1])
-print(result[2])
-
-plot_reaction(data[84])
