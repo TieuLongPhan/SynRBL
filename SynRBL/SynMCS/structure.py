@@ -152,6 +152,8 @@ def build_compounds(data_dict) -> list[Compound]:
     for s, ss in zip(smiles, src_smiles):
         if s is None:
             continue
+        if len(boundaries) <= s_i:
+            raise ValueError("Missing boundary for substructure compound.")
         b = boundaries[s_i]
         n = neighbors[s_i]
         c = Compound(s, src_mol=ss)

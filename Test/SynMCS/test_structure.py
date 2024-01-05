@@ -93,3 +93,9 @@ class TestBuildCompound(unittest.TestCase):
         compounds = build_compounds(data)
         self.assertEqual(1, len(compounds))
         self.assertEqual(1, len(compounds[0].boundaries))
+
+    def test_missing_boundaries(self):
+        data = self._get_dict(["O", "C"], ["CO", "CO"], [[]], [[]])
+        with self.assertRaises(ValueError) as e:
+            build_compounds(data)
+        self.assertIn("missing boundary", str(e.exception).lower())
