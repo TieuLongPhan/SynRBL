@@ -59,7 +59,7 @@ def impute_new_reaction(data):
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynMCS.rules import CompoundRule, MergeRule
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Condition_1")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph")
 data = load_database(path)
 print(data[0].keys())
 impute_new_reaction(data)
@@ -152,5 +152,5 @@ def get_reaction_by_id(id):
             return i, item
     return None
 
-entry = get_reaction_by_id("R235")
+entry = get_reaction_by_id("R190")
 print(entry)
