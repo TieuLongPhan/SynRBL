@@ -60,6 +60,8 @@ def graph_find(data_name = 'golden_dataset'):
         missing_results_largest[key]['R-id'] = data[key]['R-id']
         missing_results_largest[key]['old_reaction'] = data[key]['reactions']
         missing_results_largest[key]['sorted_reactants'] = mcs[key]['sorted_reactants']
+        missing_results_largest[key]['carbon_balance_check'] = mcs[key]['carbon_balance_check']
+        missing_results_largest[key]['mcs_results'] = mcs[key]['mcs_results']
     save_database(missing_results_largest, mcs_dir / 'Final_Graph.json.gz')
 
     
@@ -72,6 +74,6 @@ if __name__ == "__main__":
     data_name = ['Jaworski']
     #data_name = ['Jaworski', 'USPTO_diff', 'USPTO_unbalance_class']
     for i in data_name:
-        mcs(i)
-        merge_mcs(i)
+        #mcs(i)
+        #merge_mcs(i)
         graph_find(i)

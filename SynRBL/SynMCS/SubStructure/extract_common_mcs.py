@@ -115,43 +115,6 @@ class ExtractMCS:
         #mcs_common = [d for d, b in zip(conditions[0], threshold_index) if b]
         return threshold_index, reference_results_list
     
-    # @staticmethod
-    # def compare_conditions_and_get_largest(total_atoms_conditions, *conditions):
-    #     """
-    #     Compare the total number of atoms across different conditions and find the condition with the largest MCS for each index.
-
-    #     Args:
-    #     total_atoms_conditions (list): A list of lists, where each sublist contains the total number of atoms for each MCS result in a condition.
-
-    #     Returns:
-    #     tuple:
-    #         - A list of dictionaries, each representing the condition with the largest MCS for a given index. Each dictionary contains the condition name and the biggest MCS.
-    #         - A reference list of the biggest MCS for each index across the conditions.
-    #     """
-    #     results = []
-    #     reference_list = []
-    #     min_length = min(len(total) for total in total_atoms_conditions)
-
-    #     for idx in range(min_length):
-    #         max_atoms = 0
-    #         max_condition_index = -1
-    #         max_mcs = ""
-
-    #         for condition_idx, total in enumerate(total_atoms_conditions):
-    #             if idx < len(total) and total[idx] > max_atoms:
-    #                 max_atoms = total[idx]
-    #                 max_condition_index = condition_idx
-    #                 max_mcs = conditions[condition_idx][idx]['mcs_results']
-
-    #         if max_condition_index != -1:
-    #             result_entry = {
-    #                 "name": f"Condition {max_condition_index + 1}",
-    #                 "biggest_mcs": max_mcs
-    #             }
-    #             results.append(result_entry)
-    #             reference_list.append(max_mcs)
-
-    #     return results, reference_list
     @staticmethod
     def compare_conditions_and_get_largest(total_atoms_conditions: List[List[int]], *conditions: List[List[Dict]]) -> Tuple[List[Dict], List[List[str]]]:
         """

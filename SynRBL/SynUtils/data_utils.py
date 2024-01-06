@@ -6,7 +6,6 @@ import json
 import random
 from collections import defaultdict
 
-# TODO: Change location
 
 def save_database(database: list[dict], pathname: str = './Data/database.json') -> None:
     """
@@ -113,84 +112,6 @@ def _get_max_comp_len(database: List[Dict]) -> int:
     return max_comp_len
 
 
-def build_lookups(atomic_elements: set, database: list) -> list:
-    """
-    Constructs lookup dictionaries for atomic elements in the database, removing empty lists from the lookup.
-
-    Args:
-        atomic_elements (set): A set of unique atomic elements.
-        database (list): A list of database entries, where each entry is a dictionary
-                        containing a "Composition" key.
-
-    Returns:
-        list: A list of lookup dictionaries, where each dictionary maps atomic elements to
-                their corresponding database indices for molecules with different composition lengths.
-
-    Example:
-        ```python
-        atomic_elements = {'H', 'C', 'O', 'N'}
-        database = [
-            {'Composition': {'H': 2, 'O': 1}},
-            {'Composition': {'C': 1, 'H': 4}},
-            {'Composition': {'N': 2, 'O': 3}},
-            {'Composition': {'S': 1, 'O': 2}},
-        ]
-
-        lookup = build_lookups(atomic_elements, database)
-        print(lookup)
-        
-
-        This example demonstrates how to use the `build_lookups` function to construct lookup dictionaries
-        for the provided atomic elements and database. The resulting lookup dictionaries are optimized by
-        removing empty lists, making them more compact and efficient.
-    """
-
-    max_comp_len = _get_max_comp_len(database)
-
-    lookup = []
-
-    # Iterate through composition lengths from 2 to max_comp_len
-    for comp_len in range(2, max_comp_len+1):
-        lookup_dict = {}
-
-        for atom in atomic_elements:
-            atom_list = []
-
-            # Iterate through database entries
-            for key, entry in enumerate(database):
-                if atom in entry["Composition"].keys():
-                    if len(entry["Composition"]) == comp_len:
-                        atom_list.append(key)
-
-            # Remove empty lists from the lookup dictionary
-            if not atom_list:
-                continue
-            lookup_dict[atom] = atom_list
-
-        lookup.append(lookup_dict)
-
-    return lookup
-
-
-def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
-    """
-    Calculate the net charge from a list of molecules represented as SMILES strings.
-
-    Args:
-        sublist: A list of dictionaries, each with a 'smiles' string and a 'Ratio' integer.
-
-    Returns:
-        The net charge of the sublist as an integer.
-    """
-    total_charge = 0
-    for item in sublist:
-        if 'smiles' in item and 'Ratio' in item:
-            mol = Chem.MolFromSmiles(item['smiles'])
-            if mol:
-                charge = sum(abs(atom.GetFormalCharge()) for atom in mol.GetAtoms()) * item['Ratio']
-                total_charge += charge
-    return total_charge
-
 
 def find_shortest_sublists(solution: List[List[Dict]]) -> List[List[Dict]]:
     """
@@ -278,7 +199,6 @@ def remove_duplicates_by_key(data: List[dict], key_function: Callable[..., Any])
             unique_data.append(entry)
 
     return unique_data
-
 
 
 

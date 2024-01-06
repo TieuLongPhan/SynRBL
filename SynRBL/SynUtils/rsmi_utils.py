@@ -6,7 +6,6 @@ import json
 import random
 from collections import defaultdict
 
-# TODO: Change location
 
 def save_database(database: list[dict], pathname: str = './Data/database.json') -> None:
     """

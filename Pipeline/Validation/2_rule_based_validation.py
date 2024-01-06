@@ -21,6 +21,7 @@ from rdkit import  RDLogger
 import rdkit
 import matplotlib
 from collections import defaultdict
+from SynRBL.SynUtils.chem_utils import CheckCarbonBalance
 
 def count_carbons(smiles):
     return smiles.count('C')
@@ -128,6 +129,8 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
     new_uncertain_reactions = [entry for entry in reactions_clean if entry['R-id'] in id_uncertain]
 
     unsolve = unsolve + new_uncertain_reactions
+    checker = CheckCarbonBalance(unsolve, rsmi_col='reactions')
+    checker.check_carbon_balance()
     print('Solved:', len(certain_reactions))
     print('Total unsolved:', len(unsolve))
 
@@ -172,7 +175,7 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
         
 
 if __name__ == "__main__":
-    #main('Jaworski')
-    main('golden_dataset')
+    main('Jaworski')
+    #main('golden_dataset')
     #main('USPTO_50K')
     #main('USPTO_random_class')

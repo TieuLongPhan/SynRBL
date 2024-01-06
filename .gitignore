@@ -8,6 +8,6 @@
 *.ipynb
 *.png
 venv/
-
+*.pdf
 .coverage
 tmp/

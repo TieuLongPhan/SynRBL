@@ -65,19 +65,16 @@ class FindMissingGraphs:
             boundary_atoms_list = []
             nearest_neighbor_list = []
 
-            if use_findMCS:
-                #Chem.SanitizeMol(mol)
-                #Chem.SanitizeMol(mol)
-                # Calculate MCS using RDKit's rdFMCS
-                mcs = rdFMCS.FindMCS([mol, mcs_mol])
-                mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
-  
-            if mcs_mol:
+            if mcs_mol.GetNumAtoms() > 0:
                 # Finding substructure matches
-                if Chem.MolToSmiles(mcs_mol) == 'O':
+                if Chem.MolToSmiles(mcs_mol) == 'O':   
+                    # hardcode special case OC(O)OH
                     smarts_pattern = '[OH]'
                     smarts_mol = Chem.MolFromSmarts(smarts_pattern)
                     substructure_match = mol.GetSubstructMatch(smarts_mol)
+                    # if no substructure match is found, use rdkit's substructure matching for mcs_mol, this not special case
+                    if not substructure_match:
+                        substructure_match = mol.GetSubstructMatch(mcs_mol)
                 else:
                     analyzer = SubstructureAnalyzer()
                     substructure_match = analyzer.identify_optimal_substructure(parent_mol=mol, child_mol=mcs_mol)
@@ -140,7 +137,8 @@ class FindMissingGraphs:
                                     renumerate_idx = index_mapping.get(neighbor.GetIdx(), -1)
                                 if renumerate_idx != -1:
                                     boundary_atoms.append({neighbor.GetSymbol(): renumerate_idx})
-
+            else:
+                missing_part = None
             if boundary_atoms:
                 boundary_atoms_list.append(boundary_atoms)
             if nearest_atoms:
@@ -155,12 +153,12 @@ class FindMissingGraphs:
                     nearest_neighbor_lists.extend(nearest_neighbor_list)
                 else:
                     missing_parts_list.append(None)
-                    boundary_atoms_lists.extend([])
-                    nearest_neighbor_lists.extend([])
+                    boundary_atoms_lists.append(None)
+                    nearest_neighbor_lists.append(None)
             except:
                 missing_parts_list.append(None)
-                boundary_atoms_lists.extend([])
-                nearest_neighbor_lists.extend([])
+                boundary_atoms_lists.append(None)
+                nearest_neighbor_lists.append(None)
 
         return missing_parts_list, boundary_atoms_lists, nearest_neighbor_lists
     
@@ -191,4 +189,3 @@ class FindMissingGraphs:
                 return False
         
         return True
-    

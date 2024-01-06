@@ -20,7 +20,7 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Time
     - dict: A dictionary containing MCS results and any sorted reactants encountered.
     """
 
-    mcs_results_dict = {'R-id': data_dict['R-id'], 'mcs_results': [], 'sorted_reactants': [], 'issue': []}
+    mcs_results_dict = {'R-id': data_dict['R-id'], 'mcs_results': [], 'sorted_reactants': [], 'issue': [], 'carbon_balance_check': data_dict['carbon_balance_check']}
 
     try:
         analyzer = MCSMissingGraphAnalyzer()
