@@ -3,8 +3,8 @@ from pathlib import Path
 root_dir = Path(__file__).parents[1]
 sys.path.append(str(root_dir))
 from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCS.MissingGraph.find_graph_dict import find_graph_dict
-from SynRBL.SynMCS.MissingGraph.refinement_uncertainty import RefinementUncertainty
+from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
+from SynRBL.SynMCSImputer.MissingGraph.refinement_uncertainty import RefinementUncertainty
 
 
 

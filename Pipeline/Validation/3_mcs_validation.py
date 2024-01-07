@@ -2,12 +2,11 @@ import sys
 from pathlib import Path
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynMCS.SubStructure.mcs_process import ensemble_mcs
-from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCS.SubStructure.extract_common_mcs import ExtractMCS
-
-from SynRBL.SynMCS.MissingGraph.find_graph_dict import find_graph_dict
-from SynRBL.SynMCS.MissingGraph.refinement_uncertainty import RefinementUncertainty
+from SynRBL.SynMCSImputer.SubStructure.mcs_process import ensemble_mcs
+from SynRBL.SynUtils.data_utils import load_database, save_database
+from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
+from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
+from SynRBL.SynMCSImputer.MissingGraph.refinement_uncertainty import RefinementUncertainty
 
 # Define the main function
 def mcs(data_name = 'golden_dataset'):
@@ -19,7 +18,7 @@ def mcs(data_name = 'golden_dataset'):
             {'method':'MCES', 'sort': 'MCES'},
         ]
     # Load data
-    data_path = root_dir / f'Data/Validation_set/{data_name}/Unsolved_reactions.json.gz'
+    data_path = root_dir / f'Data/Validation_set/{data_name}/mcs_based_reactions.json.gz'
     filtered_data = load_database(data_path)
 
     # Calculate the path to the save directory
@@ -51,7 +50,7 @@ def merge_mcs(data_name = 'golden_dataset'):
 
     
 def graph_find(data_name = 'golden_dataset'):
-    data = load_database(f'{root_dir}/Data/Validation_set/{data_name}/Unsolved_reactions.json.gz')
+    data = load_database(f'{root_dir}/Data/Validation_set/{data_name}/mcs_based_reactions.json.gz')
     mcs_dir = root_dir / f'Data/Validation_set/{data_name}/MCS'
     mcs = load_database(mcs_dir/ 'MCS_Largest.json.gz')
     missing_results_largest  = find_graph_dict(msc_dict_path=mcs_dir/ 'MCS_Largest.json.gz', 

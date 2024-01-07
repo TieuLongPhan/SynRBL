@@ -8,12 +8,8 @@ def main(standardize = False, n_jobs=4, save = True):
     root_dir = Path(__file__).parents[1]
     sys.path.append(str(root_dir))
 
-    from SynRBL.SynExtract.rsmi_processing import RSMIProcessing
-    from SynRBL.SynCleaning import SMILESStandardizer
-    from SynRBL.SynExtract import RSMIDecomposer  
-    from SynRBL.SynExtract.rsmi_comparator import RSMIComparator
-    from SynRBL.SynExtract.rsmi_both_side_process import BothSideReact
-    from SynRBL.rsmi_utils import save_database
+    from SynRBL.SynProcessor import RSMIProcessing, RSMIDecomposer, RSMIComparator, BothSideReact
+    from SynRBL.SynUtils.data_utils import save_database
 
     df = pd.read_csv(root_dir /'Data/USPTO_50K.csv')
 
@@ -21,12 +17,6 @@ def main(standardize = False, n_jobs=4, save = True):
     process = RSMIProcessing(data=df, rsmi_col='reactions', parallel=True, n_jobs=n_jobs, 
                              save_json =False, save_path_name=root_dir / 'Data/reaction.json.gz')
     reactions = process.data_splitter()
-
-    # clean smiles
-    if standardize:
-        standardize = SMILESStandardizer()
-        reactions_standardized = standardize.standardize_dict_smiles(reactions, keys=['reactants', 'products'], keep_mol=False,
-                                                                    normalize=True, tautomerize=True)
 
     # decompose into dict of symbols
     decompose = RSMIDecomposer(smiles=None, data=reactions, reactant_col='reactants', product_col='products', parallel=True, n_jobs=n_jobs, verbose=1)

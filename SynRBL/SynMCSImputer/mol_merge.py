@@ -3,8 +3,8 @@ import rdkit.Chem.Draw
 import rdkit.Chem.rdmolops as rdmolops
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import matplotlib.pyplot as plt
-from SynRBL.SynMCS.rule_formation import Property
-from SynRBL.SynMCS.merge_rule import *
+from SynRBL.SynMCSImputer.rule_formation import Property
+from SynRBL.SynMCSImputer.merge_rule import *
 
 
 class SubstructureError(Exception):

@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 root_dir = Path(__file__).parents[1]
 sys.path.append(str(root_dir))
-from SynRBL.SynMCS.SubStructure.mcs_process import ensemble_mcs
+from SynRBL.SynMCSImputer.SubStructure.mcs_process import ensemble_mcs
 from SynRBL.rsmi_utils import load_database
 
 

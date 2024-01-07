@@ -8,8 +8,7 @@ def main(n_jobs=4):
     sys.path.append(str(root_dir))
 
     from SynRBL.rsmi_utils import save_database, load_database, filter_data, extract_results_by_key
-    from SynRBL.SynRuleImpute import SyntheticRuleImputer
-    from SynRBL.SynRuleImpute.synthetic_rule_constraint import RuleConstraint
+    from SynRBL.SynRuleImputer import SyntheticRuleImputer, RuleConstraint
 
     rules = load_database(root_dir / 'Data/Rules/rules_manager.json.gz')
     reactions_clean = load_database(root_dir / 'Data/reaction_clean.json.gz')

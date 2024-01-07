@@ -1,5 +1,5 @@
 from SynRBL.rsmi_utils import load_database, filter_data
-from SynRBL.SynMCS.mol_merge import merge, plot_mols, InvalidAtomDict
+from SynRBL.SynMCSImputer.mol_merge import merge, plot_mols, InvalidAtomDict
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from rdkit import Chem

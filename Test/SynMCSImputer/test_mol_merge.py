@@ -1,6 +1,6 @@
 #import unittest
 #from rdkit import Chem
-#from SynRBL.SynMCS.mol_merge import *
+#from SynRBL.SynMCSImputer.mol_merge import *
 #import matplotlib.pyplot as plt
 #
 #

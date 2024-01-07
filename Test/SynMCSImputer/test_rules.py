@@ -1,8 +1,8 @@
 import unittest
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.rdchem as rdchem
-import SynRBL.SynMCS.rules as rules
-import SynRBL.SynMCS.structure as structure
+import SynRBL.SynMCSImputer.rules as rules
+import SynRBL.SynMCSImputer.structure as structure
 
 
 class TestProperty(unittest.TestCase):

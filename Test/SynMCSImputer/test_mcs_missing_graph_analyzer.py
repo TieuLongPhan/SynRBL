@@ -5,7 +5,7 @@ import pandas as pd
 from rdkit.Chem import rdFMCS
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynMCS.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
+from SynRBL.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
 
 class TestMCSMissingGraphAnalyzer(unittest.TestCase):
 

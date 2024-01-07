@@ -3,8 +3,8 @@ import unittest.mock as mock
 import rdkit.Chem.rdchem as rdchem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
-import SynRBL.SynMCS.merge as merge
-import SynRBL.SynMCS.structure as structure
+import SynRBL.SynMCSImputer.merge as merge
+import SynRBL.SynMCSImputer.structure as structure
 
 
 class DummyMergeRule:

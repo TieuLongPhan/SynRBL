@@ -8,9 +8,9 @@ from pathlib import Path
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
 from SynRBL.SynUtils.chem_utils import CheckCarbonBalance
-from SynRBL.SynMCS.SubStructure.mcs_process import single_mcs
-from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCS.MissingGraph.find_graph_dict import find_graph_dict
+from SynRBL.SynMCSImputer.SubStructure.mcs_process import single_mcs
+from SynRBL.SynUtils.data_utils import load_database, save_database
+from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
 
 
 

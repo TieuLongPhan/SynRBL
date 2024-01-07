@@ -7,7 +7,7 @@ from pathlib import Path
 
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynRuleEngine import AutomaticSmilesExtraction, AutomaticRulesExtraction
+from SynRBL.SynRuleImputer import AutomaticSmilesExtraction, AutomaticRulesExtraction
 from SynRBL.rsmi_utils import load_database, save_database
 
 

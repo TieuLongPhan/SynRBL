@@ -7,7 +7,7 @@ import pandas as pd
 from rdkit.Chem import rdFMCS
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynMCS.MissingGraph.find_missing_graphs import FindMissingGraphs
+from SynRBL.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
 
 class TestFindMissingGraphs(unittest.TestCase):
 

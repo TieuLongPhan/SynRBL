@@ -6,7 +6,7 @@ root_dir = Path(__file__).parents[1]
 sys.path.append(str(root_dir))
 
 from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCS.SubStructure.extract_common_mcs import ExtractMCS
+from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
 
 
 def main():
