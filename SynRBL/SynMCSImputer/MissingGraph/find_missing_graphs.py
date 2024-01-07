@@ -5,8 +5,8 @@ from rdkit.Chem import rdmolops
 import copy
 from rdkit.Chem import AllChem
 from rdkit.Chem.MolStandardize import rdMolStandardize
-from SynRBL.SynMCS.SubStructure.substructure_analyzer import SubstructureAnalyzer
-from SynRBL.SynMCS.MissingGraph.molcurator import MoleculeCurator
+from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
+from SynRBL.SynMCSImputer.MissingGraph.molcurator import MoleculeCurator
 class FindMissingGraphs:
     """
     A class for finding missing parts, boundary atoms, and nearest neighbors in a list of reactant molecules.

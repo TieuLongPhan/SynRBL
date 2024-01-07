@@ -1,8 +1,8 @@
 from rdkit import Chem
 from joblib import Parallel, delayed
 from typing import List
-from SynRBL.SynMCS.MissingGraph.find_missing_graphs import FindMissingGraphs
-from SynRBL.SynMCS.MissingGraph.uncertainty_graph import GraphMissingUncertainty
+from SynRBL.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
+from SynRBL.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
 from SynRBL.rsmi_utils import load_database, save_database
 import pandas as pd
 

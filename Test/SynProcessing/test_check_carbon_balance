@@ -1,0 +1,45 @@
+
+import sys
+from pathlib import Path
+import unittest
+import pandas as pd
+root_dir = Path(__file__).parents[2]
+sys.path.append(str(root_dir))
+from SynRBL.SynExtract.check_carbon_balance import CheckCarbonBalance, InvalidSmilesException  
+
+
+class TestCheckCarbonBalance(unittest.TestCase):
+
+    def setUp(self):
+        self.reactions_balanced = [{"reactions": "C>>C"}]
+        self.reactions_unbalanced = [{"reactions": "CC>>C"}]
+        self.reactions_invalid = [{"reactions": "InvalidSMILES>>C"}]
+
+    def test_count_atoms_valid(self):
+        smiles = "CCO"
+        count = CheckCarbonBalance.count_atoms(smiles, 'C', {})
+        self.assertEqual(count, 2)
+
+    def test_count_atoms_invalid(self):
+        smiles = "InvalidSMILES"
+        with self.assertRaises(InvalidSmilesException):
+            CheckCarbonBalance.count_atoms(smiles, 'C', {})
+
+    def test_check_carbon_balance_balanced(self):
+        checker = CheckCarbonBalance(self.reactions_balanced)
+        results = checker.check_carbon_balance()
+        self.assertEqual(results[0]['carbon_balance'], 'balanced')
+
+    def test_check_carbon_balance_unbalanced(self):
+        checker = CheckCarbonBalance(self.reactions_unbalanced)
+        results = checker.check_carbon_balance()
+        self.assertEqual(results[0]['carbon_balance'], 'reactants')
+
+    def test_check_carbon_balance_invalid(self):
+        checker = CheckCarbonBalance(self.reactions_invalid)
+        results = checker.check_carbon_balance()
+        self.assertEqual(results[0]['carbon_balance'], 'error')
+
+# Run the tests
+if __name__ == '__main__':
+    unittest.main()

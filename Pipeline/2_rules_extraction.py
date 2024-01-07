@@ -5,8 +5,8 @@ def main(n_jobs=4):
     root_dir = Path(__file__).parents[1]
     sys.path.append(str(root_dir))
     from SynRBL.rsmi_utils import save_database, load_database, filter_data, sort_by_key_length
-    from SynRBL.SynRuleEngine.rule_data_manager import RuleImputeManager
-    from SynRBL.SynRuleEngine import AutomaticSmilesExtraction, AutomaticRulesExtraction
+    from SynRBL.SynRuleImputer import RuleImputeManager
+    from SynRBL.SynRuleImputer import AutomaticSmilesExtraction, AutomaticRulesExtraction
 
     # 1 Manual Rules Extraction
     rules = load_database(root_dir / 'Data/Rules/rules_manager.json.gz')
@@ -53,7 +53,7 @@ def main(n_jobs=4):
     automated_rules = extractor.extract_rules()
     print("Extracted Rules:", len(automated_rules))
 
-    save_database(automated_rules, root_dir / 'Data/Rules/automated_rules.json.gz')
+    #save_database(automated_rules, root_dir / 'Data/Rules/automated_rules.json.gz')
         
 
 if __name__ == "__main__":

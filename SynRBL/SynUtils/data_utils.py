@@ -132,12 +132,12 @@ def find_shortest_sublists(solution: List[List[Dict]]) -> List[List[Dict]]:
     return shortest_sublists
 
 
-def filter_data(data: List[Dict[str, any]], 
+def filter_data(data: List[Dict[str, Any]], 
                 unbalance_values: Optional[List[str]] = None, 
                 formula_key: str = 'Diff_formula', 
                 element_key: Optional[str] = None, 
                 min_count: int = 0, 
-                max_count: int = 3) -> List[Dict[str, any]]:
+                max_count: int = float('inf')) -> List[Dict[str, Any]]:
     """
     Filter dictionaries based on a list of unbalance values and element count in a specified formula key.
 
@@ -163,8 +163,11 @@ def filter_data(data: List[Dict[str, any]],
         unbalance_matches = (unbalance_values is None or item.get('Unbalance') in unbalance_values)
 
         # Check for element count condition
-        element_count = item.get(formula_key, {}).get(element_key, 0)
-        element_matches = (element_key is None or min_count <= element_count <= max_count)
+        if element_key is None:
+            element_matches = True
+        else:
+            element_count = item.get(formula_key, {}).get(element_key, 0)
+            element_matches = min_count <= element_count <= max_count
 
         if unbalance_matches and element_matches:
             filtered_data.append(item)

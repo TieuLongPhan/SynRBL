@@ -2,11 +2,12 @@ from rdkit import Chem
 from rdkit.Chem import rdmolops
 from rdkit.Chem import rdFMCS
 from rdkit.Chem import rdRascalMCES
-from SynRBL.SynMCS.SubStructure.substructure_analyzer import SubstructureAnalyzer
+from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
 import concurrent.futures
 import functools
 import time
 import multiprocessing
+from SynRBL.SynUtils.chem_utils import CheckCarbonBalance
 
 class MCSMissingGraphAnalyzer:
     """A class for detecting missing graph in reactants and products using MCS and RDKit."""
@@ -45,27 +46,6 @@ class MCSMissingGraphAnalyzer:
         """
         return Chem.MolFromSmiles(smiles)
 
-    @staticmethod
-    def find_maximum_common_substructure(mol1, mol2, params):
-        """
-        Find the maximum common substructure (MCS) between two molecules.
-
-        Parameters:
-        - mol1, mol2: rdkit.Chem.Mol
-            The RDKit molecule objects to compare.
-
-        Returns:
-        - rdkit.Chem.Mol or None
-            The RDKit molecule object representing the MCS, or None if MCS search was canceled.
-        """
-        if params == None:
-            mcs_result = rdFMCS.FindMCS([mol1, mol2])
-        else:
-            mcs_result = rdFMCS.FindMCS([mol1, mol2], params)
-        if mcs_result.canceled:
-            return None
-        mcs_mol = Chem.MolFromSmarts(mcs_result.smartsString)
-        return mcs_mol
     
     @staticmethod
     def IterativeMCSReactionPairs(reactant_mol_list, product_mol, params=None, method = 'MCIS', sort='MCIS', remove_substructure=True):
@@ -147,7 +127,6 @@ class MCSMissingGraphAnalyzer:
                     except:
                         pass
             except:
-                #print('Bug')
                 mcs_list.append(None)
                 pass
 
@@ -186,55 +165,27 @@ class MCSMissingGraphAnalyzer:
             params = rdRascalMCES.RascalOptions()
             params.singleLargestFrag = False
             params.returnEmptyMCES = True
-            #params.singleLargestFrag = False
             params.timeout = Timeout
             params.similarityThreshold = similarityThreshold
 
+        if reaction_dict['carbon_balance_check'] in ['products', 'balanced']:
+            # Calculate the MCS for each reactant with the product 
+            reactant_smiles, product_smiles = MCSMissingGraphAnalyzer.get_smiles(reaction_dict)
+            reactant_mol_list = [MCSMissingGraphAnalyzer.convert_smiles_to_molecule(smiles) for smiles in reactant_smiles.split('.')]
+            product_mol = MCSMissingGraphAnalyzer.convert_smiles_to_molecule(product_smiles)
 
-        # Calculate the MCS for each reactant with the product 
-        reactant_smiles, product_smiles = MCSMissingGraphAnalyzer.get_smiles(reaction_dict)
-        reactant_mol_list = [MCSMissingGraphAnalyzer.convert_smiles_to_molecule(smiles) for smiles in reactant_smiles.split('.')]
-        product_mol = MCSMissingGraphAnalyzer.convert_smiles_to_molecule(product_smiles)
+            mcs_list, sorted_parents = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(reactant_mol_list, product_mol,  params, 
+                                                                                        method=method, sort = sort, remove_substructure=remove_substructure)
 
-        mcs_list, sorted_reactants = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(reactant_mol_list, product_mol,  params, 
-                                                                                      method=method, sort = sort, remove_substructure=remove_substructure)
+            return mcs_list , sorted_parents, reactant_mol_list, product_mol
+        
+        elif reaction_dict['carbon_balance_check'] == 'reactants':
+            # Calculate the MCS for each product with the reactant
+            reactant_smiles, product_smiles = MCSMissingGraphAnalyzer.get_smiles(reaction_dict)
+            product_mol_list = [MCSMissingGraphAnalyzer.convert_smiles_to_molecule(smiles) for smiles in product_smiles.split('.')]
+            reactant_mol =  MCSMissingGraphAnalyzer.convert_smiles_to_molecule(reactant_smiles)
 
-        return mcs_list , sorted_reactants, reactant_mol_list, product_mol
-    
-    @staticmethod
-    def run_with_timeout(func, timeout, *args, **kwargs):
-        """
-        Runs a function with a specified timeout using multiprocessing.
+            mcs_list, sorted_parents = MCSMissingGraphAnalyzer.IterativeMCSReactionPairs(product_mol_list, reactant_mol,  params, 
+                                                                                        method=method, sort = sort, remove_substructure=remove_substructure)
 
-        Args:
-        - func (callable): The function to run.
-        - timeout (float): The timeout in seconds.
-        - *args: Positional arguments to pass to the function.
-        - **kwargs: Keyword arguments to pass to the function.
-
-        Returns:
-        - The result of the function if it completes within the timeout, or None otherwise.
-        """
-        def worker(q, func, *args, **kwargs):
-            result = func(*args, **kwargs)
-            q.put(result)
-
-        q = multiprocessing.Queue()
-        p = multiprocessing.Process(target=worker, args=(q, func) + args, kwargs=kwargs)
-        p.start()
-        p.join(timeout)
-
-        if p.is_alive():
-            p.terminate()
-            p.join()  # Ensure the process is cleaned up
-            print(f"Function '{func.__name__}' exceeded the timeout of {timeout} seconds.")
-            return None
-        else:
-            return q.get()
-
-    @staticmethod
-    def find_mces_with_timeout(reactant, product, params, timeout=60):
-        try:
-            return MCSMissingGraphAnalyzer.run_with_timeout(rdRascalMCES.FindMCES, timeout, reactant, product, params)[0]
-        except TypeError:
-            return None
+            return mcs_list , sorted_parents, product_mol_list, reactant_mol

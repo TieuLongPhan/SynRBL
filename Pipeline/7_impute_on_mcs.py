@@ -1,9 +1,9 @@
 import argparse
 from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCS.rules import MergeRule, CompoundRule
-from SynRBL.SynMCS.merge import merge
-import SynRBL.SynMCS.structure as structure
-import SynRBL.SynMCS.utils as utils
+from SynRBL.SynMCSImputer.rules import MergeRule, CompoundRule
+from SynRBL.SynMCSImputer.merge import merge
+import SynRBL.SynMCSImputer.structure as structure
+import SynRBL.SynMCSImputer.utils as utils
 
 
 def impute_new_reaction(data):

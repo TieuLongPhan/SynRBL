@@ -3,7 +3,7 @@ from rdkit.Chem import rdMolDescriptors
 from joblib import Parallel, delayed
 import pandas as pd
 from typing import List
-from SynRBL.SynRuleEngine.rule_data_manager import RuleImputeManager
+from SynRBL.SynRuleImputer.rule_data_manager import RuleImputeManager
 
 class AutomaticRulesExtraction:
     """

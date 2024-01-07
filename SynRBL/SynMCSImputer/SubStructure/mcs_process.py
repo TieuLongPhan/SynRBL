@@ -1,4 +1,4 @@
-from SynRBL.SynMCS.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
+from SynRBL.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
 from rdkit import Chem
 from joblib import Parallel, delayed
 from SynRBL.rsmi_utils import save_database, load_database

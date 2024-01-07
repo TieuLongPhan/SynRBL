@@ -4,10 +4,7 @@ root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
 from SynRBL.rsmi_utils import load_database, save_database, filter_data
 import pandas as pd
-from SynRBL.SynExtract.rsmi_processing import RSMIProcessing
-from SynRBL.SynExtract import RSMIDecomposer  
-from SynRBL.SynExtract.rsmi_comparator import RSMIComparator
-from SynRBL.SynExtract.rsmi_both_side_process import BothSideReact
+from SynRBL.SynProcessor import RSMIProcessing, RSMIDecomposer, RSMIComparator, BothSideReact, CheckCarbonBalance
 import random
 from typing import List, Dict, Optional, Tuple
 import numpy as np

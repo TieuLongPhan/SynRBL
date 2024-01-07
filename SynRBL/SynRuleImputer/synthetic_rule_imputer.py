@@ -1,6 +1,6 @@
 import copy
 from rdkit import Chem
-from SynRBL.SynRuleImpute.synthetic_rule_matcher import SyntheticRuleMatcher
+from SynRBL.SynRuleImputer.synthetic_rule_matcher import SyntheticRuleMatcher
 import copy
 from rdkit import Chem
 from joblib import Parallel, delayed

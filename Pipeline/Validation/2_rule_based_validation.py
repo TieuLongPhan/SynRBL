@@ -8,13 +8,10 @@ from pathlib import Path
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
 
-from SynRBL.SynExtract.rsmi_processing import RSMIProcessing
-from SynRBL.SynCleaning import SMILESStandardizer
-from SynRBL.SynExtract import RSMIDecomposer  
-from SynRBL.SynExtract.rsmi_comparator import RSMIComparator
-from SynRBL.SynExtract.rsmi_both_side_process import BothSideReact
-from SynRBL.SynRuleImpute import SyntheticRuleImputer
-from SynRBL.SynRuleImpute.synthetic_rule_constraint import RuleConstraint
+from SynRBL.SynProcessor import RSMIProcessing, RSMIDecomposer, RSMIComparator, BothSideReact, CheckCarbonBalance
+
+from SynRBL.SynRuleImputer import SyntheticRuleImputer
+from SynRBL.SynRuleImputer.synthetic_rule_constraint import RuleConstraint
 from SynRBL.rsmi_utils import save_database, load_database, filter_data, extract_results_by_key, get_random_samples_by_key
 from SynRBL.SynVis import ReactionVisualizer
 from rdkit import  RDLogger
