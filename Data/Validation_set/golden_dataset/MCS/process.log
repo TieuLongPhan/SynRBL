@@ -132,3 +132,6 @@
 2024-01-08 10:23:28,849 - INFO - Condition 3: Finished
 2024-01-08 10:25:05,923 - INFO - Condition 4 | Batch Progress: 563.06% | Data Progress: 0.00%
 2024-01-08 10:25:05,943 - INFO - Condition 4: Finished
+2024-01-08 10:28:08,512 - INFO - Condition 5 | Batch Progress: 563.06% | Data Progress: 0.00%
+2024-01-08 10:28:08,531 - INFO - Condition 5: Finished
+2024-01-08 10:28:08,531 - INFO - All conditions have been processed.
