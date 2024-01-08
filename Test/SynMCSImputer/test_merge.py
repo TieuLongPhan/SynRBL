@@ -31,7 +31,7 @@ class DummyCompoundRule:
 
 
 class TestMergeBoundary(unittest.TestCase):
-    @mock.patch("SynRBL.SynMCS.merge.MergeRule")
+    @mock.patch("SynRBL.SynMCSImputer.merge.MergeRule")
     def test_simple_merge(self, m_MergeRule):
         m_MergeRule.get_all = mock.MagicMock(return_value=[DummyMergeRule()])
         c1 = structure.Compound("CC1(C)OBOC1(C)C")
@@ -43,7 +43,7 @@ class TestMergeBoundary(unittest.TestCase):
         self.assertEqual("CC(C)B1OC(C)(C)C(C)(C)O1", cm.smiles)  # type: ignore
         self.assertEqual(0, len(cm.boundaries))  # type: ignore
 
-    @mock.patch("SynRBL.SynMCS.merge.MergeRule")
+    @mock.patch("SynRBL.SynMCSImputer.merge.MergeRule")
     def test_no_rule_found(self, m_MergeRule):
         rule = mock.MagicMock()
         rule.can_apply.return_value = False
@@ -55,7 +55,7 @@ class TestMergeBoundary(unittest.TestCase):
         cm = merge.merge_boundaries(b1, b2)
         self.assertIs(None, cm)
 
-    @mock.patch("SynRBL.SynMCS.merge.MergeRule")
+    @mock.patch("SynRBL.SynMCSImputer.merge.MergeRule")
     def test_merge_with_unequal_number_of_bounds(self, m_MergeRule):
         m_MergeRule.get_all = mock.MagicMock(return_value=[DummyMergeRule()])
         c1 = structure.Compound("O=Cc1ccccc1C=O")
@@ -99,7 +99,7 @@ class TestMergeRule(unittest.TestCase):
 
 
 class TestExpansion(unittest.TestCase):
-    @mock.patch("SynRBL.SynMCS.merge.CompoundRule")
+    @mock.patch("SynRBL.SynMCSImputer.merge.CompoundRule")
     def test_simple_expansion(self, m_CompoundRule):
         m_CompoundRule.get_all = mock.MagicMock(return_value=[DummyCompoundRule()])
         c = structure.Compound("C")
@@ -108,7 +108,7 @@ class TestExpansion(unittest.TestCase):
         self.assertEqual("O", cm.smiles)  # type: ignore
         self.assertEqual(1, len(cm.boundaries))  # type: ignore
 
-    @mock.patch("SynRBL.SynMCS.merge.CompoundRule")
+    @mock.patch("SynRBL.SynMCSImputer.merge.CompoundRule")
     def test_rule_apply_check(self, m_CompoundRule):
         m_CompoundRule.get_all = mock.MagicMock(
             return_value=[
@@ -141,50 +141,6 @@ class TestExpandRule(unittest.TestCase):
         self.assertEqual("O", cm.smiles)  # type: ignore
         self.assertEqual(1, len(cm.boundaries))  # type: ignore
         self.assertEqual(1, len(cm.rules))  # type: ignore
-
-
-# class TestMerge(unittest.TestCase):
-#    def test_merge_1comp_a_1bound(self):
-#        c1 = structure.Compound("C[Si](C)C", "CC[Si](C)(C)C")
-#        c1.add_boundary(1, neighbor_index=1, neighbor_symbol="C")
-#        cm = merge.merge(c1)
-#        self.assertEqual("C[Si](C)(C)O", cm.smiles)
-#
-#    def test_merge_1comp_a_2bounds(self):
-#        c1 = structure.Compound("O=Cc1ccccc1C=O")
-#        c1.add_boundary(1, "C", neighbor_symbol="N")
-#        c1.add_boundary(8, "C", neighbor_symbol="N")
-#        cm = merge.merge(c1)
-#        self.assertEqual("O=C(O)c1ccccc1C(=O)O", cm.smiles)
-#
-#    def test_merge_2comp_a_1bound(self):
-#        c1 = structure.Compound("CC1(C)OBOC1(C)C")
-#        c1.add_boundary(4, "B", neighbor_symbol="C")
-#        c2 = structure.Compound("Br")
-#        c2.add_boundary(0, "Br", neighbor_symbol="C")
-#        cm = merge.merge([c1, c2])
-#        self.assertEqual("CC1(C)OB(Br)OC1(C)C", cm.smiles)
-#
-#    def test_merge_2comp_a_2bounds(self):
-#        with self.assertRaises(NotImplementedError):
-#            c1 = structure.Compound("O=Cc1ccccc1C=O")
-#            c1.add_boundary(1, "C")
-#            c1.add_boundary(8, "C")
-#            c2 = structure.Compound("O.O")
-#            c2.add_boundary(0)
-#            c2.add_boundary(1)
-#            cm = merge.merge([c1, c2])
-#            self.assertEqual("O=C(O)c1ccccc1C(=O)O", cm.smiles)
-#
-#    def test_merge_3comp_a_1bound(self):
-#        with self.assertRaises(NotImplementedError):
-#            c1 = structure.Compound("C")
-#            c1.add_boundary(0)
-#            c2 = structure.Compound("C")
-#            c2.add_boundary(0)
-#            c3 = structure.Compound("O")
-#            c3.add_boundary(0)
-#            merge.merge([c1, c2, c3])
 
 
 class TestCompounds(unittest.TestCase):
@@ -270,7 +226,9 @@ class TestCompounds(unittest.TestCase):
         self.assertEqual("CS(=O)(=O)O", cm.smiles)
 
     def test_merge_P_with_explicit_H(self):
-        compound1 = structure.Compound("CCO[PH](=O)OCC", src_mol="CCOP(=O)(Cc1cccc(C#N)c1)OCC")
+        compound1 = structure.Compound(
+            "CCO[PH](=O)OCC", src_mol="CCOP(=O)(Cc1cccc(C#N)c1)OCC"
+        )
         compound1.add_boundary(3, symbol="P", neighbor_index=5, neighbor_symbol="C")
         compound2 = structure.Compound("O", src_mol="CC(C)=O")
         compound2.add_boundary(0, symbol="O", neighbor_index=1, neighbor_symbol="C")

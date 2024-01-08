@@ -25,13 +25,6 @@ class TestMCSMissingGraphAnalyzer(unittest.TestCase):
         mol = self.analyzer.convert_smiles_to_molecule(smiles)
         self.assertIsNotNone(mol)
 
-    def test_find_maximum_common_substructure(self):
-        # Test finding MCS between two molecules
-        mol1 = self.analyzer.convert_smiles_to_molecule('CCO')
-        mol2 = self.analyzer.convert_smiles_to_molecule('CCOC')
-        mcs_mol = self.analyzer.find_maximum_common_substructure(mol1, mol2, params=None)
-        self.assertIsNotNone(mcs_mol)
-
     def test_IterativeMCSReactionPairs(self):
         # Test the iterative MCS reaction pairs method
         reactants = ['CCO', 'CC']
@@ -50,7 +43,7 @@ class TestMCSMissingGraphAnalyzer(unittest.TestCase):
 
     def test_fit(self):
         # Test the fit method
-        reaction_dict = {'reactants': 'CCO.CC', 'products': 'CCOCC'}
+        reaction_dict = {'reactants': 'CCO.CC', 'products': 'CCOCC', 'carbon_balance_check': 'products'}
         mcs_list, sorted_reactants, reactant_mol_list, product_mol = MCSMissingGraphAnalyzer.fit(reaction_dict)
         self.assertIsNotNone(mcs_list)
         self.assertEqual(len(sorted_reactants), 2)
