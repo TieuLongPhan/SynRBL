@@ -22,28 +22,27 @@ from collections import defaultdict
 def count_carbons(smiles):
     return smiles.count('C')
 
-def sample_reactions(reactions, N, random_state=None):
+def sample_reactions_by_class(reactions, N, random_state=None):
     np.random.seed(random_state)
 
-    grouped_reactions = defaultdict(lambda: defaultdict(list))
+    grouped_reactions = defaultdict(list)
     for reaction in reactions:
-        unbalance_category = reaction.get('Unbalance', 'None')
-        grouped_reactions[reaction['class']][unbalance_category].append(reaction)
+        grouped_reactions[reaction['class']].append(reaction)
 
     sampled_reactions = []
 
-    for class_, unbalance_groups in grouped_reactions.items():
-        for unbalance, reactions in unbalance_groups.items():
-            sample_size = min(N, len(reactions))  # Adjust sample size if necessary
+    for class_, class_reactions in grouped_reactions.items():
+        sample_size = min(N, len(class_reactions))  # Adjust sample size if necessary
 
-            carbon_counts = [count_carbons(reaction['reactants']) for reaction in reactions]
-            total_carbons = sum(carbon_counts)
-            probabilities = [count / total_carbons for count in carbon_counts]
+        carbon_counts = [count_carbons(reaction['reactants']) for reaction in class_reactions]
+        total_carbons = sum(carbon_counts)
+        probabilities = [count / total_carbons for count in carbon_counts]
 
-            sampled_indices = np.random.choice(len(reactions), size=sample_size, replace=False, p=probabilities)
-            sampled_reactions.extend([reactions[i] for i in sampled_indices])
+        sampled_indices = np.random.choice(len(class_reactions), size=sample_size, replace=False, p=probabilities)
+        sampled_reactions.extend([class_reactions[i] for i in sampled_indices])
 
     return sampled_reactions
+
 
 def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= False):
 
@@ -128,13 +127,45 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
     new_uncertain_reactions = [entry for entry in reactions_clean if entry['R-id'] in id_uncertain]
 
     unsolve = unsolve + new_uncertain_reactions
+    mcs_based = mcs_based+unsolve
 
 
-    for d in unsolve:
+    
+
+
+    if data_name == 'USPTO_50K':
+        USPTO_diff = root_dir / 'Data/Validation_set' / 'USPTO_diff'
+        USPTO_diff_check = root_dir / 'Data/Validation_set' / 'USPTO_diff' / 'check'
+        if not USPTO_diff_check.exists():
+            os.mkdir(USPTO_diff_check)
+        certain_reactions_diff = get_random_samples_by_key(certain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
+        uncertain_reactions_diff = get_random_samples_by_key(mcs_based, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
+        print(len(uncertain_reactions_diff))
+        save_database(certain_reactions_diff, USPTO_diff / 'rule_based_reactions.json.gz')
+        save_database(uncertain_reactions_diff, USPTO_diff / 'mcs_based_reactions.json.gz')
+    #     # vis = ReactionVisualizer()
+    #     # for i in range(0, len(certain_reactions_diff),1):
+    #     #     vis.plot_reactions(certain_reactions_diff[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=USPTO_diff_check/ f'{i}.png')
+    #     #     matplotlib.pyplot.close()
+
+        
+        
+        USPTO_unb = root_dir / 'Data/Validation_set' / 'USPTO_unbalance_class'
+        USPTO_unb_check = root_dir / 'Data/Validation_set' / 'USPTO_unbalance_class' / 'check'
+        certain_reactions_class = sample_reactions_by_class(certain_reactions, N=30, random_state=42)
+        uncertain_reactions_class = sample_reactions_by_class(mcs_based, N=30, random_state=42)
+        print(len(uncertain_reactions_class))
+        save_database(certain_reactions_class, USPTO_unb / 'rule_based_reactions.json.gz')
+        save_database(uncertain_reactions_class, USPTO_unb / 'mcs_based_reactions.json.gz')
+        
+        
+    #     certain_reactions = certain_reactions_class
+
+    for d in mcs_based:
         d.pop('Unbalance', None)  # Remove 'Unbalance' key if it exists
         d.pop('Diff_formula', None)  # Remove 'Diff_formula' key if it exists
 
-    mcs_based = mcs_based+unsolve
+   
     print('Solved reactions by rule based method:', len(certain_reactions))
     print('Reactions for MCS based method:', len(mcs_based))
 
@@ -147,32 +178,6 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
     if not check_dir.exists():
         os.mkdir(check_dir)
 
-
-    # if data_name == 'USPTO_50K':
-    #     USPTO_diff = root_dir / 'Data/Validation_set' / 'USPTO_diff'
-    #     USPTO_diff_check = root_dir / 'Data/Validation_set' / 'USPTO_diff' / 'check'
-    #     if not USPTO_diff_check.exists():
-    #         os.mkdir(USPTO_diff_check)
-    #     certain_reactions_diff = get_random_samples_by_key(certain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
-    #     uncertain_reactions_diff = get_random_samples_by_key(uncertain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
-
-    #     save_database(certain_reactions_diff, USPTO_diff / 'rule_based_reactions.json.gz')
-    #     save_database(uncertain_reactions_diff, USPTO_diff / 'mcs_based_reactions.json.gz')
-    #     # vis = ReactionVisualizer()
-    #     # for i in range(0, len(certain_reactions_diff),1):
-    #     #     vis.plot_reactions(certain_reactions_diff[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=USPTO_diff_check/ f'{i}.png')
-    #     #     matplotlib.pyplot.close()
-
-    #     USPTO_unb = root_dir / 'Data/Validation_set' / 'USPTO_unbalance_class'
-    #     USPTO_unb_check = root_dir / 'Data/Validation_set' / 'USPTO_unbalance_class' / 'check'
-    #     certain_reactions_class = sample_reactions(certain_reactions, N=30, random_state=42)
-    #     uncertain_reactions_class = sample_reactions(uncertain_reactions, N=30, random_state=42)
-    #     save_database(certain_reactions_class, USPTO_unb / 'rule_based_reactions.json.gz')
-    #     save_database(uncertain_reactions_class, USPTO_unb / 'mcs_based_reactions.json.gz')
-        
-        
-    #     certain_reactions = certain_reactions_class
-
     # vis = ReactionVisualizer()
     # for i in range(0, len(certain_reactions),1):
     #     vis.plot_reactions(certain_reactions[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=USPTO_unb_check/ f'{i}.png')
@@ -181,7 +186,7 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
         
 
 if __name__ == "__main__":
-    main('Jaworski')
-    main('golden_dataset')
+    # main('Jaworski')
+    # main('golden_dataset')
     main('USPTO_50K')
-    main('USPTO_random_class')
+    #main('USPTO_random_class')
