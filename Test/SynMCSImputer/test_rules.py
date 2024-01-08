@@ -90,6 +90,103 @@ class TestReduce(unittest.TestCase):
         self.assertEqual("COc", rdmolfiles.MolToSmiles(mol_r))
 
 
+class TestFunctionalGroupCheck(unittest.TestCase):
+    def __test_fg(self, smiles, group_name, indices=None):
+        groups = list(rules.functional_group_config.keys())
+        assert group_name in groups, "Functional group {} is not implemented.".format(
+            group_name
+        )
+
+        mol = rdmolfiles.MolFromSmiles(smiles)
+        indices = (
+            [i for i in range(len(mol.GetAtoms()))] if indices is None else indices
+        )
+        for a in mol.GetAtoms():
+            idx = a.GetIdx()
+            pos_groups = []
+            for g in groups:
+                result = rules.is_functional_group(mol, g, idx)
+                if result:
+                    pos_groups.append(g)
+            if idx in indices:
+                if len(pos_groups) == 1 and group_name in pos_groups:
+                    pass
+                else:
+                    self.assertTrue(
+                        False,
+                        (
+                            "Atom {} ({}) in {} was expected to be in functional "
+                            + "group {} but was identified as {}."
+                        ).format(a.GetSymbol(), idx, smiles, group_name, pos_groups),
+                    )
+            else:
+                self.assertTrue(
+                    group_name not in pos_groups,
+                    (
+                        "Atom {} ({}) in {} was expected to be not part of "
+                        + "functional group {} but was identified as {}."
+                    ).format(a.GetSymbol(), idx, smiles, group_name, pos_groups),
+                )
+
+    def test_phenol(self):
+        self.__test_fg("Oc1ccccc1", "phenol")
+
+    def test_alcohol(self):
+        self.__test_fg("CO", "alcohol")
+        self.__test_fg("CCO", "alcohol", [1, 2])
+
+    def test_ether(self):
+        self.__test_fg("COC", "ether")
+
+    def test_enol(self):
+        self.__test_fg("C=CO", "enol")
+
+    def test_amid(self):
+        self.__test_fg("NC=O", "amid")
+
+    def test_acyl(self):
+        self.__test_fg("C=O", "acyl")
+
+    def test_diol(self):
+        self.__test_fg("OCO", "diol")
+
+    def test_hemiacetal(self):
+        self.__test_fg("OCOC", "hemiacetal")
+
+    def test_acetal(self):
+        self.__test_fg("COCOC", "acetal")
+
+    def test_urea(self):
+        self.__test_fg("O=C(N)O", "urea")
+
+    def test_carbamat(self):
+        self.__test_fg("O=C(O)O", "carbamat")
+
+    def test_ester(self):
+        self.__test_fg("O=C(C)OC", "ester")
+
+    def test_anhydrid(self):
+        self.__test_fg("O=C(C)OC=O", "anhydrid")
+
+    def test_acid(self):
+        self.__test_fg("O=C(C)O", "acid")
+
+    def test_anilin(self):
+        self.__test_fg("Nc1ccccc1", "anilin")
+
+    def test_nitril(self):
+        self.__test_fg("C#N", "nitril")
+
+    def test_hydroxylamin(self):
+        self.__test_fg("NO", "hydroxylamin")
+
+    def test_nitrose(self):
+        self.__test_fg("N=O", "nitrose")
+
+    def test_nitro(self):
+        self.__test_fg("ON=O", "nitro")
+
+
 class TestFunctionalGroupProperty(unittest.TestCase):
     def test_init(self):
         p = rules.FunctionalGroupProperty(["ether", "!ester"])
@@ -118,7 +215,7 @@ class TestFunctionalGroupProperty(unittest.TestCase):
         self.assertEqual(True, result)
 
     def test_pos_fail_check(self):
-        p = rules.FunctionalGroupProperty(["amine"])
+        p = rules.FunctionalGroupProperty(["amin"])
         c = structure.Compound("CCC", src_mol="CC(=O)OCCC")
         b = c.add_boundary(0, neighbor_index=3)
         result = p.check(b)
@@ -132,7 +229,7 @@ class TestFunctionalGroupProperty(unittest.TestCase):
         self.assertEqual(False, result)
 
     def test_neg_fail_check(self):
-        p = rules.FunctionalGroupProperty(["!amine"])
+        p = rules.FunctionalGroupProperty(["!amin"])
         c = structure.Compound("CCC", src_mol="CC(=O)OCCC")
         b = c.add_boundary(0, neighbor_index=3)
         result = p.check(b)
@@ -143,32 +240,6 @@ class TestFunctionalGroupProperty(unittest.TestCase):
         c = structure.Compound("C")
         b = c.add_boundary(0)
         self.assertTrue(p.check(b))
-
-    def __test_fg(self, group_name, compound, src, index, neighbor):
-        groups = list(rules.functional_group_config.keys())
-        assert group_name in groups
-        c = structure.Compound(compound, src_mol=src)
-        b = c.add_boundary(index, neighbor_index=neighbor)
-        for g in groups:
-            p = rules.FunctionalGroupProperty([g])
-            if g == group_name:
-                self.assertTrue(p.check(b), "{} should be {}.".format(src, g))
-            else:
-                self.assertFalse(p.check(b), "{} should not be {}.".format(src, g))
-
-    def test_ether(self):
-        self.__test_fg("ether", "C", "COC", 0, 1)
-
-    def test_ester(self):
-        self.__test_fg("ester", "C", "CC(=O)O", 0, 3)
-
-    def test_amine(self):
-        self.__test_fg("amine", "C", "CN", 0, 1)
-        self.__test_fg("amine", "C", "CNC", 0, 1)
-        self.__test_fg("amine", "C", "CN(C)C", 0, 1)
-
-    def test_amide(self):
-        self.__test_fg("amide", "C", "CC(=O)N", 0, 1)
 
 
 class TestBoundaryCondition(unittest.TestCase):
