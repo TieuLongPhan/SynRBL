@@ -30,6 +30,15 @@ class FunctionalGroupChecker:
         alcohol_pattern = Chem.MolFromSmarts('CO')
         mol = Chem.MolFromSmiles(smiles)
         return mol.HasSubstructMatch(alcohol_pattern) if mol else False
+    
+    @staticmethod
+    def check_enol(smiles: str) -> bool:
+        """
+        Check for the presence of an enol functional group in a molecule.
+        """
+        enol_pattern = Chem.MolFromSmarts('C=C(O)')
+        mol = Chem.MolFromSmiles(smiles)
+        return mol.HasSubstructMatch(enol_pattern) if mol else False
 
     @staticmethod
     def check_phenol(smiles: str) -> bool:
@@ -47,7 +56,7 @@ class FunctionalGroupChecker:
         """
         vicinal_diol_pattern = Chem.MolFromSmarts('OCO')
         mol = Chem.MolFromSmiles(smiles)
-        return mol.HasSubstructMatch(vicinal_diol_pattern) if mol else False
+        return mol.HasSubstructMatch(vicinal_diol_pattern) if mol and not FunctionalGroupChecker.check_hemiacetal(smiles)  and not FunctionalGroupChecker.check_carbonate(smiles) and not FunctionalGroupChecker.check_carboxylic_acid(smiles) and not FunctionalGroupChecker.check_ester(smiles) else False
 
     @staticmethod
     def check_gem_diol(smiles: str) -> bool:
@@ -100,9 +109,9 @@ class FunctionalGroupChecker:
         """
         Check for the presence of a hemiacetal functional group in a molecule.
         """
-        hemiacetal_pattern = Chem.MolFromSmarts('[CX4][OX2H][CX4]')
+        hemiacetal_pattern = Chem.MolFromSmarts('COCO')
         mol = Chem.MolFromSmiles(smiles)
-        return mol.HasSubstructMatch(hemiacetal_pattern) if mol else False
+        return mol.HasSubstructMatch(hemiacetal_pattern) if mol and not FunctionalGroupChecker.check_carbonate(smiles) and not FunctionalGroupChecker.check_carboxylic_acid(smiles) and not FunctionalGroupChecker.check_ester(smiles) else False
 
     # 4. Carboxylic group
     @staticmethod

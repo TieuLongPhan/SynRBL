@@ -1,4 +1,4 @@
-from SynRBL.SynChemistry.functional_group_checker import FunctionalGroupChecker
+from SynRBL.SynChemImputer.functional_group_checker import FunctionalGroupChecker
 from rdkit import Chem
 
 class PeroxidGroupImputer:
