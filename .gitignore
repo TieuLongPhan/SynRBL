@@ -5,7 +5,7 @@
 .DS_Store
 .jukit/
 
-*.ipynb
+
 *.png
 venv/
 *.pdf

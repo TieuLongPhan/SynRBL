@@ -159,7 +159,7 @@ class FunctionalGroupChecker:
         mol = Chem.MolFromSmiles(smiles)
         return mol.HasSubstructMatch(carbonate_pattern) if mol else False
 
-    # 4. Amine group
+    # 5. Amine group
     @staticmethod
     def check_amine(smiles: str) -> bool:
         """
