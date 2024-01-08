@@ -130,7 +130,7 @@ class FunctionalGroupChecker:
         """
         amide_pattern = Chem.MolFromSmarts('NC=O')
         mol = Chem.MolFromSmiles(smiles)
-        return mol.HasSubstructMatch(amide_pattern) if mol and not FunctionalGroupChecker.check_cyanide(smiles) else False
+        return mol.HasSubstructMatch(amide_pattern) if mol and not FunctionalGroupChecker.check_urea(smiles) else False
     
     @staticmethod
     def check_cyanide(smiles: str) -> bool:

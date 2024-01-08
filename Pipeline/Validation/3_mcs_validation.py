@@ -27,7 +27,7 @@ def mcs(data_name = 'golden_dataset'):
         save_dir.mkdir(parents=True)
 
     # Run and save conditions
-    ensemble_mcs(filtered_data, root_dir, save_dir, conditions, batch_size=1000, Timeout=90)
+    ensemble_mcs(filtered_data, root_dir, save_dir, conditions, batch_size=5000, Timeout=90)
 
 
 
@@ -69,10 +69,10 @@ def graph_find(data_name = 'golden_dataset'):
 # Execute main function
 if __name__ == "__main__":
     #data_name = ['golden_dataset']
-    #data_name = ['USPTO_50K']
-    data_name = ['Jaworski']
+    data_name = ['USPTO_50K']
+    #data_name = ['Jaworski']
     #data_name = ['Jaworski', 'USPTO_diff', 'USPTO_unbalance_class']
     for i in data_name:
-        #mcs(i)
-        #merge_mcs(i)
+        mcs(i)
+        merge_mcs(i)
         graph_find(i)
