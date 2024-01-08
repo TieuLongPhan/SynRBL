@@ -168,10 +168,16 @@ def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
     boundaries1 = compound1.boundaries
     boundaries2 = compound2.boundaries
     if len(boundaries1) != 1:
-        raise NotImplementedError("Can only merge compounds with single boundary atom.")
+        raise NotImplementedError(
+            ("Can only merge compounds with single boundary atom. ({})").format(
+                len(boundaries1)
+            )
+        )
     if len(boundaries1) != len(boundaries2):
         raise NotImplementedError(
-            "Can only merge compounds with the same number of boundaries."
+            (
+                "Can only merge compounds with the same number of boundaries. ({}, {})"
+            ).format(len(boundaries1), len(boundaries2))
         )
     merged_compound = merge_boundaries(boundaries1[0], boundaries2[0])
     if merged_compound is None:

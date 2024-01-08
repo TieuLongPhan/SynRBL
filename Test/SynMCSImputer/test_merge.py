@@ -234,3 +234,20 @@ class TestCompounds(unittest.TestCase):
         compound2.add_boundary(0, symbol="O", neighbor_index=1, neighbor_symbol="C")
         cm = merge.merge([compound1, compound2])
         self.assertEqual("CCO[P](=O)(=O)OCC", cm.smiles)
+
+    def test_O_forms_alcohol(self):
+        compound1 = structure.Compound("C", src_mol="CC(=O)OC")
+        compound1.add_boundary(0, symbol="C")
+        compound2 = structure.Compound("O", src_mol="O")
+        compound2.add_boundary(0, symbol="O")
+        cm = merge.merge([compound1, compound2])
+        self.assertEqual("CO", cm.smiles)
+
+    def test_5(self):
+        # super complicated reaction: OCC(O)CC(O)O.O=CCCC=O>>OC1CC2C=C(CC2O1)C=O
+        compound1 = structure.Compound("CCCCO", src_mol="O=CC1=CC2CC(O)OC2C1")
+        compound1.add_boundary(0, symbol="C", neighbor_index=2, neighbor_symbol="C")
+        compound1.add_boundary(1, symbol="C", neighbor_index=9, neighbor_symbol="C")
+        compound1.add_boundary(3, symbol="C", neighbor_index=8, neighbor_symbol="O")
+        cm = merge.merge(compound1)
+        self.assertEqual("OCC(O)CC(O)O", cm.smiles)

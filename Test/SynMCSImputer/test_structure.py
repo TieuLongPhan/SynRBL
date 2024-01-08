@@ -80,22 +80,47 @@ class TestCompound(unittest.TestCase):
 
 
 class TestBuildCompound(unittest.TestCase):
-    def _get_dict(self, smiles, src_smiles, bounds, neighbors):
+    def _get_dict(self, smiles, src_smiles, bounds, neighbors, mcs_results):
         return {
             "smiles": smiles,
             "sorted_reactants": src_smiles,
             "boundary_atoms_products": bounds,
             "nearest_neighbor_products": neighbors,
+            "mcs_results": mcs_results,
         }
 
-    def test_invalid_lengths(self):
-        data = self._get_dict(["C"], ["CC"], [[{"C": 0}]], [[{"C": 1}]])
+    def test_missing_boundaries(self):
+        data = self._get_dict(
+            ["O", "C"], ["CO", "CO"], [[]], [[]], ["something", "something"]
+        )
+        with self.assertRaises(ValueError) as e:
+            structure.build_compounds(data)
+
+    def test_simple(self):
+        data = self._get_dict(["O"], ["CO"], [[{"O": 0}]], [[{"C": 0}]], ["something"])
         compounds = structure.build_compounds(data)
         self.assertEqual(1, len(compounds))
         self.assertEqual(1, len(compounds[0].boundaries))
+        self.assertEqual("O", compounds[0].boundaries[0].get_atom().GetSymbol())
+        self.assertEqual("CO", rdmolfiles.MolToSmiles(compounds[0].src_mol))
 
-    def test_missing_boundaries(self):
-        data = self._get_dict(["O", "C"], ["CO", "CO"], [[]], [[]])
-        with self.assertRaises(ValueError) as e:
-            structure.build_compounds(data)
-        self.assertIn("missing boundary", str(e.exception).lower())
+    def test_catalysis_compound(self):
+        data = self._get_dict([None], ["N"], [None], [None], [""])
+        compounds = structure.build_compounds(data)
+        self.assertEqual(1, len(compounds))
+        self.assertEqual(0, len(compounds[0].boundaries))
+        self.assertEqual("N", rdmolfiles.MolToSmiles(compounds[0].src_mol))
+
+    def test_O_is_not_a_catalyst(self):
+        data = self._get_dict([None], ["O"], [None], [None], [""])
+        compounds = structure.build_compounds(data)
+        self.assertEqual(1, len(compounds))
+        self.assertEqual(1, len(compounds[0].boundaries))
+        self.assertEqual("O", rdmolfiles.MolToSmiles(compounds[0].src_mol))
+        self.assertEqual("O", compounds[0].boundaries[0].symbol)
+
+
+    def test_with_none_compound(self):
+        data = self._get_dict([None], ["O"], [None], [None], ["something"])
+        compounds = structure.build_compounds(data)
+        self.assertEqual(0, len(compounds))

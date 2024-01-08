@@ -91,7 +91,10 @@ class Compound:
         self.mol: rdchem.Mol = _to_mol(mol)
         if self.mol is None:
             raise ValueError(
-                "Argument 'mol' must be either a valid smiles or an rdkit molecule."
+                (
+                    "Argument 'mol' must be either a valid smiles or an "
+                    + "rdkit molecule. (value='{}')"
+                ).format(mol)
             )
         self.src_mol = _to_mol(src_mol)
         self.boundaries: list[Boundary] = []
@@ -135,44 +138,49 @@ def build_compounds(data_dict) -> list[Compound]:
     smiles = data_dict["smiles"]
     boundaries = data_dict["boundary_atoms_products"]
     neighbors = data_dict["nearest_neighbor_products"]
-    if len(smiles) != len(src_smiles):
+    mcs_results = data_dict["mcs_results"]
+    n = len(smiles)
+    if n != len(src_smiles):
         raise ValueError(
             "Smiles and sorted reactants are not of the same length. ({} != {})".format(
                 len(smiles), len(src_smiles)
             )
         )
-    if len(boundaries) != len(neighbors):
+    if n != len(boundaries) or n != len(neighbors):
         raise ValueError(
-            "Boundaries and nearest neighbors are not of the same length. ({} != {})".format(
-                len(boundaries), len(neighbors)
-            )
+            "Boundaries and nearest neighbors must be of same length as compounds."
         )
+    if n != len(mcs_results):
+        raise ValueError("MCS results must be of same length as compounds.")
     compounds = []
-    s_i = 0
-    for s, ss in zip(smiles, src_smiles):
+    for s, ss, b, n, mcs in zip(smiles, src_smiles, boundaries, neighbors, mcs_results):
+        c = None
         if s is None:
-            continue
-        if len(boundaries) <= s_i:
-            raise ValueError("Missing boundary for substructure compound.")
-        b = boundaries[s_i]
-        n = neighbors[s_i]
-        c = Compound(s, src_mol=ss)
-        if len(b) != len(n):
-            raise ValueError(
-                "Boundary and neighbor missmatch. (boundary={}, neighbor={})".format(
-                    b, n
+            if mcs == "":
+                if ss == "O": 
+                    # water is not catalyst -> binds to other compound
+                    c = Compound(ss, src_mol=ss)
+                    c.add_boundary(0, symbol='O')
+                else:
+                    # catalysis compound
+                    c = Compound(ss, src_mol=ss)
+            else:
+                # empty compound
+                pass
+        else: 
+            c = Compound(s, src_mol=ss)
+            if len(b) != len(n):
+                raise ValueError(
+                    "Boundary and neighbor missmatch. (boundary={}, neighbor={})".format(
+                        b, n
+                    )
                 )
-            )
-        for bi, ni in zip(b, n):
-            bi_s, bi_i = list(bi.items())[0]
-            ni_s, ni_i = list(ni.items())[0]
-            c.add_boundary(bi_i, symbol=bi_s, neighbor_index=ni_i, neighbor_symbol=ni_s)
-        compounds.append(c)
-        s_i += 1
-    if len(boundaries) != s_i:
-        raise ValueError(
-            "Not enough compounds for boundaries. (smiles={}, boundaries={})".format(
-                smiles, boundaries
-            )
-        )
+            for bi, ni in zip(b, n):
+                bi_s, bi_i = list(bi.items())[0]
+                ni_s, ni_i = list(ni.items())[0]
+                c.add_boundary(
+                    bi_i, symbol=bi_s, neighbor_index=ni_i, neighbor_symbol=ni_s
+                )
+        if c is not None:
+            compounds.append(c)
     return compounds
