@@ -46,6 +46,7 @@ def merge_mcs(data_name = 'golden_dataset'):
     analysis = ExtractMCS()
     mcs_dict, threshold_index = analysis.extract_matching_conditions(0, 100, condition_1, condition_2, condition_3, condition_4, condition_5,
                                                                   extraction_method = 'largest_mcs', using_threshold=True)
+    print(len(mcs_dict))
     save_database(mcs_dict, f'{mcs_dir}/MCS_Largest.json.gz')
 
     
@@ -55,12 +56,18 @@ def graph_find(data_name = 'golden_dataset'):
     mcs = load_database(mcs_dir/ 'MCS_Largest.json.gz')
     missing_results_largest  = find_graph_dict(msc_dict_path=mcs_dir/ 'MCS_Largest.json.gz', 
                                                save_path= mcs_dir / 'Final_Graph.json.gz')
+    miss_id = [value['R-id'] for value in mcs] 
+    data_2 = [data[key] for key, value in enumerate(data) if value['R-id'] in miss_id]
     for key, _ in enumerate(missing_results_largest):
-        missing_results_largest[key]['R-id'] = data[key]['R-id']
-        missing_results_largest[key]['old_reaction'] = data[key]['reactions']
+        missing_results_largest[key]['R-id'] = mcs[key]['R-id']
         missing_results_largest[key]['sorted_reactants'] = mcs[key]['sorted_reactants']
         missing_results_largest[key]['carbon_balance_check'] = mcs[key]['carbon_balance_check']
         missing_results_largest[key]['mcs_results'] = mcs[key]['mcs_results']
+        missing_results_largest[key]['mcs_results'] = mcs[key]['mcs_results']
+        missing_results_largest[key]['old_reaction'] = data_2[key]['reactions']
+
+
+   
     save_database(missing_results_largest, mcs_dir / 'Final_Graph.json.gz')
 
     
@@ -69,10 +76,10 @@ def graph_find(data_name = 'golden_dataset'):
 # Execute main function
 if __name__ == "__main__":
     data_name = ['golden_dataset']
-    #data_name = ['USPTO_50K']
-    #data_name = ['Jaworski']
-    #data_name = ['Jaworski', 'USPTO_diff', 'USPTO_unbalance_class']
+    data_name = ['USPTO_50K']
+    data_name = ['Jaworski']
+    data_name = ['Jaworski', 'USPTO_diff', 'USPTO_unbalance_class']
     for i in data_name:
-        mcs(i)
+        #mcs(i)
         merge_mcs(i)
         graph_find(i)

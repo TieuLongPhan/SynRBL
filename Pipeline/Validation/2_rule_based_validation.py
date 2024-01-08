@@ -187,6 +187,6 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
 
 if __name__ == "__main__":
     # main('Jaworski')
-    # main('golden_dataset')
-    main('USPTO_50K')
+    main('golden_dataset')
+    #main('USPTO_50K')
     #main('USPTO_random_class')
