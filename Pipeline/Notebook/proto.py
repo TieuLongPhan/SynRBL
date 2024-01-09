@@ -25,12 +25,13 @@ def plot_reaction(entry):
         for b in c.boundaries:
             print("    Boundary: {}   Neighbor: {}".format(b.symbol, b.neighbor_symbol))
 
-s = "C#N"  # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "NC(=O)CC(N)C(=O)O"  # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 s = Chem.CanonSmiles(s)
 print(s)
 mol = rdmolfiles.MolFromSmiles(s)
-# for i, atom in enumerate(mol.GetAtoms()):
-#    atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
+if True:
+    for i, atom in enumerate(mol.GetAtoms()):
+       atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
 atom = mol.GetAtomWithIdx(0)
 fig, ax = plt.subplots(1, 1, figsize=(10, 3))
 img = Draw.MolToImage(mol)

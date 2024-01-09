@@ -133,40 +133,61 @@ def reduce(mol: rdchem.Mol, index, depth) -> rdchem.Mol:
 
 
 class FGConfig:
-    def __init__(self, contain, not_contain=[], depth=None):
-        self.contain = contain if isinstance(contain, list) else [contain]
-        self.not_contain = (
-            not_contain if isinstance(not_contain, list) else [not_contain]
+    def __init__(self, pattern, group_atoms=None, anti_pattern=[], depth=None):
+        if pattern != Chem.CanonSmiles(pattern):
+            # We don't fix the pattern smiles because group_atoms might rely on the pattern
+            raise ValueError(
+                ("Pattern must be canonical smiles. (value: {}, expected: {})").format(
+                    pattern, Chem.CanonSmiles(pattern)
+                )
+            )
+        self.pattern = pattern
+        self.pattern_mol = rdmolfiles.MolFromSmiles(pattern)
+        if group_atoms is None:
+            self.group_mol = rdmolfiles.MolFromSmiles(pattern)
+        else:
+            self.group_mol = rdchem.RWMol(self.pattern_mol)
+            rm_indices = [
+                a.GetIdx()
+                for a in self.group_mol.GetAtoms()
+                if a.GetIdx() not in group_atoms
+            ]
+            for i in sorted(rm_indices, reverse=True):
+                self.group_mol.RemoveAtom(i)
+        self.anti_pattern = (
+            anti_pattern if isinstance(anti_pattern, list) else [anti_pattern]
         )
         self.depth = (
             depth
             if depth is not None
-            else np.max([len(c) for c in self.contain + self.not_contain]) - 1
+            else np.max([len(c) for c in [self.pattern] + self.anti_pattern]) - 1
         )
 
 
 functional_group_config = {
     "phenol": FGConfig("Oc1ccccc1"),
-    "alcohol": FGConfig("CO", ["C=O", "C=CO", "COC", "OCO", "Oc1ccccc1"]),
-    "ether": FGConfig("COC", ["C=O", "C=CO", "OCOC"]),
+    "alcohol": FGConfig("CO", anti_pattern=["C=O", "C=CO", "COC", "OCO", "Oc1ccccc1"]),
+    "ether": FGConfig("COC", group_atoms=[1], anti_pattern=["C=O", "C=CO", "OCOC"]),
     "enol": FGConfig("C=CO"),
-    "amid": FGConfig("C(N)=O", ["O=C(N)O"]),
-    "acyl": FGConfig("C=O", ["C(N)=O", "O=C(O)O", "O=C(C)OC", "O=C(C)O"]),
-    "diol": FGConfig("OCO", ["OCOC", "O=C(O)O"]),
-    "hemiacetal": FGConfig("OCOC", ["COCOC"]),
+    "amid": FGConfig("NC=O", anti_pattern=["O=C(N)O"]),
+    "acyl": FGConfig("C=O", anti_pattern=["C(N)=O", "O=C(O)O", "O=C(C)OC", "O=C(C)O"]),
+    "diol": FGConfig("OCO", anti_pattern=["OCOC", "O=C(O)O"]),
+    "hemiacetal": FGConfig("COCO", anti_pattern=["COCOC"]),
     "acetal": FGConfig("COCOC"),
-    "urea": FGConfig("O=C(N)O"),
+    "urea": FGConfig("NC(=O)O"),
     "carbamat": FGConfig("O=C(O)O"),
-    "anhydrid": FGConfig("O=C(C)OC=O"),
-    "ester": FGConfig("O=C(C)OC", ["O=C(C)OC=O"]),
-    "acid": FGConfig("O=C(C)O", ["O=C(C)OC=O", "O=C(C)OC"]),
+    "anhydrid": FGConfig("CC(=O)OC=O"),
+    "ester": FGConfig("COC(C)=O", group_atoms=[1, 2, 4], anti_pattern=["O=C(C)OC=O"]),
+    "acid": FGConfig(
+        "CC(=O)O", group_atoms=[1, 2, 3], anti_pattern=["O=C(C)OC=O", "O=C(C)OC"]
+    ),
     "anilin": FGConfig("Nc1ccccc1"),
-    "amin": FGConfig("CN", ["C=O", "Nc1ccccc1"]),
+    "amin": FGConfig("CN", anti_pattern=["C=O", "Nc1ccccc1"]),
     "nitril": FGConfig("C#N"),
-    "hydroxylamin": FGConfig("ON", ["O=NO"]),
-    "nitrose": FGConfig("O=N", ["O=NO"]),
+    "hydroxylamin": FGConfig("NO", anti_pattern=["O=NO"]),
+    "nitrose": FGConfig("N=O", anti_pattern=["O=NO"]),
     "nitro": FGConfig("O=NO"),
-    "thioether": FGConfig("CSC", "C=O"),
+    "thioether": FGConfig("CSC", anti_pattern=["C=O"]),
     "thioester": FGConfig("O=CS"),
 }
 
@@ -178,34 +199,18 @@ def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
         )
     config = functional_group_config[group_name]
     rmol, index = reduce(mol, index, config.depth)
-    group_match = False
-    for s in config.contain:
+
+    pattern_match = list(rmol.GetSubstructMatch(config.pattern_mol))
+    is_func_group = False
+    if index in pattern_match:
+        group_match = list(rmol.GetSubstructMatch(config.group_mol))
+        is_func_group = index in group_match
+
+    for s in config.anti_pattern:
         g_mol = rdmolfiles.MolFromSmiles(s)
         match_atoms = list(rmol.GetSubstructMatch(g_mol))
-        group_match = group_match or index in match_atoms
-        if group_match:
-            break
-    for s in config.not_contain:
-        g_mol = rdmolfiles.MolFromSmiles(s)
-        match_atoms = list(rmol.GetSubstructMatch(g_mol))
-        group_match = group_match and len(match_atoms) == 0
-    return group_match
-
-
-# def functional_group_name_to_mol(name: str) -> rdchem.Mol:
-#    if name == "ether":
-#        return rdmolfiles.MolFromSmiles("COC")
-#    elif name == "thioether":
-#        return rdmolfiles.MolFromSmiles("CSC")
-#    elif name == "ester":
-#        return rdmolfiles.MolFromSmiles("C(=O)O")
-#    elif name == "thioester":
-#        return rdmolfiles.MolFromSmiles("C(=O)S")
-#    elif name == "amine":
-#        return rdmolfiles.MolFromSmiles("CN")
-#    elif name == "amide":
-#        return rdmolfiles.MolFromSmiles("C(=O)N")
-#    raise NotImplementedError("Functional group '{}' is not implemented.".format(name))
+        is_func_group = is_func_group and len(match_atoms) == 0
+    return is_func_group
 
 
 class FunctionalGroupProperty(Property):

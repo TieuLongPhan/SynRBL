@@ -129,23 +129,28 @@ class TestFunctionalGroupCheck(unittest.TestCase):
                 )
 
     def test_phenol(self):
-        self.__test_fg("Oc1ccccc1", "phenol")
+        # 2,3 Xylenol
+        self.__test_fg("Cc1cccc(O)c1C", "phenol", [1, 2, 3, 4, 5, 6, 7])
 
     def test_alcohol(self):
-        self.__test_fg("CO", "alcohol")
+        # Ethanol
         self.__test_fg("CCO", "alcohol", [1, 2])
 
     def test_ether(self):
-        self.__test_fg("COC", "ether")
+        # Methylether
+        self.__test_fg("COC", "ether", [1])
 
     def test_enol(self):
-        self.__test_fg("C=CO", "enol")
+        # 3-pentanone enol
+        self.__test_fg("CCC(O)=CC", "enol", [2, 3, 4])
 
     def test_amid(self):
-        self.__test_fg("NC=O", "amid")
+        # Asparagine
+        self.__test_fg("NC(=O)CC(N)C(=O)O", "amid", [0, 1, 2])
 
     def test_acyl(self):
-        self.__test_fg("C=O", "acyl")
+        # Acetyl cloride
+        self.__test_fg("CC(=O)[Cl]", "acyl", [1, 2])
 
     def test_diol(self):
         self.__test_fg("OCO", "diol")
@@ -163,13 +168,15 @@ class TestFunctionalGroupCheck(unittest.TestCase):
         self.__test_fg("O=C(O)O", "carbamat")
 
     def test_ester(self):
-        self.__test_fg("O=C(C)OC", "ester")
+        # Methyl acetate
+        self.__test_fg("COC(C)=O", "ester", [1, 2, 4])
 
     def test_anhydrid(self):
         self.__test_fg("O=C(C)OC=O", "anhydrid")
 
     def test_acid(self):
-        self.__test_fg("O=C(C)O", "acid")
+        # Acetic acid
+        self.__test_fg("CC(=O)O", "acid", [1, 2, 3])
 
     def test_anilin(self):
         self.__test_fg("Nc1ccccc1", "anilin")
