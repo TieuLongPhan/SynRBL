@@ -4,7 +4,7 @@ import unittest
 import pandas as pd
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynRuleEngine import RuleImputeManager  # Replace 'your_module' with the name of your Python file containing the RuleImputeManager class
+from SynRBL.SynRuleImputer import RuleImputeManager  
 
 class TestRuleImputeManager(unittest.TestCase):
 

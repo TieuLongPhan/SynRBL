@@ -5,7 +5,7 @@ import pandas as pd
 from rdkit import Chem
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynRuleImpute import SyntheticRuleImputer  
+from SynRBL.SynRuleImputer import SyntheticRuleImputer  
 ## not fixed
 class TestSyntheticRuleImputer(unittest.TestCase):
 

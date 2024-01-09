@@ -4,7 +4,7 @@ import unittest
 from rdkit import Chem
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynRuleEngine import AutomaticRulesExtraction  
+from SynRBL.SynRuleImputer import AutomaticRulesExtraction  
 
 class TestAutomaticRulesExtraction(unittest.TestCase):
 

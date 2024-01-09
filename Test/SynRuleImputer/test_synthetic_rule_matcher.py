@@ -4,7 +4,7 @@ import unittest
 import pandas as pd
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynRuleImpute import SyntheticRuleMatcher  
+from SynRBL.SynRuleImputer import SyntheticRuleMatcher  
 
 class TestSyntheticRuleMatcher(unittest.TestCase):
 
