@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynNameReaction.appel_reaction import AppelReaction  # Make sure to import your class correctly
+from SynRBL.SynChemImputer.appel_reaction import AppelReaction  # Make sure to import your class correctly
 
 class TestAppelReaction(unittest.TestCase):
 
