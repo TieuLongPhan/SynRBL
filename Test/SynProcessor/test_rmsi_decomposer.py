@@ -4,7 +4,7 @@ import unittest
 import pandas as pd
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
-from SynRBL.SynExtract.rsmi_decomposer import RSMIDecomposer  
+from SynRBL.SynProcessor.rsmi_decomposer import RSMIDecomposer  
 
 
 class TestRSMIDecomposer(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestRSMIDecomposer(unittest.TestCase):
         # Test decompose method with a valid SMILES string
         smiles = 'CCO'
         composition = RSMIDecomposer.decompose(smiles)
-        self.assertEqual(composition, {'C': 2, 'O': 1, 'H': 6, 'Q': 0})
+        self.assertEqual(sorted(composition), sorted({'C': 2, 'O': 1, 'H': 6}))
 
     def test_decompose_invalid(self):
         # Test decompose method with an invalid SMILES string

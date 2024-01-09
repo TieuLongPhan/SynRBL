@@ -79,9 +79,8 @@ class RSMIProcessing:
         self.orient = orient
         self.compression = compression
 
-
-    def smi_splitter(self
-                     ) -> Union[Tuple[str, str], str]:
+    @staticmethod
+    def smi_splitter(rsmi: str, symbol: str = '>>') -> Tuple[str, str]:
         """
         Split a RSMI string into reactants and products.
 
@@ -94,9 +93,9 @@ class RSMIProcessing:
         """
 
         # Check if the RSMI string can be parsed
-        if RSMIProcessing.can_parse(self.rsmi, self.symbol):
+        if RSMIProcessing.can_parse(rsmi, symbol):
             # Split the RSMI string into reactants and products
-            return self.rsmi.split(self.symbol)
+            return rsmi.split(symbol)
         else:
             # Return a message if the RSMI string cannot be parsed
             return "Can't parse"

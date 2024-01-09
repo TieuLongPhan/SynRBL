@@ -154,3 +154,5 @@ class RSMIDecomposer:
                 comp['Q'] = charge
 
             return dict(comp)
+        else:
+            return None
