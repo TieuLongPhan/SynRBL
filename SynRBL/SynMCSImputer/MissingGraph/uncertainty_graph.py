@@ -34,7 +34,7 @@ class GraphMissingUncertainty:
         without_boundary_key = []
 
         for key, item in enumerate(data_list):
-            if not item['boundary_atoms_products']:  # Checks if 'boundary_atoms_products' is empty
+            if all(element is None for element in item['boundary_atoms_products']): # Checks if 'boundary_atoms_products' is empty
                 without_boundary_key.append(key)
 
         return without_boundary_key

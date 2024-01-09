@@ -36,14 +36,20 @@ SynRBL is organized into several key components, each dedicated to a specific as
   - `SynMCS/`: Tests for MCS-based imputation module
   - `SynVis/`: Tests for SynVis module
 
+### Pipeline
+
+- `Pipeline/`: Main scripts
+  - `Notebook/`: Jupyter notebook examples
+  - `Validation/`: Validation scripts
+
+
 ### Additional Resources
 
 - `License`: License document
 - `README.md`: Overview and documentation
 - `setup.py`: Installation
 - `.gitignore`: Configuration for ignoring certain files and directories
-- `Example.ipynb`: Jupyter Notebook with usage examples
-- `Deployment.ipynb`: Jupyter Notebook for deployment guidance
+
 
 
 ## Installation
@@ -54,8 +60,6 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
 
 - Python 3.9+
 - RDKit
-- NetworkX
-- PySmiles
 - tmap
 - map4
 
@@ -105,61 +109,73 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
 
 ## Usage
 
-The SynRBL framework provides a comprehensive suite of tools for computational chemistry, focusing on synthesis rebalancing, data extraction, rule-based processing, and visualization. Below are some examples demonstrating the use of different modules within SynRBL.
+The SynRBL framework provides a comprehensive suite of tools for computational chemistry, focusing on synthesis rebalancing. There are two-main strategies: rule-based method for non-carbon compounds imputation, mcs-based method for carbon-compounds imputation.
 
-### Example 1: Standardizing SMILES Strings
-
-```python
-import warnings
-from rdkit import RDLogger
-RDLogger.DisableLog('rdApp.*')  # Disables RDKit warnings globally
-# Alternatively, you can catch warnings in a specific part of your code
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore')
-from SynRBL.SynCleaning import SMILESStandardizer
-
-# Initialize the SMILESStandardizer
-standardizer = SMILESStandardizer()
-
-# Single smiles
-smiles = 'C1=CC=CC=C1'
-standardized_smiles = standardizer.standardize_smiles(smiles)
-print(standardized_smiles)
-
-# Dict of SMILES
-original_smiles = [{'id': 'US05849732',
-  'class': 6,
-  'reactions': 'COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O',
-  'reactants': 'COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O',
-  'products': 'COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O'},...]
-
-new_dict_standardized_smiles = standardizer.standardize_dict_smiles(data_input=original_smiles, key='reactants', visualize=False, parallel = True, n_jobs = 4,normalizer = standardizer.normalizer, tautomer = standardizer.tautomer, salt_remover = standardizer.salt_remover)
-print("Standardized SMILES:", new_dict_standardized_smiles)
->> [Parallel(n_jobs=-1)]: Done 50016 out of 50016 | elapsed:  7.7min finished
-```
+### 1. Rule-based Imputation
 
 
-
-### Example 2: Processing Reaction SMILES (RSMI) Data
+#### Step 1: Processing Reaction SMILES (RSMI) Data
 ```python
 from SynRBL.SynExtract.rsmi_processing import RSMIProcessing
 import pandas as pd
 
 # Sample DataFrame with reaction SMILES
-df = pd.DataFrame({'reactions': ['CCO>>CCOCC', 'CC>>C']})
+df = pd.DataFrame({'reactions': ['CCCO>>CCC', 'CCO.Cl>>CCCl']})
 
 # Initialize RSMIProcessing with DataFrame
-process = RSMIProcessing(data=df, rsmi_col='reactions', parallel=True)
-processed_data = process.data_splitter()
+process = RSMIProcessing(data=df, data_name='USPTO_50K', rsmi_col='reactions', parallel=True, n_jobs=10, 
+                            save_json =False, save_path_name= '../../Data/reaction.json.gz')
+processed_data = process.data_splitter().to_dict('records')
 
 print(processed_data)
 ```
 
-### Example 3: Rule generation:
+#### Step 2: Checking unbalance based on carbon number
+```python
+from SynRBL.SynProcessor import CheckCarbonBalance
+
+check = CheckCarbonBalance(processed_data, rsmi_col='reactions', symbol='>>', atom_type='C', n_jobs=4)
+processed_data = check.check_carbon_balance()
+
+rules_based = [reactions[key] for key, value in enumerate(processed_data) if value['carbon_balance_check'] == 'balanced']
+mcs_based = [reactions[key] for key, value in enumerate(processed_data) if value['carbon_balance_check'] != 'balanced']
+print(len(rules_based), len(mcs_based))
+```
+
+#### Step 3: Molecular decomposer
+```python
+from SynRBL.SynProcessor import RSMIDecomposer  
+
+decompose = RSMIDecomposer(smiles=None, data=rules_based, reactant_col='reactants', product_col='products', parallel=True, n_jobs=-1, verbose=1)
+react_dict, product_dict = decompose.data_decomposer()
+```
+
+#### Step 4: Molecular comparator
+```python
+from SynRBL.SynProcessor import RSMIComparator
+from SynRBL.SynUtils.data_utils import save_database, load_database
+import pandas as pd
+
+comp = RSMIComparator(reactants= react_dict, products=product_dict, n_jobs=-1)
+unbalance , diff_formula= comp.run_parallel(reactants= react_dict, products=product_dict)
+```
+
+#### Step 5: Fix reactions with bothside missing compounds
+```python
+from SynRBL.SynProcessor import BothSideReact
+
+both_side = BothSideReact(react_dict, product_dict, unbalance, diff_formula)
+diff_formula, unbalance= both_side.fit()
+reactions_clean = pd.concat([pd.DataFrame(reactions), pd.DataFrame([unbalance]).T.rename(columns={0:'Unbalance'}),
+           pd.DataFrame([diff_formula]).T.rename(columns={0:'Diff_formula'})], axis=1).to_dict(orient='records')
+reactions_clean[0]
+```
+
+### Step 6: Rule generation:
 
 ```python
-from SynRBL.rsmi_utils import *
-from SynRBL.SynRuleEngine.rule_data_manager import RuleImputeManager
+from SynRBL.SynUtils.data_utils import save_database, load_database
+from SynRBL.SynRuleImputer.rule_data_manager import RuleImputeManager
 import pandas as pd
 
 # Initialize RuleImputeManager without an existing database and add one entry
@@ -191,48 +207,76 @@ print(f"Invalid entries: {invalid_entries}")
 ```
 
 
-### Example 4: Rebalancing
+### Step 7: Rebalancing
 
 ```python
-from SynRBL.SynRuleImpute import SyntheticRuleImputer
+from SynRBL.SynUtils.data_utils import save_database, load_database, filter_data, extract_results_by_key
+from SynRBL.SynRuleImputer import SyntheticRuleImputer
 
-# Example: Initializing the SyntheticRuleImputer with a set of rules
-# (Assuming `rules` is a dictionary containing your rule-based logic for imputation)
-rules = {
-    # Example rules (replace with actual rules from your domain knowledge)
-    'H2O': {'smiles': 'O', 'composition': {1: 2, 8: 1}},
-    'CO2': {'smiles': 'C=O', 'composition': {6: 1, 8: 2}}
-}
+rules = load_database('../../Data/Rules/rules_manager.json.gz')
+#reactions_clean = load_database('../../Data/reaction_clean.json.gz')
 
-imp = SyntheticRuleImputer(rule_dict=rules)
+# Filter data based on specified criteria
 
-# Example: Imputing missing components in a dataset of chemical reactions
-# (Assuming `reactions_clean` is a list or DataFrame containing reaction data)
-[{'id': 'US05849732',
-  'class': 6,
-  'reactions': 'COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O',
-  'reactants': 'COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O',
-  'products': 'COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O',
-  'Unbalance': 'Products',
-  'Diff_formula': {'C': 8, 'O': 2, 'H': 6}},
- {'id': 'US20120114765A1',
-  'class': 2,
-  'reactions': 'Nc1cccc2cnccc12.O=C(O)c1cc([N+](=O)[O-])c(Sc2c(Cl)cncc2Cl)s1>>O=C(Nc1cccc2cnccc12)c1cc([N+](=O)[O-])c(Sc2c(Cl)cncc2Cl)s1',
-  'reactants': 'Nc1cccc2cnccc12.O=C(O)c1cc([N+](=O)[O-])c(Sc2c(Cl)cncc2Cl)s1',
-  'products': 'O=C(Nc1cccc2cnccc12)c1cc([N+](=O)[O-])c(Sc2c(Cl)cncc2Cl)s1',
-  'Unbalance': 'Products',
-  'Diff_formula': {'O': 1, 'H': 2}},]
+balance_reactions = filter_data(reactions_clean, unbalance_values=['Balance'], 
+                                formula_key='Diff_formula', element_key=None, min_count=0, max_count=0)
+print('Number of Balanced Reactions:', len(balance_reactions))
 
-# Selecting a subset of reactions for imputation
-subset_for_imputation = reactions_clean
+unbalance_reactions = filter_data(reactions_clean, unbalance_values=['Reactants', 'Products'], 
+                                formula_key='Diff_formula', element_key=None, min_count=0, max_count=0)
+print('Number of Unbalanced Reactions in one side:', len(unbalance_reactions))
 
-# Performing the imputation
-dict_impute = imp.impute(missing_dict=subset_for_imputation)
-print(dict_impute)
+both_side_reactions = filter_data(reactions_clean, unbalance_values=['Both'], 
+                                    formula_key='Diff_formula', element_key=None, min_count=0, max_count=0)
+print('Number of Both sides Unbalanced Reactions:', len(both_side_reactions))
+
+# Configure RDKit logging
+from rdkit import Chem
+import rdkit
+lg = RDLogger.logger()
+lg.setLevel(RDLogger.ERROR)
+RDLogger.DisableLog('rdApp.info') 
+rdkit.RDLogger.DisableLog('rdApp.*')
+
+# Initialize SyntheticRuleImputer and perform parallel imputation
+imp = SyntheticRuleImputer(rule_dict=rules, select='all', ranking='ion_priority')
+expected_result = imp.parallel_impute(unbalance_reactions)
+
+# Extract solved and unsolved results
+solve, unsolve = extract_results_by_key(expected_result)
+print('Solved:', len(solve))
+print('Unsolved in rules based method:', len(unsolve))
+
+
+
+# Combine all unsolved cases
+unsolve = both_side_reactions + unsolve
+print('Total unsolved:', len(unsolve))
+```
+
+### Step 8: Uncertainty estimation
+
+```python
+from SynRBL.rsmi_utils import  save_database, load_database
+from SynRBL.SynRuleImputer.synthetic_rule_constraint import RuleConstraint
+constrain = RuleConstraint(solve, ban_atoms=['[H]','[O].[O]', 'F-F', 'Cl-Cl', 'Br-Br', 'I-I', 'Cl-Br', 'Cl-I', 'Br-I'])
+certain_reactions, uncertain_reactions = constrain.fit()
+
+id_uncertain = [entry['R-id'] for entry in uncertain_reactions]
+new_uncertain_reactions = [entry for entry in reactions_clean if entry['R-id'] in id_uncertain]
+
+unsolve = unsolve + new_uncertain_reactions
+
+
+for d in unsolve:
+    d.pop('Unbalance', None)  # Remove 'Unbalance' key if it exists
+    d.pop('Diff_formula', None)  # Remove 'Diff_formula' key if it exists
+
+mcs_based = mcs_based+unsolve
 ```
 
 
-### Example 5: Visualizing Reactions
+### Step 8: Visualizing Reactions
 ```python
 from SynRBL.SynVis import ReactionVisualizer
 
@@ -246,30 +290,17 @@ new_reaction = 'CC>>CC'
 visualizer.plot_reactions(old_reaction, new_reaction)
 ```
 
-### Example 6: Finding Most Similar Molecule
-```python
-from SynRBL.SynRuleImpute import FormulaSimilarityFinder
 
-# Reference SMILES and list of candidate molecules
-ref_smiles = 'CC(C)CCOC(C)=O'
-candidates = ['CCCCCO', 'CCCC(O)C', 'CCC(O)CC', 'CC(O)(C)CC', 'CC(C)CCO', 'CC(C)(C)CO']
-
-# Initialize the Formula Similarity Finder
-similarity_finder = FormulaSimilarityFinder(ref_smiles)
-
-# Find the most similar molecule
-most_similar = similarity_finder.find_most_similar(candidates)
-print("Most similar molecule:", most_similar)
-```
 
 
 
 
 ## Features
 
-- **SynClearing:** Data cleaning and preprocessing tools.
-- **SynExtract:** Automated extraction of chemical data.
-- **SynRuleEngine:** Application of rule-based algorithms for data analysis.
+- **SynProcess:** Automated extraction and decomposition of chemical data .
+- **SynRuleImputer:** Application of rule-based algorithms for rebalancing non-carbon compounds.
+- **SynMCSImputer:** Application of mcs-based algorithms for rebalancing carbon compounds.
+- **SynChemImputer:** Application of domain knowlegde for rebalancing.
 - **SynVis:** Advanced visualization tools for chemical data.
 
 ## Contributing

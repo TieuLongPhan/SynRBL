@@ -2,18 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='SynRBL',
-    version='1.0.0',
+    version='0.1.1',
     description='Synthesis Rebalancing Framework for Computational Chemistry',
     author='Your Name',
     author_email='your.email@example.com',
-    url='https://github.com/yourusername/SynRBL',
+    url='https://github.com/TieuLongPhan/SynRBL',
     packages=find_packages(),
     install_requires=[
-        'rdkit', 
-        'networkx', 
-        'pysmiles', 
-        'tmap', 
-        'map4'
+        'rdkit'
         # add other dependencies as needed
     ],
     python_requires='>=3.9',
