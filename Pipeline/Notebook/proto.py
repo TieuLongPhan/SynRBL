@@ -49,55 +49,46 @@ import traceback
 import SynRBL.SynMCSImputer.merge as merge
 import SynRBL.SynMCSImputer.structure as structure
 import SynRBL.SynMCSImputer.utils as utils
-import copy
 
 
 def impute_new_reaction(data):
     rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
-        item["rules"] = []
-        new_reaction = item["old_reaction"]
-        #if item["issue"] != "":
-        #    print("[ERROR] [{}]".format(i), "Skip because of previous issue.")
-        #    continue
+        data[i]["rules"] = []
+        new_reaction = data[i]["old_reaction"]
+        if data[i]["issue"] != "":
+            print("[ERROR] [{}]".format(i), "Skip because of previous issue.")
+            continue
         try:
             compounds = structure.build_compounds(item)
-            item['compounds'] = copy.deepcopy(compounds) 
+            if len(compounds) == 0:
+                continue
             result = merge.merge(compounds)
-            imbalance = item['carbon_balance_check']
-            if imbalance == 'products':
-                new_reaction = "{}.{}".format(item["old_reaction"], result.smiles)
-            elif imbalance == 'reactants':
-                new_reaction = "{}.{}".format(result.smiles, item["old_reaction"])
-            elif imbalance == 'balanced':
-                #print("[INFO] [{}] Reaction is balanced.".format(i))
-                pass
-            else:
-                raise ValueError("Carbon balance '{}' is not known.".format(imbalance))
-            item["new_reaction"] = new_reaction
+            new_reaction = "{}.{}".format(item["old_reaction"], result.smiles)
             rules = [r.name for r in result.rules]
-            item["rules"] = rules
+            data[i]["rules"] = rules
             if len(rules) == 0:
                 rule_map["no rule"].add(i)
             else:
-                for r in item["rules"]:
+                for r in data[i]["rules"]:
                     rule_map[r].add(i)
             utils.carbon_equality_check(new_reaction)
         except Exception as e:
-            #traceback.print_exc()
-            item["issue"] = str(e)
+            # traceback.print_exc()
+            data[i]["issue"] = str(e)
             print("[ERROR] [{}]".format(i), e)
         finally:
-            item['new_reaction'] = new_reaction
+            data[i]["new_reaction"] = new_reaction
     return rule_map
+
 
 
 #|%%--%%| <IXhnkWIUcu|WavXFkZceG>
 from SynRBL.rsmi_utils import load_database, save_database
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph")
-data = load_database(path)
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("USPTO_50K", "Final_Graph")
+data = load_database(path)[16668:16669]
 
 # |%%--%%| <WavXFkZceG|tx0z4CFgIc>
 from SynRBL.SynMCSImputer.rules import CompoundRule, MergeRule
@@ -119,13 +110,7 @@ def print_rule_summary(rule_map):
 
 print_rule_summary(rule_map)
 
-# |%%--%%| <tx0z4CFgIc|FtdgkzRxV9>
-
-print(data[5]['new_reaction'])
-data[5]['new_reaction'] = "OCC(O)CC(O)O.O=CCCC=O>>OC1CC2C=C(CC2O1)C=O"
-plot_reaction(data[5])
-
-# |%%--%%| <FtdgkzRxV9|dZjkHmncQW>
+# |%%--%%| <tx0z4CFgIc|dZjkHmncQW>
 import collections
 
 error_map = collections.defaultdict(lambda: [])
@@ -138,18 +123,11 @@ for k, v in error_map.items():
     print("{:<20} {:>4} {}".format(k, len(v), v[:10]))
 
 
-# |%%--%%| <dZjkHmncQW|mWahMtVBFr>
-import SynRBL.SynMCS.structure as structure
+#|%%--%%| <dZjkHmncQW|ftWMEjJznz>
 
-for i, entry in enumerate(data):
-    for compound in structure.build_compounds(entry):
-        for boundary in compound.boundaries:
-            atom = boundary.get_atom()
-            expHs = atom.GetNumExplicitHs()
-            if expHs > 0:
-                print("{} | Exp. Hs={}".format(i, expHs))
+plot_reaction(data[16668])
 
-# |%%--%%| <mWahMtVBFr|T6IJBZXUlT>
+# |%%--%%| <ftWMEjJznz|T6IJBZXUlT>
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw as Draw
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D

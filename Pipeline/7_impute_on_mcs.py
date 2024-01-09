@@ -1,9 +1,10 @@
 import argparse
+
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynMCSImputer.rules import MergeRule, CompoundRule
-from SynRBL.SynMCSImputer.merge import merge
 import SynRBL.SynMCSImputer.structure as structure
 import SynRBL.SynMCSImputer.utils as utils
+import SynRBL.SynMCSImputer.merge as merge
 
 
 def impute_new_reaction(data):
@@ -11,15 +12,16 @@ def impute_new_reaction(data):
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
         data[i]["rules"] = []
-        data[i]["new_reaction"] = data[i]["old_reaction"]
+        new_reaction = data[i]["old_reaction"]
         if data[i]["issue"] != "":
             print("[ERROR] [{}]".format(i), "Skip because of previous issue.")
             continue
         try:
             compounds = structure.build_compounds(item)
-            result = merge(compounds)
+            if len(compounds) == 0:
+                continue
+            result = merge.merge(compounds)
             new_reaction = "{}.{}".format(item["old_reaction"], result.smiles)
-            data[i]["new_reaction"] = new_reaction
             rules = [r.name for r in result.rules]
             data[i]["rules"] = rules
             if len(rules) == 0:
@@ -32,6 +34,8 @@ def impute_new_reaction(data):
             # traceback.print_exc()
             data[i]["issue"] = str(e)
             print("[ERROR] [{}]".format(i), e)
+        finally:
+            data[i]["new_reaction"] = new_reaction
     return rule_map
 
 
@@ -56,7 +60,7 @@ if __name__ == "__main__":
         default="USPTO_test",
         help="The name of the dataset directory in ./Data/Validation_set/",
     )
-    parser.add_argument("--summary", action='store_true')
+    parser.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     data = load_database(get_database_path(args.dataset, "Final_Graph"))
     rule_map = impute_new_reaction(data)
