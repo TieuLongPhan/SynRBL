@@ -141,7 +141,6 @@ class FGConfig:
                     pattern, Chem.CanonSmiles(pattern)
                 )
             )
-        self.pattern = pattern
         self.pattern_mol = rdmolfiles.MolFromSmiles(pattern)
         if group_atoms is None:
             self.group_mol = rdmolfiles.MolFromSmiles(pattern)
@@ -154,40 +153,55 @@ class FGConfig:
             ]
             for i in sorted(rm_indices, reverse=True):
                 self.group_mol.RemoveAtom(i)
-        self.anti_pattern = (
+        anti_pattern = (
             anti_pattern if isinstance(anti_pattern, list) else [anti_pattern]
         )
-        self.depth = (
+        self.anti_pattern = sorted(
+            [rdmolfiles.MolFromSmiles(s) for s in anti_pattern],
+            key=lambda x: len(x.GetAtoms()),
+            reverse=True,
+        )
+        self.max_depth = (
             depth
             if depth is not None
-            else np.max([len(c) for c in [self.pattern] + self.anti_pattern]) - 1
+            else np.max(
+                [len(c.GetAtoms()) for c in [self.pattern_mol] + self.anti_pattern]
+            )
         )
 
 
 functional_group_config = {
     "phenol": FGConfig("Oc1ccccc1"),
-    "alcohol": FGConfig("CO", anti_pattern=["C=O", "C=CO", "COC", "OCO", "Oc1ccccc1"]),
-    "ether": FGConfig("COC", group_atoms=[1], anti_pattern=["C=O", "C=CO", "OCOC"]),
+    "alcohol": FGConfig(
+        "CO", anti_pattern=["C=O", "C(=O)O", "C=CO", "COC", "OCO", "Oc1ccccc1"]
+    ),
+    "ether": FGConfig(
+        "COC", group_atoms=[1], anti_pattern=["C=O", "C=CO", "OCOC", "OC=O"]
+    ),
     "enol": FGConfig("C=CO"),
     "amid": FGConfig("NC=O", anti_pattern=["O=C(N)O"]),
-    "acyl": FGConfig("C=O", anti_pattern=["C(N)=O", "O=C(O)O", "O=C(C)OC", "O=C(C)O"]),
+    "acyl": FGConfig(
+        "C=O", anti_pattern=["SC=O", "C(N)=O", "O=C(O)O", "O=C(C)OC", "O=C(C)O"]
+    ),
     "diol": FGConfig("OCO", anti_pattern=["OCOC", "O=C(O)O"]),
-    "hemiacetal": FGConfig("COCO", anti_pattern=["COCOC"]),
+    "hemiacetal": FGConfig("COCO", anti_pattern=["COCOC", "O=C(O)O"]),
     "acetal": FGConfig("COCOC"),
     "urea": FGConfig("NC(=O)O"),
-    "carbamat": FGConfig("O=C(O)O"),
+    "carbonat": FGConfig("O=C(O)O"),
     "anhydrid": FGConfig("CC(=O)OC=O"),
     "ester": FGConfig("COC(C)=O", group_atoms=[1, 2, 4], anti_pattern=["O=C(C)OC=O"]),
     "acid": FGConfig(
-        "CC(=O)O", group_atoms=[1, 2, 3], anti_pattern=["O=C(C)OC=O", "O=C(C)OC"]
+        "CC(=O)O",
+        group_atoms=[1, 2, 3],
+        anti_pattern=["O=CS", "O=C(C)OC=O", "O=C(C)OC"],
     ),
     "anilin": FGConfig("Nc1ccccc1"),
-    "amin": FGConfig("CN", anti_pattern=["C=O", "Nc1ccccc1"]),
+    "amin": FGConfig("CN", anti_pattern=["C=O", "Nc1ccccc1", "NC=O"]),
     "nitril": FGConfig("C#N"),
     "hydroxylamin": FGConfig("NO", anti_pattern=["O=NO"]),
     "nitrose": FGConfig("N=O", anti_pattern=["O=NO"]),
     "nitro": FGConfig("O=NO"),
-    "thioether": FGConfig("CSC", anti_pattern=["C=O"]),
+    "thioether": FGConfig("CSC", group_atoms=[1], anti_pattern=["O=CS"]),
     "thioester": FGConfig("O=CS"),
 }
 
@@ -198,18 +212,28 @@ def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
             "Functional group '{}' is not implemented.".format(group_name)
         )
     config = functional_group_config[group_name]
-    rmol, index = reduce(mol, index, config.depth)
 
+    rmol, index = reduce(mol, index, config.max_depth - 1)
     pattern_match = list(rmol.GetSubstructMatch(config.pattern_mol))
     is_func_group = False
     if index in pattern_match:
         group_match = list(rmol.GetSubstructMatch(config.group_mol))
         is_func_group = index in group_match
 
-    for s in config.anti_pattern:
-        g_mol = rdmolfiles.MolFromSmiles(s)
-        match_atoms = list(rmol.GetSubstructMatch(g_mol))
-        is_func_group = is_func_group and len(match_atoms) == 0
+    last_len = config.max_depth
+    for ap_mol, ap_mol_size in sorted(
+        [(m, len(m.GetAtoms())) for m in config.anti_pattern],
+        key=lambda x: x[1],
+        reverse=True,
+    ):
+        if not is_func_group:
+            break
+        ap_mol_size = len(ap_mol.GetAtoms())
+        if last_len > ap_mol_size:
+            rmol, index = reduce(rmol, index, ap_mol_size - 1)
+            last_len = ap_mol_size
+        group_match = list(rmol.GetSubstructMatch(ap_mol))
+        is_func_group = is_func_group and index not in group_match
     return is_func_group
 
 

@@ -4,6 +4,7 @@ import rdkit.Chem.Draw as Draw
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import matplotlib.pyplot as plt
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
+import rdkit.Chem.MolStandardize.rdMolStandardize as rdMolStandardize
 
 def plot_reaction(entry):
     visualizer = ReactionVisualizer(figsize=(10, 10))
@@ -25,10 +26,12 @@ def plot_reaction(entry):
         for b in c.boundaries:
             print("    Boundary: {}   Neighbor: {}".format(b.symbol, b.neighbor_symbol))
 
-s = "NC(=O)CC(N)C(=O)O"  # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "c1ccccc1C(=S)OC"  # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 s = Chem.CanonSmiles(s)
 print(s)
 mol = rdmolfiles.MolFromSmiles(s)
+enumerator = rdMolStandardize.TautomerEnumerator()
+mol = enumerator.Canonicalize(mol)
 if True:
     for i, atom in enumerate(mol.GetAtoms()):
        atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))

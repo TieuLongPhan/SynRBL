@@ -40,7 +40,7 @@
 		"condition": {
 			"atom": ["C"],
 			"neighbors": ["N"],
-			"functional_groups": ["amide"]
+			"functional_groups": ["amid"]
 		},
 		"compound": {"smiles": "O", "index": 0}
 	},

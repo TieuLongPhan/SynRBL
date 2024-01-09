@@ -90,6 +90,15 @@ class TestReduce(unittest.TestCase):
         self.assertEqual("COc", rdmolfiles.MolToSmiles(mol_r))
 
 
+class TestFGConfig(unittest.TestCase):
+    def test_init_anti_pattern(self):
+        config = rules.FGConfig("CN", anti_pattern=["C=O", "Nc1ccccc1", "CCC"])
+        self.assertEqual(3, len(config.anti_pattern))
+        self.assertEqual("Nc1ccccc1", rdmolfiles.MolToSmiles(config.anti_pattern[0]))
+        self.assertEqual("CCC", rdmolfiles.MolToSmiles(config.anti_pattern[1]))
+        self.assertEqual("C=O", rdmolfiles.MolToSmiles(config.anti_pattern[2]))
+
+
 class TestFunctionalGroupCheck(unittest.TestCase):
     def __test_fg(self, smiles, group_name, indices=None):
         groups = list(rules.functional_group_config.keys())
@@ -156,7 +165,7 @@ class TestFunctionalGroupCheck(unittest.TestCase):
         self.__test_fg("OCO", "diol")
 
     def test_hemiacetal(self):
-        self.__test_fg("OCOC", "hemiacetal")
+        self.__test_fg("COCO", "hemiacetal")
 
     def test_acetal(self):
         self.__test_fg("COCOC", "acetal")
@@ -164,8 +173,9 @@ class TestFunctionalGroupCheck(unittest.TestCase):
     def test_urea(self):
         self.__test_fg("O=C(N)O", "urea")
 
-    def test_carbamat(self):
-        self.__test_fg("O=C(O)O", "carbamat")
+    def test_carbonat(self):
+        self.__test_fg("O=C(O)O", "carbonat")
+        self.__test_fg("COC(=O)O", "carbonat", [1, 2, 3, 4])
 
     def test_ester(self):
         # Methyl acetate
@@ -181,6 +191,10 @@ class TestFunctionalGroupCheck(unittest.TestCase):
     def test_anilin(self):
         self.__test_fg("Nc1ccccc1", "anilin")
 
+    def test_amin(self):
+        # Glycin
+        self.__test_fg("NCC(=O)O", "amin", [0, 1])
+
     def test_nitril(self):
         self.__test_fg("C#N", "nitril")
 
@@ -192,6 +206,14 @@ class TestFunctionalGroupCheck(unittest.TestCase):
 
     def test_nitro(self):
         self.__test_fg("ON=O", "nitro")
+
+    def test_thioether(self):
+        # Diethylsulfid
+        self.__test_fg("CCSCC", "thioether", [2])
+
+    def test_thioester(self):
+        # Methyl thionobenzonat
+        self.__test_fg("CSC(=O)c1ccccc1", "thioester", [1, 2, 3])
 
 
 class TestFunctionalGroupProperty(unittest.TestCase):
