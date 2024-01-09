@@ -134,25 +134,30 @@ def reduce(mol: rdchem.Mol, index, depth) -> rdchem.Mol:
 
 class FGConfig:
     def __init__(self, pattern, group_atoms=None, anti_pattern=[], depth=None):
-        if pattern != Chem.CanonSmiles(pattern):
-            # We don't fix the pattern smiles because group_atoms might rely on the pattern
-            raise ValueError(
-                ("Pattern must be canonical smiles. (value: {}, expected: {})").format(
-                    pattern, Chem.CanonSmiles(pattern)
+        pattern = pattern if isinstance(pattern, list) else [pattern]
+        for p in pattern:
+            if p != Chem.CanonSmiles(p):
+                # We don't fix the pattern smiles because group_atoms might rely on the pattern
+                raise ValueError(
+                    (
+                        "Pattern must be canonical smiles. (value: {}, expected: {})"
+                    ).format(p, Chem.CanonSmiles(p))
                 )
-            )
-        self.pattern_mol = rdmolfiles.MolFromSmiles(pattern)
+
+        self.pattern = [rdmolfiles.MolFromSmiles(p) for p in pattern]
+
         if group_atoms is None:
-            self.group_mol = rdmolfiles.MolFromSmiles(pattern)
+            self.groups = [rdmolfiles.MolFromSmiles(p) for p in pattern]
         else:
-            self.group_mol = rdchem.RWMol(self.pattern_mol)
-            rm_indices = [
-                a.GetIdx()
-                for a in self.group_mol.GetAtoms()
-                if a.GetIdx() not in group_atoms
-            ]
-            for i in sorted(rm_indices, reverse=True):
-                self.group_mol.RemoveAtom(i)
+            self.groups = [rdchem.RWMol(p) for p in self.pattern]
+            for g in self.groups:
+                rm_indices = []
+                for a in g.GetAtoms():
+                    if a.GetIdx() not in group_atoms:
+                        rm_indices.append(a.GetIdx())
+                for i in sorted(rm_indices, reverse=True):
+                    g.RemoveAtom(i)
+
         anti_pattern = (
             anti_pattern if isinstance(anti_pattern, list) else [anti_pattern]
         )
@@ -161,22 +166,21 @@ class FGConfig:
             key=lambda x: len(x.GetAtoms()),
             reverse=True,
         )
-        self.max_depth = (
+        
+        self.max_pattern_size = (
             depth
             if depth is not None
-            else np.max(
-                [len(c.GetAtoms()) for c in [self.pattern_mol] + self.anti_pattern]
-            )
+            else np.max([len(c.GetAtoms()) for c in self.pattern + self.anti_pattern])
         )
 
 
 functional_group_config = {
     "phenol": FGConfig("Oc1ccccc1"),
     "alcohol": FGConfig(
-        "CO", anti_pattern=["C=O", "C(=O)O", "C=CO", "COC", "OCO", "Oc1ccccc1"]
+        "CO", anti_pattern=["C(=O)O", "C=CO", "COC", "OCO", "Oc1ccccc1"]
     ),
     "ether": FGConfig(
-        "COC", group_atoms=[1], anti_pattern=["C=O", "C=CO", "OCOC", "OC=O"]
+        "COC", group_atoms=[1], anti_pattern=["OC=S", "C=O", "C=CO", "OCOC", "OC=O"]
     ),
     "enol": FGConfig("C=CO"),
     "amid": FGConfig("NC=O", anti_pattern=["O=C(N)O"]),
@@ -202,7 +206,7 @@ functional_group_config = {
     "nitrose": FGConfig("N=O", anti_pattern=["O=NO"]),
     "nitro": FGConfig("O=NO"),
     "thioether": FGConfig("CSC", group_atoms=[1], anti_pattern=["O=CS"]),
-    "thioester": FGConfig("O=CS"),
+    "thioester": FGConfig(["O=CS", "OC=S"]),
 }
 
 
@@ -213,14 +217,16 @@ def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
         )
     config = functional_group_config[group_name]
 
-    rmol, index = reduce(mol, index, config.max_depth - 1)
-    pattern_match = list(rmol.GetSubstructMatch(config.pattern_mol))
     is_func_group = False
-    if index in pattern_match:
-        group_match = list(rmol.GetSubstructMatch(config.group_mol))
-        is_func_group = index in group_match
 
-    last_len = config.max_depth
+    rmol, index = reduce(mol, index, config.max_pattern_size - 1)
+    for p_mol, g_mol in zip(config.pattern, config.groups):
+        pattern_match = list(rmol.GetSubstructMatch(p_mol))
+        if index in pattern_match:
+            group_match = list(rmol.GetSubstructMatch(g_mol))
+            is_func_group = is_func_group or index in group_match
+
+    last_len = config.max_pattern_size
     for ap_mol, ap_mol_size in sorted(
         [(m, len(m.GetAtoms())) for m in config.anti_pattern],
         key=lambda x: x[1],

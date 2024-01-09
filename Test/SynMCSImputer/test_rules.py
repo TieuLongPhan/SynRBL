@@ -98,6 +98,13 @@ class TestFGConfig(unittest.TestCase):
         self.assertEqual("CCC", rdmolfiles.MolToSmiles(config.anti_pattern[1]))
         self.assertEqual("C=O", rdmolfiles.MolToSmiles(config.anti_pattern[2]))
 
+    def test_init_with_multiple_patterns(self):
+        config = rules.FGConfig(["O=CS", "OC=S"])
+        self.assertEqual(2, len(config.pattern))
+        self.assertEqual(2, len(config.groups))
+        self.assertEqual("O=CS", rdmolfiles.MolToSmiles(config.groups[0]))
+        self.assertEqual("OC=S", rdmolfiles.MolToSmiles(config.groups[1]))
+
 
 class TestFunctionalGroupCheck(unittest.TestCase):
     def __test_fg(self, smiles, group_name, indices=None):
@@ -214,6 +221,7 @@ class TestFunctionalGroupCheck(unittest.TestCase):
     def test_thioester(self):
         # Methyl thionobenzonat
         self.__test_fg("CSC(=O)c1ccccc1", "thioester", [1, 2, 3])
+        self.__test_fg("COC(=S)c1ccccc1", "thioester", [1, 2, 3])
 
 
 class TestFunctionalGroupProperty(unittest.TestCase):
