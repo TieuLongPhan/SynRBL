@@ -7,6 +7,7 @@ from rdkit.Chem import AllChem
 from rdkit.Chem.MolStandardize import rdMolStandardize
 from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
 from SynRBL.SynMCSImputer.MissingGraph.molcurator import MoleculeCurator
+from typing import List, Dict, Optional, Tuple
 class FindMissingGraphs:
     """
     A class for finding missing parts, boundary atoms, and nearest neighbors in a list of reactant molecules.
@@ -36,7 +37,11 @@ class FindMissingGraphs:
         pass
 
     @staticmethod
-    def find_missing_parts_pairs(mol_list, mcs_list=None, use_findMCS=False, params=None):
+    def find_missing_parts_pairs(
+        mol_list: List[Chem.Mol], 
+        mcs_list: Optional[List[Chem.Mol]] = None 
+        ) -> Tuple[Optional[List[Chem.Mol]], List[List[Dict[str, int]]], List[List[Dict[str, int]]]]:
+    
         """
         This function analyzes each molecule in a given list and identifies the parts that are not 
         present in the corresponding Maximum Common Substructure (MCS). It also finds the boundary 

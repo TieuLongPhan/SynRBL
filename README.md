@@ -21,7 +21,6 @@ SynRBL is organized into several key components, each dedicated to a specific as
 ### Main Components
 
 - `SynRBL/`: Main package directory
-  - `SynCleaning/`: Data cleaning module
   - `SynExtract/`: Data extraction module
   - `SynRuleEngine/`: Rule engine module
   - `SynRuleImpute/`: Rule-based imputation module
@@ -31,7 +30,6 @@ SynRBL is organized into several key components, each dedicated to a specific as
 ### Test Suite
 
 - `tests/`: Test scripts and related files
-  - `SynCleaning/`: Tests for SynCleaning module
   - `SynExtract/`: Tests for SynExtract module
   - `SynRuleEngine/`: Tests for SynRuleEngine module
   - `SynRuleImpute/`: Tests for SynRuleImpute module

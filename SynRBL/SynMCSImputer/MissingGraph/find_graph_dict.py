@@ -6,7 +6,7 @@ from SynRBL.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUnce
 from SynRBL.rsmi_utils import load_database, save_database
 import pandas as pd
 
-def find_single_graph(mcs_mol_list, sorted_reactants_mol_list, use_findMCS=True):
+def find_single_graph(mcs_mol_list, sorted_reactants_mol_list):
     """
     Find missing parts, boundary atoms, and nearest neighbors for a list of reactant molecules
     using a corresponding list of MCS (Maximum Common Substructure) molecules.
@@ -26,7 +26,7 @@ def find_single_graph(mcs_mol_list, sorted_reactants_mol_list, use_findMCS=True)
     missing_results = {'smiles': [], 'boundary_atoms_products': [], 'nearest_neighbor_products': [], 'issue': []}
     for i in zip(sorted_reactants_mol_list, mcs_mol_list):
         try:
-            mols, boundary_atoms_products, nearest_neighbor_products = FindMissingGraphs.find_missing_parts_pairs(i[0], i[1], use_findMCS=use_findMCS)
+            mols, boundary_atoms_products, nearest_neighbor_products = FindMissingGraphs.find_missing_parts_pairs(i[0], i[1])
             missing_results['smiles'].append([Chem.MolToSmiles(mol) for mol in mols])
             missing_results['boundary_atoms_products'].append(boundary_atoms_products)
             missing_results['nearest_neighbor_products'].append(nearest_neighbor_products)
@@ -39,7 +39,7 @@ def find_single_graph(mcs_mol_list, sorted_reactants_mol_list, use_findMCS=True)
     return missing_results
 
 
-def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-1, use_findMCS=True):
+def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-1):
     """
     Find missing parts, boundary atoms, and nearest neighbors for a list of reactant molecules
     using a corresponding list of MCS (Maximum Common Substructure) molecules in parallel.
@@ -57,9 +57,9 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-
     - 'nearest_neighbor_products' (list of dict): Lists of nearest neighbors for each molecule.
     - 'issue' (str): Any issues encountered during processing.
     """
-    def process_single_pair(reactant_mol, mcs_mol, use_findMCS=True):
+    def process_single_pair(reactant_mol, mcs_mol):
         try:
-            mols, boundary_atoms_products, nearest_neighbor_products = FindMissingGraphs.find_missing_parts_pairs(reactant_mol, mcs_mol, use_findMCS=use_findMCS)
+            mols, boundary_atoms_products, nearest_neighbor_products = FindMissingGraphs.find_missing_parts_pairs(reactant_mol, mcs_mol)
             return {
                 'smiles': [Chem.MolToSmiles(mol) if mol is not None else None for mol in mols],
                 'boundary_atoms_products': boundary_atoms_products,
@@ -74,11 +74,11 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-
                 'issue': str(e)
             }
 
-    results = Parallel(n_jobs=n_jobs)(delayed(process_single_pair)(reactant_mol, mcs_mol, use_findMCS=use_findMCS) for reactant_mol, mcs_mol in zip(sorted_reactants_mol_list, mcs_mol_list))
+    results = Parallel(n_jobs=n_jobs)(delayed(process_single_pair)(reactant_mol, mcs_mol) for reactant_mol, mcs_mol in zip(sorted_reactants_mol_list, mcs_mol_list))
     return results
 
 def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
-                    n_jobs: int=4, use_findMCS: bool=False):
+                    n_jobs: int=4):
     """
     Function to find missing graphs for a given MCS dictionary.
     """
@@ -93,7 +93,7 @@ def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
     sorted_reactants_mol_list = smiles_to_mol_parallel(sorted_reactants, useSmiles=True)
 
     #find_graph = FindMissingGraphs()
-    missing_results = find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=n_jobs, use_findMCS=use_findMCS)
+    missing_results = find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=n_jobs)
     missing_results = GraphMissingUncertainty(missing_results, threshold=2).fit()
     uncertainty_data = len(pd.DataFrame(missing_results)) - pd.DataFrame(missing_results)['Certainty'].sum()
     print('Uncertainty Data:', uncertainty_data)

@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 import pandas as pd
 from rdkit.Chem import rdFMCS
-root_dir = Path(__file__).parents[2]
+root_dir = Path(__file__).parents[3]
 sys.path.append(str(root_dir))
 from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS  
 class TestExtractMCS(unittest.TestCase):
