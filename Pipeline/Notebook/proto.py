@@ -12,7 +12,14 @@ path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph
 org_data = load_database(path)
 
 
-def plot_reaction(entry, show_atom_numbers=False, figsize=(10,7.5)):
+def get_reaction_by_id(data, id):
+    for i, item in enumerate(data):
+        if item["R-id"] == id:
+            return i, item
+    return None
+
+
+def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
     visualizer = ReactionVisualizer(figsize=figsize)
     visualizer.plot_reactions(
         entry,
@@ -115,7 +122,10 @@ path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "MCS_Impute"
 results = load_database(path)
 
 print_error_summary(results)
-plot_reaction(results[67], show_atom_numbers=True)
+#i, rx = get_reaction_by_id(results, "USPTO_50K_")
+rx = results[152]
+
+plot_reaction(rx, show_atom_numbers=False)
 
 # |%%--%%| <ftWMEjJznz|T6IJBZXUlT>
 import rdkit.Chem.rdmolfiles as rdmolfiles
@@ -140,15 +150,6 @@ img = Draw.MolToImage(reactant)
 ax[1].imshow(img)
 
 # |%%--%%| <T6IJBZXUlT|7zydJ3VZZW>
-
-
-def get_reaction_by_id(id):
-    path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph")
-    data = load_database(path)
-    for i, item in enumerate(data):
-        if item["R-id"] == id:
-            return i, item
-    return None
 
 
 entry = get_reaction_by_id("R190")

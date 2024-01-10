@@ -28,9 +28,10 @@ def print_success_rate(dataset):
         if item["issue"] == "":
             success_cnt += 1
     print(
-        "Reached carbon balance on {:.2%} ({}) of the reactions.".format(
+        "Reached carbon balance on {:.2%} ({}/{}) of the reactions.".format(
             success_cnt / len(dataset),
             success_cnt,
+            len(dataset)
         )
     )
 
