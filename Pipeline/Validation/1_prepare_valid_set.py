@@ -237,10 +237,15 @@ if __name__ == '__main__':
     valid1=generate_artificial_validation(valid_reactions, select='longest', transfer_two=False, random_state=42)
     for item in valid1:
         item['carbon_balance_check'] = 'reactants'
+
+    for key, value in enumerate(valid1):
+        valid1[key]['reactions'] = '>>'.join([value['reactants'], value['products']])
     # Process the data to get the shortest SMILES
     valid2=generate_artificial_validation(valid_reactions, select='shortest', transfer_two=False, random_state=42)
     for item in valid2:
         item['carbon_balance_check'] = 'reactants'
+    for key, value in enumerate(valid2):
+        valid2[key]['reactions'] = '>>'.join([value['reactants'], value['products']])
     save_database(valid1, f'{root_dir}/Data/Validation_set/artificial_data_1/mcs_based_reactions.json.gz')
     save_database(valid2, f'{root_dir}/Data/Validation_set/artificial_data_2/mcs_based_reactions.json.gz')
  
