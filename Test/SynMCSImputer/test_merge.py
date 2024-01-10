@@ -251,3 +251,18 @@ class TestCompounds(unittest.TestCase):
         compound1.add_boundary(3, symbol="C", neighbor_index=8, neighbor_symbol="O")
         cm = merge.merge(compound1)
         self.assertEqual("OCC(O)CC(O)O", cm.smiles)
+
+    def test_merge_expansion_of_two_compounds_with_unequal_nr_of_bonds(self):
+        compound1 = structure.Compound(
+            "Cl", src_mol="COc1ccc(N(C)c2nc(CCl)nc3ccccc23)cc1Cl"
+        )
+        compound1.add_boundary(0, symbol="Cl", neighbor_index=11, neighbor_symbol="C")
+        compound2 = structure.Compound("O=Cc1ccccc1C=O", src_mol="O=C1NC(=O)c2ccccc21")
+        compound2.add_boundary(1, symbol="C", neighbor_index=2, neighbor_symbol="N")
+        compound2.add_boundary(8, symbol="C", neighbor_index=2, neighbor_symbol="N")
+        compound1.rules = ['r1']
+        compound2.rules = ['r2']
+        cm = merge.merge([compound1, compound2])
+        self.assertEqual("Cl.O=C(O)c1ccccc1C(=O)O", cm.smiles)
+        self.assertIn('r1', cm.rules)
+        self.assertIn('r2', cm.rules)

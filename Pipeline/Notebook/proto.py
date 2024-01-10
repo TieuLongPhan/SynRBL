@@ -1,3 +1,4 @@
+import numpy as np
 import rdkit.Chem as Chem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw as Draw
@@ -5,14 +6,30 @@ import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import matplotlib.pyplot as plt
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 import rdkit.Chem.MolStandardize.rdMolStandardize as rdMolStandardize
+from SynRBL.rsmi_utils import load_database, save_database
 
-def plot_reaction(entry):
-    visualizer = ReactionVisualizer(figsize=(10, 10))
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph")
+org_data = load_database(path)
+
+
+def get_reaction_by_id(data, id):
+    for i, item in enumerate(data):
+        if item["R-id"] == id:
+            return i, item
+    return None
+
+
+def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
+    visualizer = ReactionVisualizer(figsize=figsize)
     visualizer.plot_reactions(
-        entry, "old_reaction", "new_reaction", compare=True, show_atom_numbers=False
+        entry,
+        "old_reaction",
+        "new_reaction",
+        compare=True,
+        show_atom_numbers=show_atom_numbers,
     )
     print("ID:", entry["R-id"])
-    print("Imbalance:", entry['carbon_balance_check'])
+    print("Imbalance:", entry["carbon_balance_check"])
     print("Smiles:", entry["smiles"])
     print("Sorted Reactants:", entry["sorted_reactants"])
     print("MCS:", [len(x) for x in entry["mcs_results"]])
@@ -20,11 +37,7 @@ def plot_reaction(entry):
     print("Neighbors:", entry["nearest_neighbor_products"])
     print("Issue:", entry["issue"])
     print("Rules:", entry["rules"])
-    print("Compounds:")
-    for c in entry['compounds']:
-        print("  Smiles: {}".format(c.smiles))
-        for b in c.boundaries:
-            print("    Boundary: {}   Neighbor: {}".format(b.symbol, b.neighbor_symbol))
+
 
 s = "c1ccccc1C(=S)OC"  # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 s = Chem.CanonSmiles(s)
@@ -34,7 +47,7 @@ enumerator = rdMolStandardize.TautomerEnumerator()
 mol = enumerator.Canonicalize(mol)
 if True:
     for i, atom in enumerate(mol.GetAtoms()):
-       atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
+        atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
 atom = mol.GetAtomWithIdx(0)
 fig, ax = plt.subplots(1, 1, figsize=(10, 3))
 img = Draw.MolToImage(mol)
@@ -44,88 +57,75 @@ ax.axis("off")
 plt.show()
 
 
-# |%%--%%| <PDHNfCjKgB|IXhnkWIUcu>
-import traceback
-import SynRBL.SynMCSImputer.merge as merge
-import SynRBL.SynMCSImputer.structure as structure
-import SynRBL.SynMCSImputer.utils as utils
+# |%%--%%| <PDHNfCjKgB|tx0z4CFgIc>
+import collections
+from SynRBL.SynMCSImputer.rules import CompoundRule, MergeRule
+from SynRBL.SynMCSImputer.model import MCSImputer
 
 
-def impute_new_reaction(data):
+def impute_new_reactions(data):
+    imputer = MCSImputer()
     rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
-        data[i]["rules"] = []
-        new_reaction = data[i]["old_reaction"]
-        if data[i]["issue"] != "":
-            print("[ERROR] [{}]".format(i), "Skip because of previous issue.")
-            continue
-        try:
-            compounds = structure.build_compounds(item)
-            if len(compounds) == 0:
-                continue
-            result = merge.merge(compounds)
-            new_reaction = "{}.{}".format(item["old_reaction"], result.smiles)
-            rules = [r.name for r in result.rules]
-            data[i]["rules"] = rules
-            if len(rules) == 0:
-                rule_map["no rule"].add(i)
-            else:
-                for r in data[i]["rules"]:
-                    rule_map[r].add(i)
-            utils.carbon_equality_check(new_reaction)
-        except Exception as e:
-            # traceback.print_exc()
-            data[i]["issue"] = str(e)
-            print("[ERROR] [{}]".format(i), e)
-        finally:
-            data[i]["new_reaction"] = new_reaction
+        imputer.impute_reaction(item)
+        issue = item["issue"]
+        if issue != "":
+            print("[ERROR] [{}] {}".format(i, issue))
+        rules = item["rules"]
+        if len(rules) == 0:
+            for r in rules:
+                rule_map[r].add(i)
+        else:
+            rule_map["no rule"].add(i)
     return rule_map
 
 
+def print_error_summary(data):
+    error_map = collections.defaultdict(lambda: [])
+    fail_cnt = 0
+    for i, r in enumerate(data):
+        err = r["issue"]
+        if len(err) > 0:
+            error_map[err.split(".")[0]].append(i)
+            fail_cnt += 1
 
-#|%%--%%| <IXhnkWIUcu|WavXFkZceG>
-from SynRBL.rsmi_utils import load_database, save_database
+    for k, v in error_map.items():
+        print("{:<80} {:>4} {}".format(k, len(v), v[:10]))
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("USPTO_50K", "Final_Graph")
-data = load_database(path)[16668:16669]
-
-# |%%--%%| <WavXFkZceG|tx0z4CFgIc>
-from SynRBL.SynMCSImputer.rules import CompoundRule, MergeRule
-impute_new_reaction(data)
-rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
-rule_map["no rule"] = set()
-for i, item in enumerate(data):
-    if "rules" not in item.keys() or len(item["rules"]) == 0:
-        rule_map["no rule"].add(i)
-    else:
-        for r in item["rules"]:
-            rule_map[r].add(i)
+    success_cnt = len(data) - fail_cnt
+    print("-" * 50)
+    print(
+        "MCS was successful on {} ({:.0%}) reactions.".format(
+            success_cnt, success_cnt / len(data)
+        )
+    )
 
 
-def print_rule_summary(rule_map):
+def print_rule_summary(data):
+    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
+    rule_map["no rule"] = set()
+    for i, item in enumerate(data):
+        if "rules" not in item.keys() or len(item["rules"]) == 0:
+            rule_map["no rule"].add(i)
+        else:
+            for r in item["rules"]:
+                rule_map[r].add(i)
+
     for rule, ids in rule_map.items():
         print("{:<30} {}".format(rule, len(ids)))
 
 
-print_rule_summary(rule_map)
+# |%%--%%| <tx0z4CFgIc|ftWMEjJznz>
 
-# |%%--%%| <tx0z4CFgIc|dZjkHmncQW>
-import collections
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "MCS_Impute")
+results = load_database(path)
 
-error_map = collections.defaultdict(lambda: [])
-for i, r in enumerate(data):
-    err = r["issue"]
-    if len(err) > 0:
-        error_map[err[:20]].append(i)
+print_error_summary(results)
+#i, rx = get_reaction_by_id(results, "USPTO_50K_")
+rx = results[152]
 
-for k, v in error_map.items():
-    print("{:<20} {:>4} {}".format(k, len(v), v[:10]))
-
-
-#|%%--%%| <dZjkHmncQW|ftWMEjJznz>
-
-plot_reaction(data[16668])
+plot_reaction(rx, show_atom_numbers=False)
 
 # |%%--%%| <ftWMEjJznz|T6IJBZXUlT>
 import rdkit.Chem.rdmolfiles as rdmolfiles
@@ -150,15 +150,6 @@ img = Draw.MolToImage(reactant)
 ax[1].imshow(img)
 
 # |%%--%%| <T6IJBZXUlT|7zydJ3VZZW>
-
-
-def get_reaction_by_id(id):
-    path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph")
-    data = load_database(path)
-    for i, item in enumerate(data):
-        if item["R-id"] == id:
-            return i, item
-    return None
 
 
 entry = get_reaction_by_id("R190")

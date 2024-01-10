@@ -2,49 +2,56 @@ import argparse
 
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynMCSImputer.rules import MergeRule, CompoundRule
-import SynRBL.SynMCSImputer.structure as structure
-import SynRBL.SynMCSImputer.utils as utils
-import SynRBL.SynMCSImputer.merge as merge
-
-
-def impute_new_reaction(data):
-    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
-    rule_map["no rule"] = set()
-    for i, item in enumerate(data):
-        data[i]["rules"] = []
-        new_reaction = data[i]["old_reaction"]
-        if data[i]["issue"] != "":
-            print("[ERROR] [{}]".format(i), "Skip because of previous issue.")
-            continue
-        try:
-            compounds = structure.build_compounds(item)
-            if len(compounds) == 0:
-                continue
-            result = merge.merge(compounds)
-            new_reaction = "{}.{}".format(item["old_reaction"], result.smiles)
-            rules = [r.name for r in result.rules]
-            data[i]["rules"] = rules
-            if len(rules) == 0:
-                rule_map["no rule"].add(i)
-            else:
-                for r in data[i]["rules"]:
-                    rule_map[r].add(i)
-            utils.carbon_equality_check(new_reaction)
-        except Exception as e:
-            # traceback.print_exc()
-            data[i]["issue"] = str(e)
-            print("[ERROR] [{}]".format(i), e)
-        finally:
-            data[i]["new_reaction"] = new_reaction
-    return rule_map
+from SynRBL.SynMCSImputer.model import MCSImputer
 
 
 def print_rule_summary(rule_map):
-    print("{}".format("=" * 40))
-    print("  {:<30} {}".format("Rule", "#"))
-    print("{}".format("-" * 40))
+    line_fmt = "  {:<30} {:4} {:>5}"
+    header = line_fmt.format("Rule", "Type", "#")
+    print("{}".format("=" * len(header)))
+    print(header)
+    print("{}".format("-" * len(header)))
+    merge_rules = [r.name for r in MergeRule.get_all()]
+    compound_rules = [r.name for r in CompoundRule.get_all()]
     for rule, ids in rule_map.items():
-        print("  {:<30} {}".format(rule, len(ids)))
+        rule_type = ""
+        if rule in merge_rules:
+            rule_type = "MR"
+        elif rule in compound_rules:
+            rule_type = "CR"
+        print(line_fmt.format(rule, rule_type, len(ids)))
+
+
+def print_success_rate(dataset):
+    success_cnt = 0
+    for item in dataset:
+        if item["issue"] == "":
+            success_cnt += 1
+    print(
+        "Reached carbon balance on {:.2%} ({}/{}) of the reactions.".format(
+            success_cnt / len(dataset),
+            success_cnt,
+            len(dataset)
+        )
+    )
+
+
+def impute_new_reactions(data):
+    imputer = MCSImputer()
+    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
+    rule_map["no rule"] = set()
+    for i, item in enumerate(data):
+        imputer.impute_reaction(item)
+        issue = item["issue"]
+        if issue != "":
+            print("[ERROR] [{}] {}".format(i, issue))
+        rules = item["rules"]
+        if len(rules) > 0:
+            for r in rules:
+                rule_map[r].add(i)
+        else:
+            rule_map["no rule"].add(i)
+    return rule_map
 
 
 def get_database_path(dataset, name):
@@ -63,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     data = load_database(get_database_path(args.dataset, "Final_Graph"))
-    rule_map = impute_new_reaction(data)
+    rule_map = impute_new_reactions(data)
     save_database(data, get_database_path(args.dataset, "MCS_Impute"))
-    if args.summary:
-        print_rule_summary(rule_map)
+    print_rule_summary(rule_map)
+    print_success_rate(data)
