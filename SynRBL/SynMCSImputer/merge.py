@@ -143,6 +143,24 @@ def merge_boundaries(boundary1: Boundary, boundary2: Boundary) -> Compound | Non
     return None
 
 
+def concat_compounds(compound1: Compound, compound2: Compound) -> Compound:
+    if len(compound1.boundaries) > 0 or len(compound2.boundaries) > 0:
+        raise ValueError(
+            "Can not concat compounds with open boundaries. Try merging them."
+        )
+    src_mol = None
+    try:
+        src_mol = "{}.{}".format(compound1.src_smiles, compound2.src_smiles)
+    except:
+        pass
+    concat_compound = Compound(
+        "{}.{}".format(compound1.smiles, compound2.smiles),
+        src_mol=src_mol,
+    )
+    concat_compound.rules = compound1.rules + compound2.rules
+    return concat_compound
+
+
 def _merge_one_compound(compound: Compound) -> Compound:
     merged_compound = compound
     while len(merged_compound.boundaries) > 0:
@@ -167,6 +185,7 @@ def _merge_one_compound(compound: Compound) -> Compound:
 def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
     boundaries1 = compound1.boundaries
     boundaries2 = compound2.boundaries
+    merged_compound = None
     if len(boundaries1) != 1:
         raise NotImplementedError(
             ("Can only merge compounds with single boundary atom. ({})").format(
@@ -174,12 +193,22 @@ def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
             )
         )
     if len(boundaries1) != len(boundaries2):
-        raise NotImplementedError(
-            (
-                "Can only merge compounds with the same number of boundaries. ({}, {})"
-            ).format(len(boundaries1), len(boundaries2))
-        )
-    merged_compound = merge_boundaries(boundaries1[0], boundaries2[0])
+        if compound1.num_compounds == 1 and compound2.num_compounds == 1:
+            # If boundaries don't match, try to expand-merge them.
+            # This is only safe if the smiles contains only one compound,
+            # otherwise MCS was probably wrong.
+            compound1 = _merge_one_compound(compound1)
+            compound2 = _merge_one_compound(compound2)
+            merged_compound = concat_compounds(compound1, compound2)
+        else:
+            raise ValueError(
+                (
+                    "Can not merge compounds with unequal "
+                    + "number of boundaries ({} != {})."
+                ).format(len(boundaries1), len(boundaries2))
+            )
+    else:
+        merged_compound = merge_boundaries(boundaries1[0], boundaries2[0])
     if merged_compound is None:
         raise ValueError("No merge rule found.")
     return merged_compound
