@@ -21,19 +21,19 @@ SynRBL is organized into several key components, each dedicated to a specific as
 ### Main Components
 
 - `SynRBL/`: Main package directory
-  - `SynExtract/`: Data extraction module
-  - `SynRuleEngine/`: Rule engine module
-  - `SynRuleImpute/`: Rule-based imputation module
-  - `SynMCS/`: MCS-based imputation module
+  - `SynProcessor/`: Data processing module
+  - `SynRuleImputer/`: Rule-based imputation module
+  - `SynMCSImputer/`: MCS-based imputation module
+  - `SynChemImputer/`: MCS-based imputation module
   - `SynVis/`: Data visualization module
 
 ### Test Suite
 
 - `tests/`: Test scripts and related files
-  - `SynExtract/`: Tests for SynExtract module
-  - `SynRuleEngine/`: Tests for SynRuleEngine module
-  - `SynRuleImpute/`: Tests for SynRuleImpute module
-  - `SynMCS/`: Tests for MCS-based imputation module
+  - `SynProcessor/`: Tests for SynExtract module
+  - `SynRuleImputer/`: Tests for SynRuleImpute module
+  - `SynMCSImputer/`: Tests for MCS-based imputation module
+  - `SynChemImputer/`: Tests for MCS-based imputation module
   - `SynVis/`: Tests for SynVis module
 
 ### Pipeline
@@ -60,8 +60,8 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
 
 - Python 3.9+
 - RDKit
-- tmap
-- map4
+- jobib
+
 
 ### Step-by-Step Installation Guide
 
@@ -214,7 +214,6 @@ from SynRBL.SynUtils.data_utils import save_database, load_database, filter_data
 from SynRBL.SynRuleImputer import SyntheticRuleImputer
 
 rules = load_database('../../Data/Rules/rules_manager.json.gz')
-#reactions_clean = load_database('../../Data/reaction_clean.json.gz')
 
 # Filter data based on specified criteria
 
@@ -290,14 +289,9 @@ new_reaction = 'CC>>CC'
 visualizer.plot_reactions(old_reaction, new_reaction)
 ```
 
-
-
-
-
-
 ## Features
 
-- **SynProcess:** Automated extraction and decomposition of chemical data .
+- **SynProcessor:** Automated extraction and decomposition of chemical data .
 - **SynRuleImputer:** Application of rule-based algorithms for rebalancing non-carbon compounds.
 - **SynMCSImputer:** Application of mcs-based algorithms for rebalancing carbon compounds.
 - **SynChemImputer:** Application of domain knowlegde for rebalancing.

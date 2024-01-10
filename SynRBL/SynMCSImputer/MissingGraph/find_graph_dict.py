@@ -3,7 +3,7 @@ from joblib import Parallel, delayed
 from typing import List
 from SynRBL.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
 from SynRBL.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
-from SynRBL.rsmi_utils import load_database, save_database
+from SynRBL.SynUtils.data_utils import load_database, save_database
 import pandas as pd
 
 def find_single_graph(mcs_mol_list, sorted_reactants_mol_list):
