@@ -133,55 +133,56 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
 
 
 
-    # if data_name == 'USPTO_50K':
-    #     USPTO_diff = root_dir / 'Data/Validation_set' / 'USPTO_diff'
-    #     USPTO_diff_check = root_dir / 'Data/Validation_set' / 'USPTO_diff' / 'check'
-    #     if not USPTO_diff_check.exists():
-    #         os.mkdir(USPTO_diff_check)
-    #     certain_reactions_diff = get_random_samples_by_key(certain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
-    #     uncertain_reactions_diff = get_random_samples_by_key(mcs_based, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
-    #     print(len(uncertain_reactions_diff))
-    #     save_database(certain_reactions_diff, USPTO_diff / 'rule_based_reactions.json.gz')
-    #     save_database(uncertain_reactions_diff, USPTO_diff / 'mcs_based_reactions.json.gz')
-    # #     # vis = ReactionVisualizer()
-    # #     # for i in range(0, len(certain_reactions_diff),1):
-    # #     #     vis.plot_reactions(certain_reactions_diff[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=USPTO_diff_check/ f'{i}.png')
-    # #     #     matplotlib.pyplot.close()
+    if data_name == 'USPTO_50K':
+        USPTO_diff = root_dir / 'Data/Validation_set' / 'USPTO_diff'
+        USPTO_diff_check = root_dir / 'Data/Validation_set' / 'USPTO_diff' / 'check'
+        if not USPTO_diff_check.exists():
+            os.mkdir(USPTO_diff_check)
+        certain_reactions_diff = get_random_samples_by_key(certain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
+        uncertain_reactions_diff = get_random_samples_by_key(mcs_based, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
+        print(len(uncertain_reactions_diff))
+        save_database(certain_reactions_diff, USPTO_diff / 'rule_based_reactions.json.gz')
+        save_database(uncertain_reactions_diff, USPTO_diff / 'mcs_based_reactions.json.gz')
+        vis = ReactionVisualizer()
+        for i in range(0, len(certain_reactions_diff),1):
+            vis.plot_reactions(certain_reactions_diff[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=USPTO_diff_check/ f'{i}.png')
+            matplotlib.pyplot.close()
 
         
         
-    #     USPTO_unb = root_dir / 'Data/Validation_set' / 'USPTO_unbalance_class'
-    #     USPTO_unb_check = root_dir / 'Data/Validation_set' / 'USPTO_unbalance_class' / 'check'
-    #     certain_reactions_class = sample_reactions_by_class(certain_reactions, N=30, random_state=42)
-    #     uncertain_reactions_class = sample_reactions_by_class(mcs_based, N=30, random_state=42)
-    #     print(len(uncertain_reactions_class))
-    #     save_database(certain_reactions_class, USPTO_unb / 'rule_based_reactions.json.gz')
-    #     save_database(uncertain_reactions_class, USPTO_unb / 'mcs_based_reactions.json.gz')
+        USPTO_unb = root_dir / 'Data/Validation_set' / 'USPTO_unbalance_class'
+        USPTO_unb_check = root_dir / 'Data/Validation_set' / 'USPTO_unbalance_class' / 'check'
+        certain_reactions_class = sample_reactions_by_class(certain_reactions, N=30, random_state=42)
+        uncertain_reactions_class = sample_reactions_by_class(mcs_based, N=30, random_state=42)
+        print(len(uncertain_reactions_class))
+        save_database(certain_reactions_class, USPTO_unb / 'rule_based_reactions.json.gz')
+        save_database(uncertain_reactions_class, USPTO_unb / 'mcs_based_reactions.json.gz')
         
         
-    #     certain_reactions = certain_reactions_class
+        certain_reactions = certain_reactions_class
 
-    for d in mcs_based:
-        d.pop('Unbalance', None)  # Remove 'Unbalance' key if it exists
-        d.pop('Diff_formula', None)  # Remove 'Diff_formula' key if it exists
+    # for d in mcs_based:
+    #     d.pop('Unbalance', None)  # Remove 'Unbalance' key if it exists
+    #     d.pop('Diff_formula', None)  # Remove 'Diff_formula' key if it exists
 
    
-    print('Solved reactions by rule based method:', len(certain_reactions))
-    print('Reactions for MCS based method:', len(mcs_based))
+    # print('Solved reactions by rule based method:', len(certain_reactions))
+    # print('Reactions for MCS based method:', len(mcs_based))
 
 
 
-    save_database(certain_reactions, save_dir / 'rule_based_reactions.json.gz')
-    save_database(mcs_based, save_dir / 'mcs_based_reactions.json.gz')
+    # save_database(certain_reactions, save_dir / 'rule_based_reactions.json.gz')
+    # save_database(mcs_based, save_dir / 'mcs_based_reactions.json.gz')
 
-    check_dir = root_dir / 'Data/Validation_set' / data_name / 'check'
-    if not check_dir.exists():
-        os.mkdir(check_dir)
+    # check_dir = root_dir / 'Data/Validation_set' / data_name / 'check'
+    # if not check_dir.exists():
+    #     os.mkdir(check_dir)
 
-    vis = ReactionVisualizer()
-    for i in range(0, len(certain_reactions),1):
-        vis.plot_reactions(certain_reactions[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=check_dir/ f'{i}.png')
-        matplotlib.pyplot.close()
+    # vis = ReactionVisualizer()
+    # for i in range(0, len(certain_reactions),1):
+    #     vis.plot_reactions(certain_reactions[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=check_dir/ f'{i}.png')
+    #     #vis.plot_reactions(certain_reactions[i],'reactions', 'new_reaction', compare=True, savefig=True, pathname=USPTO_unb_check/ f'{i}.png')
+    #     matplotlib.pyplot.close()
 
         
 
