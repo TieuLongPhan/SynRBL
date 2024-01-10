@@ -101,8 +101,9 @@ def merge_two_mols(mol1, mol2, idx1, idx2, rule, mol1_track=None, mol2_track=Non
         sym2 = atom2.GetSymbol()
         raise ValueError(
             (
-                "Failed to merge '{}' Idx={} ({}) and '{}' Idx={} ({}) "
-                + "to a valid molecule. {}"
+                "Failed to merge compounds. "
+                + "(Compound1: '{}' Idx={} ({}) Compound2: '{}' Idx={} ({})) "
+                + "Reason: {}"
             ).format(smiles1, idx1, sym1, smiles2, idx2, sym2, str(e))
         )
 
@@ -204,7 +205,7 @@ def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
             raise ValueError(
                 (
                     "Can not merge compounds with unequal "
-                    + "number of boundaries ({} != {})."
+                    + "number of boundaries. ({} != {})."
                 ).format(len(boundaries1), len(boundaries2))
             )
     else:

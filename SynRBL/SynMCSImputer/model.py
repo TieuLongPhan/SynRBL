@@ -62,7 +62,7 @@ def impute_reaction(reaction_dict):
     try:
         if reaction_dict["issue"] != "":
             raise ValueError(
-                "Skip reaction because of previous issue: " + reaction_dict["issue"]
+                "Skip reaction because of previous issue.\n" + reaction_dict["issue"]
             )
         compounds = build_compounds(reaction_dict)
         if len(compounds) == 0:

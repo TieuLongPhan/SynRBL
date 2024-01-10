@@ -12,8 +12,8 @@ path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph
 org_data = load_database(path)
 
 
-def plot_reaction(entry, show_atom_numbers=False):
-    visualizer = ReactionVisualizer(figsize=(10, 10))
+def plot_reaction(entry, show_atom_numbers=False, figsize=(10,7.5)):
+    visualizer = ReactionVisualizer(figsize=figsize)
     visualizer.plot_reactions(
         entry,
         "old_reaction",
@@ -50,7 +50,9 @@ ax.axis("off")
 plt.show()
 
 
-# |%%--%%| <PDHNfCjKgB|IXhnkWIUcu>
+# |%%--%%| <PDHNfCjKgB|tx0z4CFgIc>
+import collections
+from SynRBL.SynMCSImputer.rules import CompoundRule, MergeRule
 from SynRBL.SynMCSImputer.model import MCSImputer
 
 
@@ -72,57 +74,48 @@ def impute_new_reactions(data):
     return rule_map
 
 
-# |%%--%%| <IXhnkWIUcu|tx0z4CFgIc>
-import copy
-from SynRBL.SynMCSImputer.rules import CompoundRule, MergeRule
+def print_error_summary(data):
+    error_map = collections.defaultdict(lambda: [])
+    fail_cnt = 0
+    for i, r in enumerate(data):
+        err = r["issue"]
+        if len(err) > 0:
+            error_map[err.split(".")[0]].append(i)
+            fail_cnt += 1
 
-data = copy.deepcopy(org_data)
-impute_new_reactions(data)
-rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
-rule_map["no rule"] = set()
-for i, item in enumerate(data):
-    if "rules" not in item.keys() or len(item["rules"]) == 0:
-        rule_map["no rule"].add(i)
-    else:
-        for r in item["rules"]:
-            rule_map[r].add(i)
+    for k, v in error_map.items():
+        print("{:<80} {:>4} {}".format(k, len(v), v[:10]))
+
+    success_cnt = len(data) - fail_cnt
+    print("-" * 50)
+    print(
+        "MCS was successful on {} ({:.0%}) reactions.".format(
+            success_cnt, success_cnt / len(data)
+        )
+    )
 
 
-def print_rule_summary(rule_map):
+def print_rule_summary(data):
+    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
+    rule_map["no rule"] = set()
+    for i, item in enumerate(data):
+        if "rules" not in item.keys() or len(item["rules"]) == 0:
+            rule_map["no rule"].add(i)
+        else:
+            for r in item["rules"]:
+                rule_map[r].add(i)
+
     for rule, ids in rule_map.items():
         print("{:<30} {}".format(rule, len(ids)))
 
 
-print_rule_summary(rule_map)
+# |%%--%%| <tx0z4CFgIc|ftWMEjJznz>
 
-# |%%--%%| <tx0z4CFgIc|dZjkHmncQW>
-import collections
-
-error_map = collections.defaultdict(lambda: [])
-fail_cnt = 0
-for i, r in enumerate(data):
-    err = r["issue"]
-    if len(err) > 0:
-        error_map[err[:20]].append(i)
-        fail_cnt += 1
-
-for k, v in error_map.items():
-    print("{:<20} {:>4} {}".format(k, len(v), v[:10]))
-
-success_cnt = len(data) - fail_cnt
-print(
-    "MCS was successful on {} ({:.0%}) reactions.".format(
-        success_cnt, success_cnt / len(data)
-    )
-)
-
-
-# |%%--%%| <dZjkHmncQW|ftWMEjJznz>
-
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("USPTO_50K", "MCS_Impute")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "MCS_Impute")
 results = load_database(path)
 
-plot_reaction(results[13178], show_atom_numbers=True)
+print_error_summary(results)
+plot_reaction(results[67], show_atom_numbers=True)
 
 # |%%--%%| <ftWMEjJznz|T6IJBZXUlT>
 import rdkit.Chem.rdmolfiles as rdmolfiles
