@@ -4,7 +4,7 @@ setup(
     name='SynRBL',
     version='0.1.1',
     description='Synthesis Rebalancing Framework for Computational Chemistry',
-    author='Your Name',
+    author='TieuLongPhan',
     author_email='your.email@example.com',
     url='https://github.com/TieuLongPhan/SynRBL',
     packages=find_packages(),
