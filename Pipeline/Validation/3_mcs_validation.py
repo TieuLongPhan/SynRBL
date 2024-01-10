@@ -75,11 +75,11 @@ def graph_find(data_name = 'golden_dataset'):
 
 # Execute main function
 if __name__ == "__main__":
-    # data_name = ['golden_dataset']
+    data_name = ['golden_dataset']
     # data_name = ['USPTO_50K']
-    # data_name = ['Jaworski']
+    #data_name = ['Jaworski']
     # data_name = ['Jaworski', 'USPTO_diff', 'USPTO_unbalance_class']
-    data_name = ['artificial_data_2']
+    #data_name = ['artificial_data_2']
     for i in data_name:
         mcs(i)
         merge_mcs(i)
