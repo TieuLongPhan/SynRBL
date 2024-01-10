@@ -130,8 +130,6 @@ def main(data_name = 'golden_dataset', n_jobs=4, save = False, rules_extension= 
     mcs_based = mcs_based+unsolve
 
 
-    
-
 
     if data_name == 'USPTO_50K':
         USPTO_diff = root_dir / 'Data/Validation_set' / 'USPTO_diff'

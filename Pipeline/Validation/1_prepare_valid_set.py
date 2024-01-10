@@ -50,7 +50,7 @@ def get_unbalance(data: pd.DataFrame, n_jobs: int = 4) -> Tuple[pd.DataFrame, pd
     
     unbalanced_reactions_clean = filter_data(reactions_clean, unbalance_values=['Reactants', 'Products', 'Both'], 
                                  formula_key='Diff_formula', element_key='C', min_count=0, max_count=100)
-    balanced_reactions_clean = filter_data(reactions_clean, unbalance_values=['Balanced'], 
+    balanced_reactions_clean = filter_data(reactions_clean, unbalance_values=['Balance'], 
                                  formula_key='Diff_formula', element_key='C', min_count=0, max_count=100)
 
     
@@ -177,13 +177,14 @@ def sample_reactions(reactions, N, random_state=None):
 if __name__ == '__main__':
     
    
-    # 1. Golden dataset
+    # # 1. Golden dataset
     golden = pd.read_csv(f'{root_dir}/Data/Raw_data/Golden/Golden.csv')
     golden['id'] = [f'Golden_{str(x)}' for x in golden.index]
-    golden.to_csv(f'{root_dir}/Data/Validation_set/golden_dataset.csv', index=False)
+ 
+    # golden.to_csv(f'{root_dir}/Data/Validation_set/golden_dataset.csv', index=False)
 
 
-    # 2. Jaworski
+    # # 2. Jaworski
 
     complex = pd.read_csv(f'{root_dir}/Data/Raw_data/Jaworski/complex.csv')
     complex['id'] = [f'complex_{str(x)}' for x in complex.index]
@@ -196,38 +197,52 @@ if __name__ == '__main__':
     Jaworski.drop(['mapped_reaction'], axis =1, inplace=True)
     Jaworski.reset_index(drop=True, inplace=True)
     Jaworski.rename(columns={'reaction':'reactions'}, inplace=True)
-    Jaworski.to_csv(f'{root_dir}/Data/Validation_set/Jaworski.csv')
+
+    # Jaworski.to_csv(f'{root_dir}/Data/Validation_set/Jaworski.csv')
 
     # 3. USPTO
-    USPTO_50K = pd.read_csv(f'{root_dir}/Data/Raw_data/USPTO/USPTO_50K.csv')
-    USPTO_balance, USPTO_unbalance = get_unbalance(USPTO_50K, n_jobs=4)
-
-    sampled = sample_reactions(USPTO_unbalance, N=50, random_state=42)
-    sampled_df = pd.DataFrame(sampled)
-    sampled_df['id'] = sampled_df['R-id']
-    sampled_df =  sampled_df[['id','class', 'reactions']]
-    sampled_df.to_csv(f'{root_dir}/Data/Validation_set/USPTO_random_class.csv', index=False)
-    USPTO_50K.to_csv(f'{root_dir}/Data/Validation_set/USPTO_50K.csv', index=False)
+    # USPTO_50K = pd.read_csv(f'{root_dir}/Data/Raw_data/USPTO/USPTO_50K.csv')
+    # USPTO_balance, USPTO_unbalance = get_unbalance(USPTO_50K, n_jobs=4)
+    # print(USPTO_balance)
+    # sampled = sample_reactions(USPTO_unbalance, N=50, random_state=42)
+    # sampled_df = pd.DataFrame(sampled)
+    # sampled_df['id'] = sampled_df['R-id']
+    # sampled_df =  sampled_df[['id','class', 'reactions']]
+    #sampled_df.to_csv(f'{root_dir}/Data/Validation_set/USPTO_random_class.csv', index=False)
+    #USPTO_50K.to_csv(f'{root_dir}/Data/Validation_set/USPTO_50K.csv', index=False)
  
 
 
-    # # 4. Generate artificial validation set
-    # new_balance = pd.concat([balance_nature, balance_golden, balance_USPTO], axis=0)
-    # new_balance.reset_index(drop=True, inplace=True)
-    # process = RSMIProcessing(data=new_balance, rsmi_col='reactions', parallel=True, n_jobs=4, 
-    #                          save_json =False, save_path_name=None)
-    # reactions = process.data_splitter().to_dict('records')
+    # 4. Generate artificial validation set for MCS-based validation
+    golden.drop(['mapped_rxn'], axis =1, inplace=True)
+    USPTO_50K = pd.read_csv(f'{root_dir}/Data/Raw_data/USPTO/USPTO_50K.csv')
+    USPTO_50K.drop(['class'], axis =1, inplace=True)
+    USPTO_50K.drop_duplicates(subset=['reactions'], inplace=True)
+    USPTO_50K.reset_index(drop=True, inplace=True)
+    USPTO_50K['id'] = [f'USPTO_50K_{str(x)}' for x in USPTO_50K.index]
 
-    # valid_reactions = find_appropriate_reactions(reactions)
+    new_data = pd.concat([golden, Jaworski, USPTO_50K], axis=0)
+    new_data.reset_index(drop=True, inplace=True)
+    balance_data, _ = get_unbalance(new_data, n_jobs=4)
+    balance_data = pd.DataFrame(balance_data)
+    
+    process = RSMIProcessing(data=balance_data, rsmi_col='reactions', parallel=True, n_jobs=4, 
+                              save_json =False, save_path_name=None)
+    reactions = process.data_splitter().to_dict('records')
+    
 
-    # # Process the data to get the longest SMILES
-    # valid1=generate_artificial_validation(valid_reactions, select='longest', transfer_two=False, random_state=42)
-    # print(len(valid1))
-    # # Process the data to get the shortest SMILES
-    # valid2=generate_artificial_validation(valid_reactions, select='shortest', transfer_two=False, random_state=42)
-    # print(len(valid1))
-    # save_database(valid1, f'{root_dir}/Data/Validation_set/artificial_valid1.json.gz')
-    # save_database(valid2, f'{root_dir}/Data/Validation_set/artificial_valid2.json.gz')
+    valid_reactions = find_appropriate_reactions(reactions)
+
+    # Process the data to get the longest SMILES
+    valid1=generate_artificial_validation(valid_reactions, select='longest', transfer_two=False, random_state=42)
+    for item in valid1:
+        item['carbon_balance_check'] = 'reactants'
+    # Process the data to get the shortest SMILES
+    valid2=generate_artificial_validation(valid_reactions, select='shortest', transfer_two=False, random_state=42)
+    for item in valid2:
+        item['carbon_balance_check'] = 'reactants'
+    save_database(valid1, f'{root_dir}/Data/Validation_set/artificial_data_1/mcs_based_reactions.json.gz')
+    save_database(valid2, f'{root_dir}/Data/Validation_set/artificial_data_2/mcs_based_reactions.json.gz')
  
 
 

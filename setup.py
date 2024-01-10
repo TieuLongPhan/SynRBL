@@ -9,7 +9,8 @@ setup(
     url='https://github.com/TieuLongPhan/SynRBL',
     packages=find_packages(),
     install_requires=[
-        'rdkit'
+        'rdkit',
+        'joblib'
         # add other dependencies as needed
     ],
     python_requires='>=3.9',
