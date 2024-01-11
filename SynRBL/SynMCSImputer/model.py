@@ -71,11 +71,10 @@ def impute_reaction(reaction_dict):
         result = merge(compounds)
         carbon_balance = reaction_dict["carbon_balance_check"]
         if carbon_balance == "reactants":
-            # Imputing reactants is complicated, we can not solve it this way
-            # imputed_reaction = "{}.{}".format(
-            #    result.smiles, reaction_dict["old_reaction"]
-            # )
-            imputed_reaction = reaction_dict["old_reaction"]
+            imputed_reaction = "{}.{}".format(
+               result.smiles, reaction_dict["old_reaction"]
+            )
+            # imputed_reaction = reaction_dict["old_reaction"]
         elif carbon_balance in ["products", "balanced"]:
             imputed_reaction = "{}.{}".format(
                 reaction_dict["old_reaction"], result.smiles
