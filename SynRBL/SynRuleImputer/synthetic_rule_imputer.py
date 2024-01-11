@@ -82,7 +82,7 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
 
         return dict_impute
     
-    def parallel_impute(self, missing_dict: List[Dict]) -> List[Dict]:
+    def parallel_impute(self, missing_dict: List[Dict], n_jobs: int = -2) -> List[Dict]:
         """
         Impute missing chemical data in parallel.
 
@@ -92,7 +92,7 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
         Returns:
             A list of dictionaries with imputed data.
         """
-        dict_impute = Parallel(n_jobs=-2, verbose=1)(
+        dict_impute = Parallel(n_jobs=n_jobs, verbose=1)(
             delayed(self.single_impute)(item, self.rule_dict, self.select, self.ranking) for item in missing_dict
         )
         return dict_impute
