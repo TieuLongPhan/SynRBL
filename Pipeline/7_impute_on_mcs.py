@@ -38,14 +38,14 @@ def print_success_rate(dataset):
     )
 
 
-def impute_new_reactions(data):
+def impute_new_reactions(data, verbose=True):
     imputer = MCSImputer()
     rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
         imputer.impute_reaction(item)
         issue = item["issue"]
-        if issue != "":
+        if issue != "" and verbose:
             print("[ERROR] [{}] {}".format(i, issue))
         rules = item["rules"]
         if len(rules) > 0:
@@ -72,11 +72,19 @@ def get_databases():
 
 
 def run_impute(args):
-    data = load_database(get_database_path(args.dataset, "Final_Graph"))
-    rule_map = impute_new_reactions(data)
-    save_database(data, get_database_path(args.dataset, "MCS_Impute"))
-    print_rule_summary(rule_map)
-    print_success_rate(data)
+    if args.dataset is None:
+        for db in get_databases():
+            print("Impute {}".format(db))
+            data = load_database(get_database_path(db, "Final_Graph"))
+            rule_map = impute_new_reactions(data, verbose=False)
+            save_database(data, get_database_path(db, "MCS_Impute"))
+            print_success_rate(data)
+    else:
+        data = load_database(get_database_path(args.dataset, "Final_Graph"))
+        rule_map = impute_new_reactions(data)
+        save_database(data, get_database_path(args.dataset, "MCS_Impute"))
+        print_rule_summary(rule_map)
+        print_success_rate(data)
 
 
 def run_report(args):
@@ -114,7 +122,7 @@ if __name__ == "__main__":
     )
     impute_parser.add_argument(
         "--dataset",
-        default="USPTO_test",
+        default=None,
         help="The name of the dataset directory in ./Data/Validation_set/",
     )
     impute_parser.set_defaults(func=run_impute)
