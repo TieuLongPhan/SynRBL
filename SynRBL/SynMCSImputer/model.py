@@ -1,5 +1,5 @@
 from SynRBL.SynMCSImputer.structure import Compound
-from SynRBL.SynMCSImputer.utils import carbon_equality_check
+from SynRBL.SynMCSImputer.utils import is_carbon_balanced
 from SynRBL.SynMCSImputer.merge import merge
 
 
@@ -59,6 +59,7 @@ def build_compounds(data_dict) -> list[Compound]:
 def impute_reaction(reaction_dict):
     reaction_dict["rules"] = []
     new_reaction = reaction_dict["old_reaction"]
+    reaction_dict["mcs_carbon_balanced"] = reaction_dict["carbon_balance_check"] == 'balanced'
     try:
         if reaction_dict["issue"] != "":
             raise ValueError(
@@ -70,9 +71,11 @@ def impute_reaction(reaction_dict):
         result = merge(compounds)
         carbon_balance = reaction_dict["carbon_balance_check"]
         if carbon_balance == "reactants":
-            imputed_reaction = "{}.{}".format(
-                result.smiles, reaction_dict["old_reaction"]
-            )
+            # Imputing reactants is complicated, we can not solve it this way
+            # imputed_reaction = "{}.{}".format(
+            #    result.smiles, reaction_dict["old_reaction"]
+            # )
+            imputed_reaction = reaction_dict["old_reaction"]
         elif carbon_balance in ["products", "balanced"]:
             imputed_reaction = "{}.{}".format(
                 reaction_dict["old_reaction"], result.smiles
@@ -82,7 +85,15 @@ def impute_reaction(reaction_dict):
                 "Invalid value '{}' for carbon balance.".format(carbon_balance)
             )
         rules = [r.name for r in result.rules]
-        carbon_equality_check(imputed_reaction)
+        is_balanced = is_carbon_balanced(imputed_reaction)
+        reaction_dict["mcs_carbon_balanced"] = is_balanced
+        if not is_balanced:
+            raise RuntimeError(
+                (
+                    "Failed to impute the correct structure. "
+                    + "Carbon atom count in reactants and products does not match. "
+                )
+            )
         new_reaction = imputed_reaction
         reaction_dict["rules"] = rules
     except Exception as e:

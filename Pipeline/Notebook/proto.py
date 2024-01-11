@@ -19,6 +19,41 @@ def get_reaction_by_id(data, id):
     return None
 
 
+def print_error_summary(data):
+    error_map = collections.defaultdict(lambda: [])
+    fail_cnt = 0
+    for i, r in enumerate(data):
+        err = r["issue"]
+        if len(err) > 0:
+            error_map[err.split(".")[0]].append(i)
+            fail_cnt += 1
+
+    for k, v in error_map.items():
+        print("{:<80} {:>4} {}".format(k, len(v), v[:10]))
+
+    success_cnt = len(data) - fail_cnt
+    print("-" * 50)
+    print(
+        "MCS was successful on {} ({:.0%}) reactions.".format(
+            success_cnt, success_cnt / len(data)
+        )
+    )
+
+
+def print_rule_summary(data):
+    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
+    rule_map["no rule"] = set()
+    for i, item in enumerate(data):
+        if "rules" not in item.keys() or len(item["rules"]) == 0:
+            rule_map["no rule"].add(i)
+        else:
+            for r in item["rules"]:
+                rule_map[r].add(i)
+
+    for rule, ids in rule_map.items():
+        print("{:<30} {}".format(rule, len(ids)))
+
+
 def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
     visualizer = ReactionVisualizer(figsize=figsize)
     visualizer.plot_reactions(
@@ -57,72 +92,19 @@ ax.axis("off")
 plt.show()
 
 
-# |%%--%%| <PDHNfCjKgB|tx0z4CFgIc>
-import collections
-from SynRBL.SynMCSImputer.rules import CompoundRule, MergeRule
-from SynRBL.SynMCSImputer.model import MCSImputer
+#|%%--%%| <tx0z4CFgIc|aUE1hGnjdO>
 
+path = "./Data/Validation_set/{}/{}.json.gz".format("artificial_data_1", "mcs_based_reactions")
+data = load_database(path)
+print(data[0].keys())
 
-def impute_new_reactions(data):
-    imputer = MCSImputer()
-    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
-    rule_map["no rule"] = set()
-    for i, item in enumerate(data):
-        imputer.impute_reaction(item)
-        issue = item["issue"]
-        if issue != "":
-            print("[ERROR] [{}] {}".format(i, issue))
-        rules = item["rules"]
-        if len(rules) == 0:
-            for r in rules:
-                rule_map[r].add(i)
-        else:
-            rule_map["no rule"].add(i)
-    return rule_map
-
-
-def print_error_summary(data):
-    error_map = collections.defaultdict(lambda: [])
-    fail_cnt = 0
-    for i, r in enumerate(data):
-        err = r["issue"]
-        if len(err) > 0:
-            error_map[err.split(".")[0]].append(i)
-            fail_cnt += 1
-
-    for k, v in error_map.items():
-        print("{:<80} {:>4} {}".format(k, len(v), v[:10]))
-
-    success_cnt = len(data) - fail_cnt
-    print("-" * 50)
-    print(
-        "MCS was successful on {} ({:.0%}) reactions.".format(
-            success_cnt, success_cnt / len(data)
-        )
-    )
-
-
-def print_rule_summary(data):
-    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
-    rule_map["no rule"] = set()
-    for i, item in enumerate(data):
-        if "rules" not in item.keys() or len(item["rules"]) == 0:
-            rule_map["no rule"].add(i)
-        else:
-            for r in item["rules"]:
-                rule_map[r].add(i)
-
-    for rule, ids in rule_map.items():
-        print("{:<30} {}".format(rule, len(ids)))
-
-
-# |%%--%%| <tx0z4CFgIc|ftWMEjJznz>
+# |%%--%%| <aUE1hGnjdO|ftWMEjJznz>
 
 path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "MCS_Impute")
 results = load_database(path)
 
 print_error_summary(results)
-#i, rx = get_reaction_by_id(results, "USPTO_50K_")
+# i, rx = get_reaction_by_id(results, "USPTO_50K_")
 rx = results[152]
 
 plot_reaction(rx, show_atom_numbers=False)
