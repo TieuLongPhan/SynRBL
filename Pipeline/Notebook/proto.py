@@ -1,3 +1,4 @@
+import collections
 import numpy as np
 import rdkit.Chem as Chem
 import rdkit.Chem.rdmolfiles as rdmolfiles

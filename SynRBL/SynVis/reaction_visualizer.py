@@ -153,7 +153,9 @@ class ReactionVisualizer:
         savefig: bool = False, 
         pathname: Optional[str] = None, 
         dpi: int = 300,
-        show_atom_numbers: bool = False
+        show_atom_numbers: bool = False,
+        old_reaction_title: str = 'Old Reaction',
+        new_reaction_title: str = 'New Reaction'
         ) -> None:
         """
         Plot one or two chemical reactions for visualization.
@@ -207,10 +209,10 @@ class ReactionVisualizer:
         # Setting titles
         label_y_position = -0.1 if self.label_position == 'below' else 1.1
         if compare:
-            ax_old.set_title('Old Reaction', position=(0.5, label_y_position), weight='bold')
-            ax_new.set_title('New Reaction', position=(0.5, label_y_position), weight='bold')
+            ax_old.set_title(old_reaction_title, position=(0.5, label_y_position), weight='bold')
+            ax_new.set_title(new_reaction_title, position=(0.5, label_y_position), weight='bold')
         else:
-            ax.set_title('New Reaction', position=(0.5, label_y_position), weight='bold')
+            ax.set_title(new_reaction_title, position=(0.5, label_y_position), weight='bold')
 
         # Saving the figure
         if savefig and pathname:
