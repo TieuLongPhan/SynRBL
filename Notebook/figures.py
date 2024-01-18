@@ -23,7 +23,7 @@ def clear_atom_nums(dataset):
             dataset[i][k] = clear_atom_nums_from_reaction(dataset[i][k])
 
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "MCS_Impute")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("USPTO_50K", "MCS_Impute")
 data = load_database(path)
 clear_atom_nums(data)
 
@@ -70,7 +70,8 @@ for idx in rids:
 
 ridl = sorted(ridl, key=lambda e: e[1])
 print(ridl[0:10])
-idx, _ = get_reaction_by_id(data, "golden_dataset_568")
+#idx, _ = get_reaction_by_id(data, "golden_dataset_568")
+idx = 8128
 print(idx, data[idx]["issue"])
 rvis = ReactionVisualizer(figsize=(10, 8))
 rvis.plot_reactions(
