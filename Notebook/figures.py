@@ -116,6 +116,12 @@ for idx, fname in export_config:
     )
 #|%%--%%| <w3XZRXxvhi|vk7u8hsFMR>
 
+plt.rcParams.update({
+    #"figure.facecolor":  (1.0, 0.0, 0.0, 0.3),  # red   with alpha = 30%
+    "axes.facecolor":    (0.0, 1.0, 1.0, 1.0),  # green with alpha = 50%
+    #"savefig.facecolor": (0.0, 0.0, 1.0, 0.2),  # blue  with alpha = 20%
+})
+
 export_config = [(140, "oxidation_reaction"), (172, "ring_formation")]
 
 path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "MCS_Impute")
@@ -128,11 +134,11 @@ for idx, fname in export_config:
         _data[idx],
         "old_reaction",
         "new_reaction",
-        compare=True,
+        compare=False,
         savefig=True,
         pathname="./figs/{}.png".format(fname),
         show_atom_numbers=False,
-        new_reaction_title="Balanced Reaction",
-        old_reaction_title="Initial Reaction",
+        new_reaction_title="",
+        old_reaction_title="",
     )
 

@@ -155,7 +155,8 @@ class ReactionVisualizer:
         dpi: int = 300,
         show_atom_numbers: bool = False,
         old_reaction_title: str = 'Old Reaction',
-        new_reaction_title: str = 'New Reaction'
+        new_reaction_title: str = 'New Reaction',
+        transparent: bool = False
         ) -> None:
         """
         Plot one or two chemical reactions for visualization.
@@ -216,6 +217,6 @@ class ReactionVisualizer:
 
         # Saving the figure
         if savefig and pathname:
-            fig.savefig(pathname, dpi=dpi)
+            fig.savefig(pathname, dpi=dpi, transparent=transparent)
 
         plt.tight_layout()
