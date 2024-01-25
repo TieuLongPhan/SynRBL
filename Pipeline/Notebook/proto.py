@@ -8,7 +8,7 @@ from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 import rdkit.Chem.MolStandardize.rdMolStandardize as rdMolStandardize
 from SynRBL.rsmi_utils import load_database, save_database
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "Final_Graph")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "Final_Graph")
 org_data = load_database(path)
 
 
@@ -17,6 +17,26 @@ def get_reaction_by_id(data, id):
         if item["R-id"] == id:
             return i, item
     return None
+
+
+def clear_atom_nums_from_reaction(reaction_smiles):
+    def _clear(smiles):
+        mol = rdmolfiles.MolFromSmiles(smiles)
+        for a in mol.GetAtoms():
+            a.SetAtomMapNum(0)
+        return rdmolfiles.MolToSmiles(mol)
+
+    sides = reaction_smiles.split(">>")
+    n1 = ".".join([_clear(s) for s in sides[0].split(".")])
+    n2 = ".".join([_clear(s) for s in sides[1].split(".")])
+    return "{}>>{}".format(n1, n2)
+
+
+def clear_atom_nums(dataset):
+    for k in ["new_reaction", "old_reaction"]:
+        for i in range(len(dataset)):
+            if k in dataset[i].keys():
+                dataset[i][k] = clear_atom_nums_from_reaction(dataset[i][k])
 
 
 def print_error_summary(data):
@@ -62,6 +82,8 @@ def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
         "new_reaction",
         compare=True,
         show_atom_numbers=show_atom_numbers,
+        pathname="./tmp",
+        savefig=True,
     )
     print("ID:", entry["R-id"])
     print("Imbalance:", entry["carbon_balance_check"])
@@ -74,7 +96,7 @@ def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
     print("Rules:", entry["rules"])
 
 
-s = "c1ccccc1C(=S)OC"  # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "O=C(O)O"  # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 s = Chem.CanonSmiles(s)
 print(s)
 mol = rdmolfiles.MolFromSmiles(s)
@@ -92,20 +114,41 @@ ax.axis("off")
 plt.show()
 
 
-#|%%--%%| <tx0z4CFgIc|aUE1hGnjdO>
+# |%%--%%| <tx0z4CFgIc|aUE1hGnjdO>
 
-path = "./Data/Validation_set/{}/{}.json.gz".format("artificial_data_1", "mcs_based_reactions")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "Final_Graph")
 data = load_database(path)
+clear_atom_nums(data)
 print(data[0].keys())
+for i, x in enumerate(data):
+    if ".OC" in x["old_reaction"]:
+        print(i, x['old_reaction'])
 
-# |%%--%%| <aUE1hGnjdO|ftWMEjJznz>
+# |%%--%%| <aUE1hGnjdO|kL4B2dKA6i>
+from SynRBL.SynMCSImputer.model import MCSImputer, build_compounds
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "MCS_Impute")
+imputer = MCSImputer()
+sample = data[73] # 67, 88 catalysis | 73 not catalysis
+compounds = build_compounds(sample)
+for c in compounds:
+    print(len(c.boundaries), c.src_smiles == c.smiles, c.smiles)
+imputer.impute_reaction(sample)
+clear_atom_nums([sample])
+print("Issue:", sample["issue"])
+plot_reaction(sample, show_atom_numbers=False)
+
+#|%%--%%| <kL4B2dKA6i|U1toLALgcc>
+
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "MCS_Impute")
 results = load_database(path)
+clear_atom_nums(results)
+
+# |%%--%%| <U1toLALgcc|ftWMEjJznz>
 
 print_error_summary(results)
-# i, rx = get_reaction_by_id(results, "USPTO_50K_")
-rx = results[152]
+#i, rx = get_reaction_by_id(results, "golden_dataset_177")
+#print(i)
+rx = results[600]
 
 plot_reaction(rx, show_atom_numbers=False)
 
@@ -134,7 +177,7 @@ ax[1].imshow(img)
 # |%%--%%| <T6IJBZXUlT|7zydJ3VZZW>
 
 
-entry = get_reaction_by_id("R190")
+entry = get_reaction_by_id(data, "R190")
 print(entry)
 # |%%--%%| <7zydJ3VZZW|0ppeA6PwQO>
 import SynRBL.SynVis.reaction_visualizer as visualizer

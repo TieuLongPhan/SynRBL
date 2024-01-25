@@ -215,14 +215,34 @@ def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
     return merged_compound
 
 
-def merge(compounds: Compound | list[Compound]) -> Compound:
+def merge(
+    compounds: Compound | list[Compound], cs_passthrough=False
+) -> Compound:
+    merged_compound = None
+
     if isinstance(compounds, Compound):
         compounds = list([compounds])
+
+    catalysts_solvents = []
+    if cs_passthrough:
+        b_compounds = []  # compounds with open boundaries
+        for compound in compounds:
+            if len(compound.boundaries) == 0:
+                catalysts_solvents.append(compound)
+            else:
+                b_compounds.append(compound)
+        compounds = b_compounds
+
     if len(compounds) == 1:
-        return _merge_one_compound(compounds[0])
+        merged_compound = _merge_one_compound(compounds[0])
     elif len(compounds) == 2:
-        return _merge_two_compounds(compounds[0], compounds[1])
-    else:
-        raise NotImplementedError(
-            "Merging {} compounds is not supported.".format(len(compounds))
-        )
+        merged_compound = _merge_two_compounds(compounds[0], compounds[1])
+
+    if merged_compound is not None:
+        for c in catalysts_solvents:
+            merged_compound = concat_compounds(merged_compound, c)
+        return merged_compound
+
+    raise NotImplementedError(
+        "Merging {} compounds is not supported.".format(len(compounds))
+    )

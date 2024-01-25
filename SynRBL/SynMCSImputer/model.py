@@ -56,7 +56,7 @@ def build_compounds(data_dict) -> list[Compound]:
     return compounds
 
 
-def impute_reaction(reaction_dict):
+def impute_reaction(reaction_dict, **kwargs):
     reaction_dict["rules"] = []
     new_reaction = reaction_dict["old_reaction"]
     reaction_dict["mcs_carbon_balanced"] = reaction_dict["carbon_balance_check"] == 'balanced'
@@ -68,7 +68,7 @@ def impute_reaction(reaction_dict):
         compounds = build_compounds(reaction_dict)
         if len(compounds) == 0:
             return
-        result = merge(compounds)
+        result = merge(compounds, **kwargs)
         carbon_balance = reaction_dict["carbon_balance_check"]
         if carbon_balance == "reactants":
             imputed_reaction = "{}.{}".format(
@@ -102,9 +102,9 @@ def impute_reaction(reaction_dict):
 
 
 class MCSImputer:
-    def __init__(self):
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
         pass
 
-    @staticmethod
-    def impute_reaction(reaction_dict):
-        impute_reaction(reaction_dict)
+    def impute_reaction(self, reaction_dict):
+        impute_reaction(reaction_dict, **self.kwargs)

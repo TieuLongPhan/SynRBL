@@ -38,8 +38,8 @@ def print_success_rate(dataset):
     )
 
 
-def impute_new_reactions(data, verbose=True):
-    imputer = MCSImputer()
+def impute_new_reactions(data, verbose=True, cs_passthrough=False):
+    imputer = MCSImputer(cs_passthrough=cs_passthrough)
     rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
@@ -72,16 +72,17 @@ def get_databases():
 
 
 def run_impute(args):
+    params = {"cs_passthrough": args.cs_passthrough}
     if args.dataset is None:
         for db in get_databases():
             print("Impute {}".format(db))
             data = load_database(get_database_path(db, "Final_Graph"))
-            rule_map = impute_new_reactions(data, verbose=False)
+            rule_map = impute_new_reactions(data, verbose=False, **params)
             save_database(data, get_database_path(db, "MCS_Impute"))
             print_success_rate(data)
     else:
         data = load_database(get_database_path(args.dataset, "Final_Graph"))
-        rule_map = impute_new_reactions(data)
+        rule_map = impute_new_reactions(data, **params)
         save_database(data, get_database_path(args.dataset, "MCS_Impute"))
         print_rule_summary(rule_map)
         print_success_rate(data)
@@ -124,6 +125,11 @@ if __name__ == "__main__":
         "--dataset",
         default=None,
         help="The name of the dataset directory in ./Data/Validation_set/",
+    )
+    impute_parser.add_argument(
+        "--cs-passthrough",
+        action="store_true",
+        help="Flag if catalysts and solvents should be passed through.",
     )
     impute_parser.set_defaults(func=run_impute)
 
