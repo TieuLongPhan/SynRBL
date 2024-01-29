@@ -1,3 +1,4 @@
+import collections
 import numpy as np
 import rdkit.Chem as Chem
 import rdkit.Chem.rdmolfiles as rdmolfiles
@@ -128,7 +129,7 @@ for i, x in enumerate(data):
 from SynRBL.SynMCSImputer.model import MCSImputer, build_compounds
 
 imputer = MCSImputer()
-sample = data[73] # 67, 88 catalysis | 73 not catalysis
+sample = data[719] # 67, 88 catalysis | 73 not catalysis
 compounds = build_compounds(sample)
 for c in compounds:
     print(len(c.boundaries), c.src_smiles == c.smiles, c.smiles)
@@ -148,7 +149,7 @@ clear_atom_nums(results)
 print_error_summary(results)
 #i, rx = get_reaction_by_id(results, "golden_dataset_177")
 #print(i)
-rx = results[600]
+rx = results[719]
 
 plot_reaction(rx, show_atom_numbers=False)
 
