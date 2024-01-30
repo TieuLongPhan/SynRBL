@@ -5,6 +5,11 @@
 		"bond": "double"
 	},
 	{
+		"name": "S bond restriction",
+		"condition1": {"atom": ["S"]},
+		"condition2": {"atom": ["F", "Cl", "Br", "I"]}
+	},
+	{
 		"name": "bond restriction",
 		"condition1": {"atom": ["N", "O", "F", "Cl", "Br", "I"]},
 		"condition2": {"atom": ["N", "O", "F", "Cl", "Br", "I"]}
