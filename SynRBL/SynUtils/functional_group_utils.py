@@ -52,7 +52,7 @@ functional_group_config = {
         "CO", anti_pattern=["C(=O)O", "C=CO", "COC", "OCO", "Oc1ccccc1"]
     ),
     "ether": FGConfig(
-        "COC", group_atoms=[1], anti_pattern=["OC=S", "C=O", "C=CO", "OCOC", "OC=O"]
+        "COC", group_atoms=[1], anti_pattern=["OC=S", "C=O", "C=CO", "OCOC", "OC=O", "OCN"]
     ),
     "enol": FGConfig("C=CO"),
     "amid": FGConfig("NC=O", anti_pattern=["O=C(N)O"]),
