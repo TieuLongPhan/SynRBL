@@ -196,7 +196,8 @@ if __name__ == "__main__":
     #main('golden_dataset', n_jobs=-1)
     #main('USPTO_50K', n_jobs=-1)
     #main('USPTO_random_class', n_jobs=-1)
-    main('USPTO_diff', n_jobs=-1)
+    #main('USPTO_diff', n_jobs=-1)
+    main('USPTO_unbalance_class', n_jobs=-1)
 
         # get the end time
     et = time.time()
