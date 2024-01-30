@@ -121,15 +121,12 @@ path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "Final
 data = load_database(path)
 clear_atom_nums(data)
 print(data[0].keys())
-for i, x in enumerate(data):
-    if ".OC" in x["old_reaction"]:
-        print(i, x['old_reaction'])
 
 # |%%--%%| <aUE1hGnjdO|kL4B2dKA6i>
 from SynRBL.SynMCSImputer.model import MCSImputer, build_compounds
 
 imputer = MCSImputer()
-sample = data[719] # 67, 88 catalysis | 73 not catalysis
+sample = data[298] # 67, 88 catalysis | 73 not catalysis
 compounds = build_compounds(sample)
 for c in compounds:
     print(len(c.boundaries), c.src_smiles == c.smiles, c.smiles)
@@ -149,7 +146,7 @@ clear_atom_nums(results)
 print_error_summary(results)
 #i, rx = get_reaction_by_id(results, "golden_dataset_177")
 #print(i)
-rx = results[719]
+rx = results[872]
 
 plot_reaction(rx, show_atom_numbers=False)
 

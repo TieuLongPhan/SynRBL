@@ -37,13 +37,7 @@ clear_atom_nums(data)
 # artificial_data_2                 1178         1124    95.42%
 # USPTO_50K                        16728        16721    99.96%
 
-# |%%--%%| <qiP5pkTCwv|N2Y8LjFjkV>
-
-# welcome - reference to Longs presentation - i will now explain in a little more detail
-# how we impute the missing compounds based on the resutls we get from the MCS search
-#    
-
-# |%%--%%| <N2Y8LjFjkV|DUqrOw4SKU>
+# |%%--%%| <qiP5pkTCwv|DUqrOw4SKU>
 
 
 def get_ids_by_rule(data, rule, l=None):
@@ -60,7 +54,7 @@ def get_reaction_by_id(data, id):
             return i, item
     return None
 
-rids = get_ids_by_rule(data, "default single bond")
+rids = get_ids_by_rule(data, "bond restriction", l=1)
 
 # |%%--%%| <DUqrOw4SKU|5Fdy81dKgB>
 
@@ -69,10 +63,10 @@ for idx in rids:
     ridl.append((idx, len(data[idx]["new_reaction"])))
 
 ridl = sorted(ridl, key=lambda e: e[1])
-print(ridl[0:10])
+print(ridl[0:20])
 #idx, _ = get_reaction_by_id(data, "golden_dataset_568")
-idx = 719
-print(idx, data[idx]["issue"])
+idx = 274
+print(idx, data[idx]["issue"], data[idx]['rules'])
 rvis = ReactionVisualizer(figsize=(10, 8))
 rvis.plot_reactions(
     data[idx],
@@ -80,8 +74,8 @@ rvis.plot_reactions(
     "new_reaction",
     compare=True,
     show_atom_numbers=False,
-    new_reaction_title="Balanced Reaction",
-    old_reaction_title="Initial Reaction",
+    #new_reaction_title="Balanced Reaction",
+    #old_reaction_title="Initial Reaction",
 )
 
 # |%%--%%| <5Fdy81dKgB|w3XZRXxvhi>
