@@ -47,7 +47,7 @@
 	{
 		"name": "form M-OH",
 		"condition": {
-			"atom": ["Mg", "Zn", "Si"]
+			"atom": ["Mg", "Zn", "Si", "B"]
 		},
 		"compound": {"smiles": "O", "index": 0}
 	},
