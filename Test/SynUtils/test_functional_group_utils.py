@@ -2,6 +2,7 @@ import unittest
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import SynRBL.SynUtils.functional_group_utils as fgutils
 
+
 class TestReduce(unittest.TestCase):
     def test_1(self):
         mol = rdmolfiles.MolFromSmiles("CCCOC(C)=O")
@@ -22,6 +23,74 @@ class TestReduce(unittest.TestCase):
         mol = rdmolfiles.MolFromSmiles("COc1ccccc1")
         mol_r, _ = fgutils.trim_mol(mol, 1, 1)
         self.assertEqual("COc", rdmolfiles.MolToSmiles(mol_r))
+
+
+class TestMappingPermutations(unittest.TestCase):
+    def test_1(self):
+        self.assertEqual([[]], fgutils.get_mapping_permutations([], ["C"]))
+
+    def test_2(self):
+        self.assertEqual(
+            [[(0, 1)]], fgutils.get_mapping_permutations(["C"], ["S", "C"])
+        )
+
+    def test_3(self):
+        self.assertEqual(
+            [[(0, 0)], [(0, 1)]], fgutils.get_mapping_permutations(["C"], ["C", "C"])
+        )
+
+    def test_4(self):
+        self.assertEqual(
+            [[(0, 0), (1, 1)], [(0, 1), (1, 0)]],
+            fgutils.get_mapping_permutations(["C", "C"], ["C", "C"]),
+        )
+
+
+class TestMCS(unittest.TestCase):
+    def _call(self, smiles, anchor, pattern_smiles, panchor=None, expected_match=True):
+        mol = rdmolfiles.MolFromSmiles(smiles)
+        pattern_mol = rdmolfiles.MolFromSmiles(pattern_smiles)
+        match, mapping = fgutils.pattern_match(mol, anchor, pattern_mol, pattern_anchor=panchor)
+        self.assertEqual(expected_match, match)
+        return mapping
+
+    def test_simple_pattern_match(self):
+        self.assertEqual([(2, 0)], self._call("CCO", 2, "O", 0))
+        self.assertEqual([(2, 0), (1, 1)], self._call("CCO", 2, "OC", 0))
+        self.assertEqual([(1, 1), (2, 0)], self._call("CCO", 1, "OC", 1))
+        self.assertEqual([(2, 0), (1, 1), (0, 2)], self._call("CCO", 2, "OCC", 0))
+        self.assertEqual([(2, 2), (1, 1), (0, 0)], self._call("CCO", 2, "CCO", 2))
+
+    def test_ring_pattern_match(self):
+        self.assertEqual([(1, 0), (3, 1), (2, 2)], self._call("CC1NO1", 1, "CON", 0))
+        self.assertEqual([(1, 0), (3,2), (2, 1)], self._call("CC1NO1", 1, "C1NO1", 0))
+
+    def test_invalid_path_pattern(self):
+        self.assertEqual(
+            [(3, 0), (4, 1), (5, 2)], self._call("CC(O)CC(N)O", 3, "CCN", 0)
+        )
+
+    def test_match_star(self):
+        self.assertEqual(
+            [(1, 1), (2, 2), (0, 0)], self._call("CC(C)C", 1, "CCC", 1)
+        )
+
+
+    def test_find_no_pattern_match(self):
+        self._call("CCO", 0, "O", 0, expected_match=False)
+        self._call("CCO", 1, "O", 0, expected_match=False)
+        self._call("CC1NO1", 0, "CON", 0, expected_match=False)
+        self._call("CCNO", 1, "C1NO1", 0, expected_match=False)
+        self._call("CC(O)CC(N)O", 2, "CCN", 0, expected_match=False)
+
+    def test_fit_without_pattern_anchor(self):
+        self.assertEqual([(0,0), (1,1), (2,2)], self._call("CCO", 0, "CCO"))
+        self.assertEqual([(1,1), (2,2), (0,0)], self._call("CCO", 1, "CCO"))
+        self.assertEqual([(2,2), (1,1), (0,0)], self._call("CCO", 2, "CCO"))
+
+    def test_match_with_bond_order(self):
+        self._call("CC=O", 1, "CO", expected_match=False)
+        self.assertEqual([(1,0), (2,1)], self._call("CC=O", 1, "C=O", expected_match=True))
 
 
 class TestFGConfig(unittest.TestCase):
@@ -81,6 +150,7 @@ class TestFunctionalGroupCheck(unittest.TestCase):
     def test_phenol(self):
         # 2,3 Xylenol
         self.__test_fg("Cc1cccc(O)c1C", "phenol", [1, 2, 3, 4, 5, 6, 7])
+        self.__test_fg("Oc1ccc[nH]1", "phenol")
 
     def test_alcohol(self):
         # Ethanol
@@ -88,7 +158,10 @@ class TestFunctionalGroupCheck(unittest.TestCase):
 
     def test_ether(self):
         # Methylether
-        self.__test_fg("COC", "ether", [1])
+        self.__test_fg("COC", "ether", [0, 1, 2])
+        self.__test_fg("COc1cccc(OC)c1OC", "ether", [0, 1, 2, 9, 10, 11, 6, 7, 8])
+        self.__test_fg("COc1ccc[nH]1", "ether", [0,1,2])
+        self.__test_fg("COc1ccccc1", "ether", [0,1,2])
 
     def test_enol(self):
         # 3-pentanone enol
@@ -150,7 +223,7 @@ class TestFunctionalGroupCheck(unittest.TestCase):
 
     def test_thioether(self):
         # Diethylsulfid
-        self.__test_fg("CCSCC", "thioether", [2])
+        self.__test_fg("CCSCC", "thioether", [1, 2, 3])
 
     def test_thioester(self):
         # Methyl thionobenzonat
