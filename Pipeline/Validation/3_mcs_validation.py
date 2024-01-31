@@ -57,7 +57,7 @@ def graph_find(data_name = 'golden_dataset'):
     missing_results_largest  = find_graph_dict(msc_dict_path=mcs_dir/ 'MCS_Largest.json.gz', 
                                                save_path= mcs_dir / 'Final_Graph.json.gz')
     miss_id = [value['R-id'] for value in mcs]
-    print(miss_id)
+    #print(miss_id)
     data_2 = [data[key] for key, value in enumerate(data) if value['R-id'] in miss_id]
     for key, _ in enumerate(missing_results_largest):
         missing_results_largest[key]['R-id'] = mcs[key]['R-id']
@@ -77,10 +77,10 @@ def graph_find(data_name = 'golden_dataset'):
 # Execute main function
 if __name__ == "__main__":
     #data_name = ['golden_dataset']
-    data_name = ['Jaworski']
+    #data_name = ['Jaworski']
     #data_name = ['USPTO_random_class']
     # data_name = ['Jaworski', 'USPTO_diff', 'USPTO_unbalance_class']
-    #data_name = ['artificial_data_1']
+    data_name = ['USPTO_diff']
     for i in data_name:
         mcs(i)
         merge_mcs(i)
