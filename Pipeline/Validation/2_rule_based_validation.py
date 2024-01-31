@@ -172,8 +172,8 @@ def main(data_name = 'golden_dataset', n_jobs= 4, save = False, rules_extension=
 
 
 
-    # save_database(certain_reactions, save_dir / 'rule_based_reactions.json.gz')
-    # save_database(mcs_based, save_dir / 'mcs_based_reactions.json.gz')
+    save_database(certain_reactions, save_dir / 'rule_based_reactions.json.gz')
+    save_database(mcs_based, save_dir / 'mcs_based_reactions.json.gz')
 
     # check_dir = root_dir / 'Data/Validation_set' / data_name / 'check'
     # if not check_dir.exists():
