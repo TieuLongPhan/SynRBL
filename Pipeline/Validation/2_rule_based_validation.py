@@ -194,16 +194,12 @@ if __name__ == "__main__":
     st = time.time()
     #main('Jaworski', n_jobs=-1)
     #main('golden_dataset', n_jobs=-1)
-    main('USPTO_50K', n_jobs=-1)
+    #main('USPTO_50K', n_jobs=-1)
     #main('USPTO_random_class', n_jobs=-1)
-<<<<<<< Updated upstream
-    main('USPTO_diff', n_jobs=-1)
-=======
     #main('USPTO_diff', n_jobs=-1)
->>>>>>> Stashed changes
-    #main('USPTO_unbalance_class', n_jobs=-1)
+    main('USPTO_unbalance_class', n_jobs=-1)
 
-        # get the end time
+    # get the end time
     et = time.time()
 
     # get the execution time

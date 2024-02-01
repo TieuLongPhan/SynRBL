@@ -85,4 +85,4 @@ def visualize_accuracy(df, error_bar=True, chart_type='line', error_bar_color='b
     plt.show()
 
 # Example usage (assuming 'data3' is a suitable DataFrame)
-visualize_accuracy(data_all, error_bar=True, chart_type='bar', error_bar_color='gray', same_color_scale=False, show_values=False, savepath = './mcs_all.pdf')
+#visualize_accuracy(data_all, error_bar=True, chart_type='bar', error_bar_color='gray', same_color_scale=False, show_values=False, savepath = './mcs_all.pdf')
