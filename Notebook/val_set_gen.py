@@ -1,4 +1,5 @@
 import os
+from numpy import who
 import pandas
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
@@ -52,18 +53,23 @@ def build_validation_set(data, results):
             )
         )
     vset = []
-    for d, r in zip(data, results.iterrows()):
+    for i, (d, r) in enumerate(zip(data, results.iterrows())):
         _, row = r
         reaction = normalize_smiles(d["new_reaction"])
         correct_reaction = None
         wrong_reactions = []
-        if row.Result:
+        if row.Result in ["TRUE", True]:
             correct_reaction = reaction
-        else:
+        elif row.Result in ["FALSE", "CONSIDER", False]:
             wrong_reactions.append(reaction)
+        else:
+            raise ValueError(
+                "Unknown value '{}' for result at index {}.".format(row.Result, i)
+            )
         vset.append(
             {
                 "R-id": d["R-id"],
+                "marked": row.Result,
                 "reaction": d["old_reaction"],
                 "correct_reaction": correct_reaction,
                 "wrong_reactions": wrong_reactions,
@@ -77,14 +83,16 @@ def merge_validation_sets(vset, new_vset, override_ids=[]):
         return row["correct_reaction"], row["wrong_reactions"]
 
     ovset = []
-    ncnt = 0
-    mcnt = 0
+    new_cnt = 0
+    modified_cnt = 0
+    new_wrong_cnt = 0
+    new_correct_cnt = 0
     for i, ne in enumerate(new_vset):
         id = ne["R-id"]
         e = get_by_id(vset, id)
         if e is None:
             ovset.append(ne)
-            ncnt += 1
+            new_cnt += 1
         else:
             assert id == e["R-id"]
             cr, wrs = _it(e)
@@ -92,21 +100,37 @@ def merge_validation_sets(vset, new_vset, override_ids=[]):
             if ncr is not None:
                 if len(cr) > 0 and cr != ncr:
                     if id in override_ids:
-                        e['correct_reaction'] = ncr
-                        mcnt += 1
+                        e["correct_reaction"] = ncr
+                        modified_cnt += 1
                         print("[{}, {}] Override correct reaction.".format(i, id))
                     else:
                         print("[{}, {}] Correct reaction changed.".format(i, id))
+                        new_correct_cnt += 1
                 elif ncr in wrs:
-                    print("[{}, {}] New correct reaction was marked as wrong.".format(i, id))
+                    print(
+                        "[{}, {}] New correct reaction was marked as wrong.".format(
+                            i, id
+                        )
+                    )
             for nwr in nwrs:
                 if len(nwr) > 0 and nwr not in wrs:
                     print("[{}, {}] Found new wrong reaction.".format(i, id))
+                    new_wrong_cnt += 1
                     # e['wrong_reactions'].append(nwr)
                     # mcnt += 1
             ovset.append(e)
-    print("Added {} new reactions and modified {} reactions.".format(ncnt, mcnt))
+    print(
+        "Added {} new reactions and modified {} reactions.".format(
+            new_cnt, modified_cnt
+        )
+    )
+    print(
+        "Found {} new correct reactions and {} new wrong reactions.".format(
+            new_correct_cnt, new_wrong_cnt
+        )
+    )
     return ovset
+
 
 def get_reaction_img(smiles):
     rxn = rdChemReactions.ReactionFromSmarts(smiles, useSmiles=True)
@@ -149,9 +173,10 @@ def plot_reaction(data, index, new_data=None):
         suptitle="Reaction index: {}   ID: {}".format(index, data[index]["R-id"]),
     )
 
-#|%%--%%| <fQfIoeoE9J|OqsCzC6wdl>
 
-dataset = DATASETS[0]
+# |%%--%%| <fQfIoeoE9J|OqsCzC6wdl>
+
+dataset = DATASETS[3]
 save = False
 # for dataset in DATASETS:
 print("Start: {}.".format(dataset))
@@ -166,6 +191,11 @@ mvset = merge_validation_sets(vset, new_vset, override_ids=override_ids)
 if save:
     save_valset(mvset, dataset)
 
-# |%%--%%| <OqsCzC6wdl|Ubskix1QjQ>
+# |%%--%%| <OqsCzC6wdl|OpgfrTGD1E>
+
+print(sum(1 for x in mvset if x['correct_reaction'] is not None))
+print(results["Result"].value_counts())
+
+# |%%--%%| <OpgfrTGD1E|Ubskix1QjQ>
 
 plot_reaction(vset, 36, new_data=new_vset)

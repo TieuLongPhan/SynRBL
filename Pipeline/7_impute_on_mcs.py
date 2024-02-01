@@ -5,6 +5,7 @@ import collections
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynMCSImputer.rules import MergeRule, CompoundRule
 from SynRBL.SynMCSImputer.model import MCSImputer
+from SynRBL.SynUtils.chem_utils import normalize_smiles
 
 DATABASE_PATH = "./Data/Validation_set/"
 
@@ -60,6 +61,10 @@ def get_database_path(dataset, name):
     return os.path.join(DATABASE_PATH, dataset, "MCS", "{}.json.gz".format(name))
 
 
+def get_validation_set_path(dataset):
+    return os.path.join(DATABASE_PATH, dataset, "corrected.json.gz")
+
+
 def get_databases():
     dbs = set()
     dir_names = [f.name for f in os.scandir(DATABASE_PATH) if f.is_dir()]
@@ -91,25 +96,59 @@ def run_impute(args):
 def run_report(args):
     dbs = get_databases()
     line_fmt = "{:<25} {:>12} {:>12} {:>9}"
-    header = line_fmt.format("Dataset", "Reactions", "C balanced", "Rate")
-    print(header)
-    print("-" * len(header))
+    cols = ["Dataset", "Reactions", "C balanced", "Rate"]
+    if args.validate:
+        line_fmt += " {:>12}"
+        cols.append("Accuracy")
+    header = line_fmt.format(*cols)
+    rows = []
     for db in dbs:
         path = get_database_path(db, "MCS_Impute")
         if not os.path.exists(path):
-            print(
+            raise ValueError(
                 (
                     "[ERROR] No MCS_Impute data found for dataset '{}'. "
                     + "Run 'impute --dataset {}' first."
                 ).format(db, db)
             )
         data = load_database(path)
+        val_data = None
+        if args.validate:
+            val_set_path = get_validation_set_path(db)
+            if os.path.exists(val_set_path):
+                val_data = load_database(val_set_path)
+                assert len(data) == len(
+                    val_data
+                ), "Data and val_data are not of same length. ({} != {})".format(
+                    len(data), len(val_data)
+                )
         success_cnt = 0
-        for item in data:
+        correct_cnt = None
+        for i, item in enumerate(data):
             if item["issue"] == "":
                 success_cnt += 1
+                if val_data is not None:
+                    val_item = val_data[i]
+                    assert (
+                        item["R-id"] == val_item["R-id"]
+                    ), "R-id at index {} does not match.".format(i)
+                    if (
+                        normalize_smiles(item["new_reaction"])
+                        == val_item["correct_reaction"]
+                    ):
+                        correct_cnt = 1 if correct_cnt is None else correct_cnt + 1
         rate_str = "{:.2%}".format(success_cnt / len(data))
-        print(line_fmt.format(db, len(data), success_cnt, rate_str))
+        values = [db, len(data), success_cnt, rate_str]
+        if args.validate:
+            if correct_cnt is None:
+                values.append("-")
+            else:
+                values.append("{:.2%}".format(correct_cnt / success_cnt))
+        rows.append(line_fmt.format(*values))
+    print(header)
+    print("-" * len(header))
+    for r in rows:
+        print(r)
 
 
 if __name__ == "__main__":
@@ -135,6 +174,11 @@ if __name__ == "__main__":
 
     report_parser = subparsers.add_parser(
         "report", description="Print summary on MCS imputation performance."
+    )
+    report_parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Flag to use the corrected.json.gz datasets for validation. (Reports accuracy)",
     )
     report_parser.set_defaults(func=run_report)
 
