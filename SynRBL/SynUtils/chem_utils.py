@@ -2,6 +2,7 @@ from typing import List, Dict, Set, Any
 from typing import Optional, Union, Callable, Tuple
 from rdkit import Chem
 import io
+import re
 import tempfile
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -11,8 +12,11 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape, letter
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 
+
 class CheckCarbonBalance:
-    def __init__(self, reactions_data: List[Dict[str, str]], rsmi_col = 'reactions', symbol = '>>'):
+    def __init__(
+        self, reactions_data: List[Dict[str, str]], rsmi_col="reactions", symbol=">>"
+    ):
         """
         Initialize the CheckCarbonBalance class with reaction data.
 
@@ -35,7 +39,9 @@ class CheckCarbonBalance:
         int: The number of carbon atoms in the molecule. Returns 0 if the SMILES string is invalid.
         """
         mol = Chem.MolFromSmiles(smiles)
-        return sum(1 for atom in mol.GetAtoms() if atom.GetSymbol() == 'C') if mol else 0
+        return (
+            sum(1 for atom in mol.GetAtoms() if atom.GetSymbol() == "C") if mol else 0
+        )
 
     def check_carbon_balance(self) -> None:
         """
@@ -47,14 +53,22 @@ class CheckCarbonBalance:
         """
         for reaction in self.reactions_data:
             try:
-                reactants_smiles, products_smiles = reaction[self.rsmi_col].split(self.symbol)
-                reactants_carbon = sum(self.count_carbon_atoms(smiles) for smiles in reactants_smiles.split('.'))
-                products_carbon = sum(self.count_carbon_atoms(smiles) for smiles in products_smiles.split('.'))
-                
+                reactants_smiles, products_smiles = reaction[self.rsmi_col].split(
+                    self.symbol
+                )
+                reactants_carbon = sum(
+                    self.count_carbon_atoms(smiles)
+                    for smiles in reactants_smiles.split(".")
+                )
+                products_carbon = sum(
+                    self.count_carbon_atoms(smiles)
+                    for smiles in products_smiles.split(".")
+                )
+
                 if reactants_carbon >= products_carbon:
-                    reaction['carbon_balance_check'] = 'products'
+                    reaction["carbon_balance_check"] = "products"
                 else:
-                    reaction['carbon_balance_check'] = 'reactants'
+                    reaction["carbon_balance_check"] = "reactants"
             except KeyError as e:
                 print(f"Key error: {e}")
             except ValueError as e:
@@ -70,17 +84,24 @@ class CheckCarbonBalance:
         """
         for reaction in self.reactions_data:
             try:
-                reactants_smiles, products_smiles = reaction[self.rsmi_col].split(self.symbol)
-                reactants_carbon = sum(self.count_carbon_atoms(smiles) for smiles in reactants_smiles.split('.'))
-                products_carbon = sum(self.count_carbon_atoms(smiles) for smiles in products_smiles.split('.'))
-                reaction['is_carbon_balance'] = reactants_carbon == products_carbon
+                reactants_smiles, products_smiles = reaction[self.rsmi_col].split(
+                    self.symbol
+                )
+                reactants_carbon = sum(
+                    self.count_carbon_atoms(smiles)
+                    for smiles in reactants_smiles.split(".")
+                )
+                products_carbon = sum(
+                    self.count_carbon_atoms(smiles)
+                    for smiles in products_smiles.split(".")
+                )
+                reaction["is_carbon_balance"] = reactants_carbon == products_carbon
 
             except KeyError as e:
                 print(f"Key error: {e}")
             except ValueError as e:
                 print(f"Value error: {e}")
 
-                
 
 def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
     """
@@ -94,15 +115,26 @@ def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
     """
     total_charge = 0
     for item in sublist:
-        if 'smiles' in item and 'Ratio' in item:
-            mol = Chem.MolFromSmiles(item['smiles'])
+        if "smiles" in item and "Ratio" in item:
+            mol = Chem.MolFromSmiles(item["smiles"])
             if mol:
-                charge = sum(abs(atom.GetFormalCharge()) for atom in mol.GetAtoms()) * item['Ratio']
+                charge = (
+                    sum(abs(atom.GetFormalCharge()) for atom in mol.GetAtoms())
+                    * item["Ratio"]
+                )
                 total_charge += charge
     return total_charge
 
 
-def save_reactions_to_pdf(data: List[Dict[str, str]], old_reaction_col: str, new_reaction_col: str, pdf_filename: str, compare: bool = False, orientation: str = 'vertical', show_atom_numbers: bool = False):
+def save_reactions_to_pdf(
+    data: List[Dict[str, str]],
+    old_reaction_col: str,
+    new_reaction_col: str,
+    pdf_filename: str,
+    compare: bool = False,
+    orientation: str = "vertical",
+    show_atom_numbers: bool = False,
+):
     """
     Save a list of reaction visualizations to a PDF file.
 
@@ -138,32 +170,73 @@ def save_reactions_to_pdf(data: List[Dict[str, str]], old_reaction_col: str, new
 
     for reaction_data in data:
         # Create a figure using plot_reactions method
-        fig = ReactionVisualizer(figsize=(10, 5)).plot_reactions(reaction_data, old_reaction_col, new_reaction_col, compare, orientation, show_atom_numbers)
+        fig = ReactionVisualizer(figsize=(10, 5)).plot_reactions(
+            reaction_data,
+            old_reaction_col,
+            new_reaction_col,
+            compare,
+            orientation,
+            show_atom_numbers,
+        )
 
         # Save figure to a temporary buffer
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format="png")
         plt.close(fig)
         buf.seek(0)
         img = Image.open(buf)
 
         # Save the image to a temporary file
         with tempfile.NamedTemporaryFile(suffix=".png") as img_temp:
-            img.save(img_temp, format='PNG')
+            img.save(img_temp, format="PNG")
             img_temp.flush()
 
             # Image dimensions
             img_width, img_height = img.size
-            scale_factor = min((page_width - 100) / img_width, (page_height - 100) / img_height)
-            scaled_width, scaled_height = img_width * scale_factor, img_height * scale_factor
+            scale_factor = min(
+                (page_width - 100) / img_width, (page_height - 100) / img_height
+            )
+            scaled_width, scaled_height = (
+                img_width * scale_factor,
+                img_height * scale_factor,
+            )
 
             # Calculate coordinates to center the image
             x = (page_width - scaled_width) / 2
             y = (page_height - scaled_height) / 2
 
             # Draw the centered image
-            c.drawImage(img_temp.name, x, y, width=scaled_width, height=scaled_height, mask='auto')
+            c.drawImage(
+                img_temp.name,
+                x,
+                y,
+                width=scaled_width,
+                height=scaled_height,
+                mask="auto",
+            )
             c.showPage()
 
     c.save()
     print(f"Saved reactions to {pdf_filename}")
+
+
+def remove_atom_mapping(smiles: str) -> str:
+    pattern = re.compile(r":\d+")
+    smiles = pattern.sub("", smiles)
+    pattern = re.compile(r"\[(?P<atom>(B|C|N|O|P|S|F|Cl|Br|I){1,2})(?:H\d?)?\]")
+    smiles = pattern.sub(r"\g<atom>", smiles)
+    return smiles
+
+
+def normalize_smiles(smiles: str) -> str:
+    if ">>" in smiles:
+        return ">>".join([normalize_smiles(t) for t in smiles.split(">>")])
+    elif "." in smiles:
+        token = sorted(
+            smiles.split("."),
+            key=lambda x: (sum(1 for c in x if c.isupper()), sum(ord(c) for c in x)),
+            reverse=True,
+        )
+        return ".".join([normalize_smiles(t) for t in token])
+    else:
+        return Chem.CanonSmiles(remove_atom_mapping(smiles))
