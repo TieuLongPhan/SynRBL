@@ -12,6 +12,7 @@ import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 
 RESULT_PATH_FMT = "./Pipeline/Validation/Analysis/SynRBL - {}.csv"
 DATA_PATH_FMT = "./Data/Validation_set/{}/MCS/MCS_Impute.json.gz"
+#DATA_PATH_FMT = "/homes/biertank/klaus/Documents/Validation_set/{}/MCS/MCS_Impute.json.gz"
 VALSET_PATH_FMT = "./Data/Validation_set/{}/corrected.json.gz"
 DATASETS = ["Jaworski", "USPTO_unbalance_class", "USPTO_random_class", "golden_dataset"]
 
@@ -168,10 +169,9 @@ def plot_reaction(data, index, new_data=None):
     else:
         data[index]["correct_reaction"]
         titles.append('"Correct" Reaction')
-    if new_data is not None:
+    if new_data is not None and new_data[index]["correct_reaction"] is not None:
         smiles.append(new_data[index]["correct_reaction"])
         titles.append("New Correct Reaction")
-    print(smiles[1:])
     print("\n".join(smiles[1:]))
     plot_reactions(
         smiles,
@@ -199,4 +199,4 @@ if save:
 
 # |%%--%%| <OqsCzC6wdl|Ubskix1QjQ>
 
-plot_reaction(vset, 27)
+plot_reaction(vset, 266, new_vset)
