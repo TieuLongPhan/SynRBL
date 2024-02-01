@@ -111,6 +111,10 @@ class Compound:
             return None
         return rdmolfiles.MolToSmiles(self.src_mol)
 
+    @property
+    def is_catalyst(self) -> bool:
+        return self.smiles == self.src_smiles and len(self.boundaries) == 0
+
     def add_boundary(
         self,
         index,

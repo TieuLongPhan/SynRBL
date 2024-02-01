@@ -30,12 +30,21 @@ class TestBuildCompound(unittest.TestCase):
         self.assertEqual("O", compounds[0].boundaries[0].get_atom().GetSymbol())
         self.assertEqual("CO", rdmolfiles.MolToSmiles(compounds[0].src_mol))
 
-    def test_catalysis_compound(self):
+    def test_catalyst_compound1(self):
         data = self._get_dict([None], ["N"], [None], [None], [""])
         compounds = build_compounds(data)
         self.assertEqual(1, len(compounds))
         self.assertEqual(0, len(compounds[0].boundaries))
         self.assertEqual("N", rdmolfiles.MolToSmiles(compounds[0].src_mol))
+        self.assertTrue(compounds[0].is_catalyst)
+
+    def test_catalyst_compound2(self):
+        data = self._get_dict([None], ["CO"], [None], [None], [""])
+        compounds = build_compounds(data)
+        self.assertEqual(1, len(compounds))
+        self.assertEqual(0, len(compounds[0].boundaries))
+        self.assertEqual("CO", rdmolfiles.MolToSmiles(compounds[0].src_mol))
+        self.assertTrue(compounds[0].is_catalyst)
 
     def test_O_is_not_a_catalyst(self):
         data = self._get_dict([None], ["O"], [None], [None], [""])
@@ -44,11 +53,14 @@ class TestBuildCompound(unittest.TestCase):
         self.assertEqual(1, len(compounds[0].boundaries))
         self.assertEqual("O", rdmolfiles.MolToSmiles(compounds[0].src_mol))
         self.assertEqual("O", compounds[0].boundaries[0].symbol)
+        self.assertFalse(compounds[0].is_catalyst)
 
     def test_with_none_compound(self):
         data = self._get_dict([None], ["O"], [None], [None], ["something"])
         compounds = build_compounds(data)
         self.assertEqual(0, len(compounds))
+
+
 
 
 class TestImputeReaction(unittest.TestCase):

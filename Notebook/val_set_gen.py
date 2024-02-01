@@ -203,4 +203,6 @@ if save:
 
 # |%%--%%| <OqsCzC6wdl|Ubskix1QjQ>
 
-plot_reaction(vset, 266, new_vset)
+index = 190
+print(data[index])
+plot_reaction(vset, index, new_vset)
