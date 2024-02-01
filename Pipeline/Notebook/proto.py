@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 import rdkit.Chem.MolStandardize.rdMolStandardize as rdMolStandardize
 from SynRBL.rsmi_utils import load_database, save_database
+from SynRBL.SynUtils.chem_utils import remove_atom_mapping
 
 path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "Final_Graph")
 org_data = load_database(path)
@@ -19,25 +20,11 @@ def get_reaction_by_id(data, id):
             return i, item
     return None
 
-
-def clear_atom_nums_from_reaction(reaction_smiles):
-    def _clear(smiles):
-        mol = rdmolfiles.MolFromSmiles(smiles)
-        for a in mol.GetAtoms():
-            a.SetAtomMapNum(0)
-        return rdmolfiles.MolToSmiles(mol)
-
-    sides = reaction_smiles.split(">>")
-    n1 = ".".join([_clear(s) for s in sides[0].split(".")])
-    n2 = ".".join([_clear(s) for s in sides[1].split(".")])
-    return "{}>>{}".format(n1, n2)
-
-
 def clear_atom_nums(dataset):
     for k in ["new_reaction", "old_reaction"]:
         for i in range(len(dataset)):
             if k in dataset[i].keys():
-                dataset[i][k] = clear_atom_nums_from_reaction(dataset[i][k])
+                dataset[i][k] = remove_atom_mapping(dataset[i][k])
 
 
 def print_error_summary(data):
@@ -97,13 +84,13 @@ def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
     print("Rules:", entry["rules"])
 
 
-s = "O=C(O)O"  # "CC[Si](C)(C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "C[Si](C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 s = Chem.CanonSmiles(s)
 print(s)
 mol = rdmolfiles.MolFromSmiles(s)
 enumerator = rdMolStandardize.TautomerEnumerator()
 mol = enumerator.Canonicalize(mol)
-if True:
+if False:
     for i, atom in enumerate(mol.GetAtoms()):
         atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
 atom = mol.GetAtomWithIdx(0)
