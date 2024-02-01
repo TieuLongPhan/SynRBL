@@ -72,14 +72,14 @@ def build_validation_set(data, results):
     return vset
 
 
-def merge_validation_sets(vset, new_vset):
+def merge_validation_sets(vset, new_vset, override_ids=[]):
     def _it(row):
         return row["correct_reaction"], row["wrong_reactions"]
 
     ovset = []
     ncnt = 0
     mcnt = 0
-    for ne in new_vset:
+    for i, ne in enumerate(new_vset):
         id = ne["R-id"]
         e = get_by_id(vset, id)
         if e is None:
@@ -91,14 +91,17 @@ def merge_validation_sets(vset, new_vset):
             ncr, nwrs = _it(ne)
             if ncr is not None:
                 if len(cr) > 0 and cr != ncr:
-                    print("[{}] Correct reaction changed.".format(id))
-                    # e['correct_reaction'] = ncr
-                    # mcnt += 1
+                    if id in override_ids:
+                        e['correct_reaction'] = ncr
+                        mcnt += 1
+                        print("[{}, {}] Override correct reaction.".format(i, id))
+                    else:
+                        print("[{}, {}] Correct reaction changed.".format(i, id))
                 elif ncr in wrs:
-                    print("[{}] New correct reaction was marked as wrong.".format(id))
+                    print("[{}, {}] New correct reaction was marked as wrong.".format(i, id))
             for nwr in nwrs:
                 if len(nwr) > 0 and nwr not in wrs:
-                    print("[{}] Found new wrong reaction.".format(id))
+                    print("[{}, {}] Found new wrong reaction.".format(i, id))
                     # e['wrong_reactions'].append(nwr)
                     # mcnt += 1
             ovset.append(e)
@@ -139,6 +142,7 @@ def plot_reaction(data, index, new_data=None):
     if new_data is not None:
         smiles.append(new_data[index]["correct_reaction"])
         titles.append("New Correct Reaction")
+    print("\n".join(smiles[1:]))
     plot_reactions(
         smiles,
         titles,
@@ -147,7 +151,7 @@ def plot_reaction(data, index, new_data=None):
 
 #|%%--%%| <fQfIoeoE9J|OqsCzC6wdl>
 
-dataset = DATASETS[3]
+dataset = DATASETS[0]
 save = False
 # for dataset in DATASETS:
 print("Start: {}.".format(dataset))
@@ -157,10 +161,11 @@ vset = load_valset(dataset)
 
 new_vset = build_validation_set(data, results)
 
-mvset = merge_validation_sets(vset, new_vset)
+override_ids = ["Jaworski_139"]
+mvset = merge_validation_sets(vset, new_vset, override_ids=override_ids)
 if save:
     save_valset(mvset, dataset)
 
 # |%%--%%| <OqsCzC6wdl|Ubskix1QjQ>
 
-plot_reaction(vset, 266, new_data=new_vset)
+plot_reaction(vset, 36, new_data=new_vset)
