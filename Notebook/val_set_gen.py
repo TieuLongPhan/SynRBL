@@ -98,7 +98,11 @@ def merge_validation_sets(vset, new_vset, override_ids=[]):
             cr, wrs = _it(e)
             ncr, nwrs = _it(ne)
             if ncr is not None:
-                if len(cr) > 0 and cr != ncr:
+                if cr is None and len(ncr) > 0:
+                    e["correct_reaction"] = ncr
+                    modified_cnt += 1
+                    print("[{}, {}] Reaction is now correct.".format(i, id))
+                elif len(cr) > 0 and cr != ncr:
                     if id in override_ids:
                         e["correct_reaction"] = ncr
                         modified_cnt += 1
