@@ -64,26 +64,32 @@ def merge_validation_sets(vset, new_vset):
     def _it(row):
         return  row["correct_reaction"], row["wrong_reactions"]
     ovset = []
+    ncnt = 0
+    mcnt = 0
     for ne in new_vset:
         id = ne["R-id"]
         e = get_by_id(vset, id)
         if e is None:
             ovset.append(ne)
+            ncnt += 1
         else:
             assert id == e["R-id"]
             cr, wrs = _it(e)
             ncr, nwrs = _it(ne)
-            if len(ncr) > 0:
+            if ncr is not None:
                 if len(cr) > 0 and cr != ncr:
                     print("[{}] Correct reaction changed.".format(ncr))
+                    #e['correct_reaction'] = ncr
+                    #mcnt += 1
                 elif ncr in wrs:
                     print("[{}] New correct reaction was marked as wrong.".format(wrs))
-                else:
-                    e['correct_reaction'] = ncr
             for nwr in nwrs:
                 if len(nwr) > 0 and nwr not in wrs:
-                    e['wrong_reactions'].append(nwr)
+                    print("[{}] Found new wrong reaction.".format(nwr))
+                    #e['wrong_reactions'].append(nwr)
+                    #mcnt += 1
             ovset.append(e)
+    print("Added {} new and modified {} reactions.".format(ncnt, mcnt))
     return ovset
     
 
