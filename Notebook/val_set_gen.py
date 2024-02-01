@@ -32,7 +32,6 @@ def load_valset(dataset):
     else:
         return []
 
-
 def save_valset(data, dataset):
     path = VALSET_PATH_FMT.format(dataset)
     save_database(data, path)
@@ -161,11 +160,18 @@ def plot_reactions(smiles, titles=None, suptitle=None):
 
 
 def plot_reaction(data, index, new_data=None):
-    smiles = [data[index]["reaction"], data[index]["correct_reaction"]]
-    titles = ["Initial Reaction", '"Correct" Reaction']
+    smiles = [data[index]["reaction"]]
+    titles = ["Initial Reaction"]
+    if data[index]["correct_reaction"] is None:
+        smiles.append(data[index]["wrong_reactions"][0])
+        titles.append('Wrong Reaction')
+    else:
+        data[index]["correct_reaction"]
+        titles.append('"Correct" Reaction')
     if new_data is not None:
         smiles.append(new_data[index]["correct_reaction"])
         titles.append("New Correct Reaction")
+    print(smiles[1:])
     print("\n".join(smiles[1:]))
     plot_reactions(
         smiles,
@@ -178,7 +184,7 @@ def plot_reaction(data, index, new_data=None):
 
 dataset = DATASETS[3]
 save = False
-# for dataset in DATASETS:
+
 print("Start: {}.".format(dataset))
 results = load_results(dataset)
 data = load_data(dataset)
@@ -186,16 +192,11 @@ vset = load_valset(dataset)
 
 new_vset = build_validation_set(data, results)
 
-override_ids = ["Jaworski_139"]
+override_ids = []
 mvset = merge_validation_sets(vset, new_vset, override_ids=override_ids)
 if save:
     save_valset(mvset, dataset)
 
-# |%%--%%| <OqsCzC6wdl|OpgfrTGD1E>
+# |%%--%%| <OqsCzC6wdl|Ubskix1QjQ>
 
-print(sum(1 for x in mvset if x['correct_reaction'] is not None))
-print(results["Result"].value_counts())
-
-# |%%--%%| <OpgfrTGD1E|Ubskix1QjQ>
-
-plot_reaction(vset, 36, new_data=new_vset)
+plot_reaction(vset, 27)
