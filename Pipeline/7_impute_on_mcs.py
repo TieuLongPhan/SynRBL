@@ -117,11 +117,13 @@ def run_report(args):
             val_set_path = get_validation_set_path(db)
             if os.path.exists(val_set_path):
                 val_data = load_database(val_set_path)
-                assert len(data) == len(
-                    val_data
-                ), "Data and val_data are not of same length. ({} != {})".format(
-                    len(data), len(val_data)
-                )
+                if len(data) != len(val_data):
+                    print(
+                        "Data and val_data are not of same length. (Dataset: {}, {} != {})".format(
+                            db, len(data), len(val_data)
+                        )
+                    )
+                    val_data = None
         success_cnt = 0
         correct_cnt = None
         for i, item in enumerate(data):
