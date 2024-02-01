@@ -5,7 +5,7 @@ from SynRBL.rsmi_utils import load_database, save_database
 RESULT_PATH_FMT = "./Pipeline/Validation/Analysis/SynRBL - {}.csv"
 DATA_PATH_FMT = "./Data/Validation_set/{}/MCS/MCS_Impute.json.gz"
 VALSET_PATH_FMT = "./Data/Validation_set/{}/corrected.json.gz"
-DATASETS = ["Jaworski", "USPTO_unbalance_class", "USPTO_random_class", "golden "]
+DATASETS = ["Jaworski", "USPTO_unbalance_class", "USPTO_random_class", "golden_dataset"]
 
 
 def load_results(dataset):
@@ -89,11 +89,13 @@ def merge_validation_sets(vset, new_vset):
                     #e['wrong_reactions'].append(nwr)
                     #mcnt += 1
             ovset.append(e)
-    print("Added {} new and modified {} reactions.".format(ncnt, mcnt))
+    print("Added {} new reactions and modified {} reactions.".format(ncnt, mcnt))
     return ovset
     
 
-dataset = DATASETS[0]
+dataset = DATASETS[3]
+#for dataset in DATASETS:
+print("Start: {}.".format(dataset))
 results = load_results(dataset)
 data = load_data(dataset)
 vset = load_valset(dataset)
