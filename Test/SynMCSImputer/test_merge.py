@@ -5,6 +5,7 @@ import rdkit.Chem.rdmolfiles as rdmolfiles
 
 import SynRBL.SynMCSImputer.merge as merge
 import SynRBL.SynMCSImputer.structure as structure
+from SynRBL.SynMCSImputer.rules import MergeRule
 
 
 class DummyMergeRule:
@@ -96,6 +97,49 @@ class TestMergeRule(unittest.TestCase):
         cm = merge.merge_boundaries(b1, b2)
         self.assertEqual("CC(C)B1OC(C)(C)C(C)(C)O1", cm.smiles)  # type: ignore
         self.assertEqual("default single bond", cm.rules[0].name)  # type: ignore
+
+    def test_phosphor_bond1(self):
+        # If Oxygen comes from COH merge with single bond
+        c1 = structure.Compound("O", src_mol="CCO")
+        c2 = structure.Compound("BrPBr", src_mol="BrP(Br)Br")
+        b1 = c1.add_boundary(0, "O", 1, "C")
+        b2 = c2.add_boundary(1, "P", 2, "Br")
+        cm = merge.merge_boundaries(b1, b2)
+        self.assertEqual(1, len(cm.rules))  # type: ignore
+        self.assertEqual("phosphor single bond", cm.rules[0].name)  # type: ignore
+        self.assertEqual("OP(Br)Br", cm.smiles)  # type: ignore
+
+    def test_phosphor_bond2(self):
+        # If Oxygen comes from C=O and P has no P=O merge with double bond
+        c1 = structure.Compound("O", src_mol="CC(=O)")
+        c2 = structure.Compound("BrPBr", src_mol="BrP(Br)Br")
+        b1 = c1.add_boundary(0, "O", 1, "C")
+        b2 = c2.add_boundary(1, "P", 2, "Br")
+        cm = merge.merge_boundaries(b1, b2)
+        self.assertEqual(1, len(cm.rules))  # type: ignore
+        self.assertEqual("phosphor double bond", cm.rules[0].name)  # type: ignore
+        self.assertEqual("O=[PH](Br)Br", cm.smiles)  # type: ignore
+
+    def test_phosphor_bond3(self):
+        # If Oxygen comes from C=O and P has P=O merge with double bond 
+        # and change old P=O double bond to single bond
+        c1 = structure.Compound("[O:3]", src_mol="[CH3:0][C:1]([CH3:2])=[O:3]")
+        c2 = structure.Compound(
+            "[P:5](=[O:8])([OH:6])[OH:7]", src_mol="[CH3:4][P:5](=[O:8])([OH:6])[OH:7]"
+        )
+        b1 = c1.add_boundary(0, "O", 1, "C")
+        b2 = c2.add_boundary(0, "P", 0, "C")
+        mrule = [r for r in MergeRule.get_all() if r.name == "phosphor double bond"][0]
+        print(mrule.condition1.check(b1))
+        print(mrule.condition2.check(b2))
+        print(mrule.condition2.pattern_match.pattern.pos_values)
+        print(mrule.condition2.pattern_match.pattern.neg_values)
+        print(b2)
+        print(mrule.condition2.pattern_match.check(b2))
+        cm = merge.merge_boundaries(b1, b2)
+        self.assertEqual(1, len(cm.rules))  # type: ignore
+        self.assertEqual("phosphor double bond change", cm.rules[0].name)  # type: ignore
+        self.assertEqual("[O:3]=[P:5]([OH:6])([OH:7])[O:8]", cm.smiles)  # type: ignore
 
 
 class TestExpansion(unittest.TestCase):
@@ -260,9 +304,9 @@ class TestCompounds(unittest.TestCase):
         compound2 = structure.Compound("O=Cc1ccccc1C=O", src_mol="O=C1NC(=O)c2ccccc21")
         compound2.add_boundary(1, symbol="C", neighbor_index=2, neighbor_symbol="N")
         compound2.add_boundary(8, symbol="C", neighbor_index=2, neighbor_symbol="N")
-        compound1.rules = ['r1']
-        compound2.rules = ['r2']
+        compound1.rules = ["r1"]
+        compound2.rules = ["r2"]
         cm = merge.merge([compound1, compound2])
         self.assertEqual("Cl.O=C(O)c1ccccc1C(=O)O", cm.smiles)
-        self.assertIn('r1', cm.rules)
-        self.assertIn('r2', cm.rules)
+        self.assertIn("r1", cm.rules)
+        self.assertIn("r2", cm.rules)

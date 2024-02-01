@@ -1,8 +1,22 @@
 [
 	{
-		"name": "phosphor double bond",
-		"condition1": {"atom": ["P"]}, 
+		"name": "phosphor double bond change",
+		"condition1": {"atom": ["O"], "pattern_match": {"pattern": "C=O"}}, 
+		"condition2": {"atom": ["P"], "pattern_match": {"pattern": "P=O"}}, 
+		"action2": {"action": "change_bond", "pattern": "P=O", "bond": "single"},
 		"bond": "double"
+	},
+	{
+		"name": "phosphor double bond",
+		"condition1": {"atom": ["O"], "pattern_match": {"pattern": "C=O"}}, 
+		"condition2": {"atom": ["P"], "pattern_match": {"pattern": "!P=O"}}, 
+		"bond": "double"
+	},
+	{
+		"name": "phosphor single bond",
+		"condition1": {"atom": ["O"], "pattern_match": {"pattern": "CO"}}, 
+		"condition2": {"atom": ["P"]}, 
+		"bond": "single"
 	},
 	{
 		"name": "S bond restriction",

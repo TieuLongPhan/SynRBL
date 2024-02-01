@@ -209,14 +209,7 @@ def pattern_match(mol, anchor, pattern_mol, pattern_anchor=None):
         pattern_atom = pattern_mol.GetAtomWithIdx(pattern_anchor)
         return _fits(atom, pattern_atom)
 
-
-def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
-    if group_name not in functional_group_config.keys():
-        raise NotImplementedError(
-            "Functional group '{}' is not implemented.".format(group_name)
-        )
-    config = functional_group_config[group_name]
-
+def check_functional_group(mol: rdchem.Mol, config: FGConfig, index: int) -> bool:
     is_func_group = False
 
     for p_mol, g_mol in zip(config.pattern, config.groups):
@@ -239,3 +232,12 @@ def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
         is_match, _ = pattern_match(mol, index, ap_mol)
         is_func_group = is_func_group and not is_match
     return is_func_group
+
+def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
+    if group_name not in functional_group_config.keys():
+        raise NotImplementedError(
+            "Functional group '{}' is not implemented.".format(group_name)
+        )
+    config = functional_group_config[group_name]
+    return check_functional_group(mol, config, index)
+

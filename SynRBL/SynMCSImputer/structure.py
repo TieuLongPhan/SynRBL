@@ -24,6 +24,11 @@ class Boundary:
             self.neighbor_symbol = src_mol.GetAtomWithIdx(neighbor_index).GetSymbol()
         self.is_merged = False
 
+    def __str__(self) -> str:
+        return "Boundary '{}' @ {} in '{}' from '{}'.".format(
+            self.symbol, self.index, self.compound.smiles, self.compound.src_smiles
+        )
+
     def promise_src(self) -> rdchem.Mol:
         mol = self.compound.src_mol
         if mol is None:

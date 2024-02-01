@@ -92,6 +92,9 @@ class TestMCS(unittest.TestCase):
         self._call("CC=O", 1, "CO", expected_match=False)
         self.assertEqual([(1,0), (2,1)], self._call("CC=O", 1, "C=O", expected_match=True))
 
+    def test_find_double_bond_match(self):
+        self.assertEqual([(1,1), (2,0)], self._call("CP(=O)(O)O", 1, "O=P", expected_match=True))
+
 
 class TestFGConfig(unittest.TestCase):
     def test_init_anti_pattern(self):

@@ -2,28 +2,16 @@ import matplotlib.pyplot as plt
 import rdkit.Chem.rdmolfiles as rdmolfiles
 from SynRBL.SynVis import ReactionVisualizer
 from SynRBL.rsmi_utils import load_database, save_database
-
-
-def clear_atom_nums_from_reaction(reaction_smiles):
-    def _clear(smiles):
-        mol = rdmolfiles.MolFromSmiles(smiles)
-        for a in mol.GetAtoms():
-            a.SetAtomMapNum(0)
-        return rdmolfiles.MolToSmiles(mol)
-
-    sides = reaction_smiles.split(">>")
-    n1 = ".".join([_clear(s) for s in sides[0].split(".")])
-    n2 = ".".join([_clear(s) for s in sides[1].split(".")])
-    return "{}>>{}".format(n1, n2)
+from SynRBL.SynUtils.chem_utils import remove_atom_mapping
 
 
 def clear_atom_nums(dataset):
     for k in ["new_reaction", "old_reaction"]:
         for i in range(len(dataset)):
-            dataset[i][k] = clear_atom_nums_from_reaction(dataset[i][k])
+            dataset[i][k] = remove_atom_mapping(dataset[i][k])
 
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "MCS_Impute")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("USPTO_50K", "MCS_Impute")
 data = load_database(path)
 clear_atom_nums(data)
 
@@ -54,7 +42,7 @@ def get_reaction_by_id(data, id):
             return i, item
     return None
 
-rids = get_ids_by_rule(data, "bond restriction", l=1)
+rids = get_ids_by_rule(data, "phosphor double bond", l=1)
 
 # |%%--%%| <DUqrOw4SKU|5Fdy81dKgB>
 
@@ -65,7 +53,7 @@ for idx in rids:
 ridl = sorted(ridl, key=lambda e: e[1])
 print(ridl[0:20])
 #idx, _ = get_reaction_by_id(data, "golden_dataset_568")
-idx = 274
+idx = 198
 print(idx, data[idx]["issue"], data[idx]['rules'])
 rvis = ReactionVisualizer(figsize=(10, 8))
 rvis.plot_reactions(

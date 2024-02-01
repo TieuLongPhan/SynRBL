@@ -109,6 +109,24 @@ class Property:
         return True
 
 
+def run_check(prop: Property, value, pos_callback, neg_callback, *args):
+    if prop.allow_none and value is None:
+        return True
+    if len(prop.pos_values) > 0:
+        found = False
+        for i, pos_value in enumerate(prop.pos_values):
+            if pos_callback(value, i, pos_value, *args):
+                found = True
+                break
+            if not found:
+                return False
+    if len(prop.neg_values) > 0:
+        for i, neg_value in enumerate(prop.neg_values):
+            if neg_callback(value, i, neg_value, *args):
+                return False
+    return True
+
+
 class FunctionalGroupProperty(Property):
     def __init__(self, functional_groups=None):
         super().__init__(functional_groups, allow_none=False)
@@ -135,6 +153,57 @@ class FunctionalGroupProperty(Property):
         return True
 
 
+class PatternCondition:
+    def __init__(self, pattern=None, anchor=None, **kwargs):
+        pattern = kwargs.get("pattern", pattern)
+        anchor = kwargs.get("anchor", anchor)
+
+        self.pattern = Property(pattern)
+        pattern_cnt = len(self.pattern.pos_values) + len(self.pattern.neg_values)
+        if anchor is None:
+            anchor = [None for _ in range(pattern_cnt)]
+        anchor = anchor if isinstance(anchor, list) else [anchor]
+        if pattern_cnt != len(anchor):
+            raise ValueError(
+                "Config error! Pattern '{}' and anchor '{}' must be of same length.".format(
+                    pattern, anchor
+                )
+            )
+
+        self.anchor = anchor
+
+    def check(self, boundary: Boundary) -> bool:
+        def _check(boundary, pattern, pattern_anchor):
+            pattern_mol = rdmolfiles.MolFromSmiles(pattern)
+            match, mapping = fgutils.pattern_match(
+                boundary.promise_src(),
+                boundary.promise_neighbor_index(),
+                pattern_mol,
+                pattern_anchor,
+            )
+            print(
+                boundary.compound.src_smiles,
+                boundary.neighbor_index,
+                rdmolfiles.MolToSmiles(pattern_mol),
+                pattern_anchor,
+                match,
+                mapping,
+            )
+            return match
+
+        def _pos_check(boundary, index, pattern, offset):
+            pattern_anchor = self.anchor[index]
+            return _check(boundary, pattern, pattern_anchor)
+
+        def _neg_check(boundary, index, pattern, offset):
+            pattern_anchor = self.anchor[offset + index]
+            return _check(boundary, pattern, pattern_anchor)
+
+        return run_check(
+            self.pattern, boundary, _pos_check, _neg_check, len(self.pattern.pos_values)
+        )
+
+
 class BoundaryCondition:
     """
     Atom condition class to check if a rule is applicable to a specific
@@ -153,7 +222,14 @@ class BoundaryCondition:
         neighbors (SynRBL.SynMCSImputer.rule_formation.Property): Neighbors property
     """
 
-    def __init__(self, atom=None, neighbors=None, functional_groups=None, **kwargs):
+    def __init__(
+        self,
+        atom=None,
+        neighbors=None,
+        functional_groups=None,
+        pattern_match=None,
+        **kwargs,
+    ):
         """
         Atom condition class to check if a rule is applicable to a specific
         molecule. Property configs can be prefixed with '!' to negate the
@@ -167,10 +243,14 @@ class BoundaryCondition:
         atom = kwargs.get("atom", atom)
         neighbors = kwargs.get("neighbors", neighbors)
         functional_groups = kwargs.get("functional_groups", functional_groups)
+        pattern_match = kwargs.get(
+            "pattern_match", {} if pattern_match is None else pattern_match
+        )
 
         self.atom = Property(atom)
         self.neighbors = Property(neighbors, allow_none=True)
         self.functional_groups = FunctionalGroupProperty(functional_groups)
+        self.pattern_match = PatternCondition(**pattern_match)
 
     def check(self, boundary: Boundary):
         """
@@ -188,6 +268,7 @@ class BoundaryCondition:
                 self.atom.check(boundary.symbol),
                 self.neighbors.check(boundary.neighbor_symbol),
                 self.functional_groups.check(boundary),
+                self.pattern_match.check(boundary),
             ]
         )
 

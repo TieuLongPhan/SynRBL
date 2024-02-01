@@ -1,7 +1,7 @@
 import unittest
 import SynRBL.SynMCSImputer.rules as rules
 import SynRBL.SynMCSImputer.structure as structure
-
+import rdkit.Chem as Chem
 
 class TestProperty(unittest.TestCase):
     def __test_prop(self, config, in_p=[], in_n=[], dtype: type[str | int] = str):
@@ -147,3 +147,62 @@ class TestBoundaryCondition(unittest.TestCase):
     def test_positive_check_with_neighbors(self):
         cond = rules.BoundaryCondition(atom="C", neighbors=["O", "N"])
         self.__check_cond(cond, "C", 0, True, src_smiles="CO", neighbor=1)
+
+    def test_pattern_match(self):
+        cond = rules.BoundaryCondition(pattern_match={"pattern": "P=O"})
+        self.__check_cond(cond, "Cl", 0, True, src_smiles="O=P(Cl)Cl", neighbor=1)
+
+    def test_unseccessful_pattern_match(self):
+        cond = rules.BoundaryCondition(pattern_match={"pattern": "P=O"})
+        self.__check_cond(cond, "Cl", 0, False, src_smiles="O=C(Cl)Cl", neighbor=1)
+
+class TestPatternCondition(unittest.TestCase):
+    def test_successful_match(self):
+        cond = rules.PatternCondition(pattern="P=O")
+        comp = rules.Compound("Cl", src_mol="O=P(Cl)Cl")
+        boundary = comp.add_boundary(0, neighbor_index=1, neighbor_symbol="P")
+        result = cond.check(boundary)
+        self.assertTrue(result)
+        
+    def test_unsuccessful_match(self):
+        cond = rules.PatternCondition(pattern="P=O")
+        comp = rules.Compound("Cl", src_mol="O=C(Cl)Cl")
+        boundary = comp.add_boundary(0, neighbor_index=0, neighbor_symbol="O")
+        result = cond.check(boundary)
+        self.assertFalse(result)
+        
+    def test_successful_match_with_anchor(self):
+        cond = rules.PatternCondition(pattern="P=O", anchor=0)
+        comp = rules.Compound("Cl", src_mol="O=P(Cl)(Cl)Cl")
+        boundary = comp.add_boundary(0, neighbor_index=1, neighbor_symbol="P")
+        result = cond.check(boundary)
+        self.assertTrue(result)
+
+    def test_unsuccessful_match_with_anchor(self):
+        cond = rules.PatternCondition(pattern="P=O", anchor=1)
+        comp = rules.Compound("Cl", src_mol="O=P(Cl)(Cl)Cl")
+        boundary = comp.add_boundary(0, neighbor_index=1, neighbor_symbol="P")
+        result = cond.check(boundary)
+        self.assertFalse(result)
+
+    def test_uninitialized(self):
+        cond = rules.PatternCondition()
+        comp = rules.Compound("Cl", src_mol="O=P(Cl)(Cl)Cl")
+        boundary = comp.add_boundary(0, neighbor_index=1, neighbor_symbol="P")
+        result = cond.check(boundary)
+        self.assertTrue(result)
+
+    def test_antipattern_match(self):
+        cond = rules.PatternCondition(pattern="!P=O")
+        comp = rules.Compound("BrPBr", src_mol="BrP(Br)Br")
+        boundary = comp.add_boundary(1, "P", neighbor_index=2, neighbor_symbol="Br")
+        result = cond.check(boundary)
+        self.assertTrue(result)
+
+    def test_2(self):
+        cond = rules.PatternCondition(pattern="!P=O")
+        comp = rules.Compound("P(=O)(O)O", src_mol="CP(=O)(O)O")
+        boundary = comp.add_boundary(0, symbol="P", neighbor_index=0, neighbor_symbol="C")
+        print(boundary)
+        result = cond.check(boundary)
+        self.assertFalse(result)
