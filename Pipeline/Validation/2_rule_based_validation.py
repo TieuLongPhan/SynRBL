@@ -133,15 +133,15 @@ def main(data_name = 'golden_dataset', n_jobs= 4, save = False, rules_extension=
 
 
 
-    if data_name == 'USPTO_50K':
-        USPTO_diff = root_dir / 'Data/Validation_set' / 'USPTO_diff'
-        USPTO_diff_check = root_dir / 'Data/Validation_set' / 'USPTO_diff' / 'check'
-        if not USPTO_diff_check.exists():
-            os.mkdir(USPTO_diff_check)
-        certain_reactions_diff = get_random_samples_by_key(certain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
-        uncertain_reactions_diff = get_random_samples_by_key(mcs_based, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
-        print(len(uncertain_reactions_diff))
-        print(len(certain_reactions_diff))
+    # if data_name == 'USPTO_50K':
+    #     USPTO_diff = root_dir / 'Data/Validation_set' / 'USPTO_diff'
+    #     USPTO_diff_check = root_dir / 'Data/Validation_set' / 'USPTO_diff' / 'check'
+    #     if not USPTO_diff_check.exists():
+    #         os.mkdir(USPTO_diff_check)
+    #     certain_reactions_diff = get_random_samples_by_key(certain_reactions, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
+    #     uncertain_reactions_diff = get_random_samples_by_key(mcs_based, num_samples_per_group=30, random_seed=42, stratify_key = 'Diff_formula')
+    #     print(len(uncertain_reactions_diff))
+    #     print(len(certain_reactions_diff))
         # save_database(certain_reactions_diff, USPTO_diff / 'rule_based_reactions.json.gz')
         # save_database(uncertain_reactions_diff, USPTO_diff / 'mcs_based_reactions.json.gz')
         # vis = ReactionVisualizer()
