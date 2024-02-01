@@ -24,7 +24,7 @@ def visualize_accuracy(df, error_bar=True, chart_type='line', error_bar_color='b
     # Calculate accuracy and confidence for each property
     accuracy_carbon = calculate_accuracy_and_confidence(df, 'carbon_difference')
     accuracy_fragment = calculate_accuracy_and_confidence(df, 'fragment_count')
-    accuracy_bondchanges = calculate_accuracy_and_confidence(df, 'Bond Changes')
+    accuracy_bondchanges = calculate_accuracy_and_confidence(df, 'num_boundary')
 
     # Determine the global maximum size for same color scale
     if same_color_scale:
@@ -78,11 +78,8 @@ def visualize_accuracy(df, error_bar=True, chart_type='line', error_bar_color='b
 
     plot_data(accuracy_carbon, 'carbon_difference', 'Accuracy', 'lower', 'upper', 'size', 0, 'Number of Carbons Difference', error_bar_color, norm, show_values)
     plot_data(accuracy_fragment, 'fragment_count', 'Accuracy', 'lower', 'upper', 'size', 1, 'Number of Fragments', error_bar_color, norm, show_values)
-    plot_data(accuracy_bondchanges, 'Bond Changes', 'Accuracy', 'lower', 'upper', 'size', 2, 'Number of Bond Changes', error_bar_color, norm, show_values)
+    plot_data(accuracy_bondchanges, 'num_boundary', 'Accuracy', 'lower', 'upper', 'size', 2, 'Number of num_boundary', error_bar_color, norm, show_values)
 
     plt.tight_layout(pad=4.0)
     plt.savefig(savepath)
     plt.show()
-
-# Example usage (assuming 'data3' is a suitable DataFrame)
-#visualize_accuracy(data_all, error_bar=True, chart_type='bar', error_bar_color='gray', same_color_scale=False, show_values=False, savepath = './mcs_all.pdf')
