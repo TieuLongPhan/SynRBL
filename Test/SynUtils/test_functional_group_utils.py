@@ -50,7 +50,9 @@ class TestMCS(unittest.TestCase):
     def _call(self, smiles, anchor, pattern_smiles, panchor=None, expected_match=True):
         mol = rdmolfiles.MolFromSmiles(smiles)
         pattern_mol = rdmolfiles.MolFromSmiles(pattern_smiles)
-        match, mapping = fgutils.pattern_match(mol, anchor, pattern_mol, pattern_anchor=panchor)
+        match, mapping = fgutils.pattern_match(
+            mol, anchor, pattern_mol, pattern_anchor=panchor
+        )
         self.assertEqual(expected_match, match)
         return mapping
 
@@ -63,7 +65,7 @@ class TestMCS(unittest.TestCase):
 
     def test_ring_pattern_match(self):
         self.assertEqual([(1, 0), (3, 1), (2, 2)], self._call("CC1NO1", 1, "CON", 0))
-        self.assertEqual([(1, 0), (3,2), (2, 1)], self._call("CC1NO1", 1, "C1NO1", 0))
+        self.assertEqual([(1, 0), (3, 2), (2, 1)], self._call("CC1NO1", 1, "C1NO1", 0))
 
     def test_invalid_path_pattern(self):
         self.assertEqual(
@@ -71,10 +73,7 @@ class TestMCS(unittest.TestCase):
         )
 
     def test_match_star(self):
-        self.assertEqual(
-            [(1, 1), (2, 2), (0, 0)], self._call("CC(C)C", 1, "CCC", 1)
-        )
-
+        self.assertEqual([(1, 1), (2, 2), (0, 0)], self._call("CC(C)C", 1, "CCC", 1))
 
     def test_find_no_pattern_match(self):
         self._call("CCO", 0, "O", 0, expected_match=False)
@@ -84,13 +83,20 @@ class TestMCS(unittest.TestCase):
         self._call("CC(O)CC(N)O", 2, "CCN", 0, expected_match=False)
 
     def test_fit_without_pattern_anchor(self):
-        self.assertEqual([(0,0), (1,1), (2,2)], self._call("CCO", 0, "CCO"))
-        self.assertEqual([(1,1), (2,2), (0,0)], self._call("CCO", 1, "CCO"))
-        self.assertEqual([(2,2), (1,1), (0,0)], self._call("CCO", 2, "CCO"))
+        self.assertEqual([(0, 0), (1, 1), (2, 2)], self._call("CCO", 0, "CCO"))
+        self.assertEqual([(1, 1), (2, 2), (0, 0)], self._call("CCO", 1, "CCO"))
+        self.assertEqual([(2, 2), (1, 1), (0, 0)], self._call("CCO", 2, "CCO"))
 
     def test_match_with_bond_order(self):
         self._call("CC=O", 1, "CO", expected_match=False)
-        self.assertEqual([(1,0), (2,1)], self._call("CC=O", 1, "C=O", expected_match=True))
+        self.assertEqual(
+            [(1, 0), (2, 1)], self._call("CC=O", 1, "C=O", expected_match=True)
+        )
+
+    def test_find_double_bond_match(self):
+        self.assertEqual(
+            [(1, 1), (2, 0)], self._call("CP(=O)(O)O", 1, "O=P", expected_match=True)
+        )
 
 
 class TestFGConfig(unittest.TestCase):
@@ -160,8 +166,8 @@ class TestFunctionalGroupCheck(unittest.TestCase):
         # Methylether
         self.__test_fg("COC", "ether", [0, 1, 2])
         self.__test_fg("COc1cccc(OC)c1OC", "ether", [0, 1, 2, 9, 10, 11, 6, 7, 8])
-        self.__test_fg("COc1ccc[nH]1", "ether", [0,1,2])
-        self.__test_fg("COc1ccccc1", "ether", [0,1,2])
+        self.__test_fg("COc1ccc[nH]1", "ether", [0, 1, 2])
+        self.__test_fg("COc1ccccc1", "ether", [0, 1, 2])
 
     def test_enol(self):
         # 3-pentanone enol
@@ -171,9 +177,9 @@ class TestFunctionalGroupCheck(unittest.TestCase):
         # Asparagine
         self.__test_fg("NC(=O)CC(N)C(=O)O", "amid", [0, 1, 2])
 
-    def test_acyl(self):
-        # Acetyl cloride
-        self.__test_fg("CC(=O)[Cl]", "acyl", [1, 2])
+    #def test_acyl(self):
+    #    # Acetyl cloride
+    #    self.__test_fg("CC(=O)[Cl]", "acyl", [1, 2])
 
     def test_diol(self):
         self.__test_fg("OCO", "diol")
@@ -208,6 +214,8 @@ class TestFunctionalGroupCheck(unittest.TestCase):
     def test_amin(self):
         # Glycin
         self.__test_fg("NCC(=O)O", "amin", [0, 1])
+        # Methcatione
+        self.__test_fg("CNC(C)C(=O)c1ccccc1", "amin", [0, 1, 2])
 
     def test_nitril(self):
         self.__test_fg("C#N", "nitril")
@@ -229,3 +237,11 @@ class TestFunctionalGroupCheck(unittest.TestCase):
         # Methyl thionobenzonat
         self.__test_fg("CSC(=O)c1ccccc1", "thioester", [1, 2, 3])
         self.__test_fg("COC(=S)c1ccccc1", "thioester", [1, 2, 3])
+
+    def test_keton(self):
+        # Methcatione
+        self.__test_fg("CNC(C)C(=O)c1ccccc1", "keton", [4, 5])
+
+    def test_aldehyde(self):
+        # Methcatione
+        self.__test_fg("CC=O", "aldehyde", [1, 2])

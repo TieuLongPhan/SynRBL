@@ -5,9 +5,11 @@ import importlib.resources
 import rdkit.Chem as Chem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.rdmolops as rdmolops
+import rdkit.Chem.rdchem as rdchem
 
 import SynRBL.SynMCSImputer
 import SynRBL.SynUtils.functional_group_utils as fgutils
+import SynRBL.SynMCSImputer.utils as utils
 
 from .structure import Boundary, Compound
 
@@ -47,7 +49,6 @@ class Property:
     def __init__(
         self,
         config: str | list[str] | None = None,
-        dtype: type[int | str] = str,
         allow_none=False,
     ):
         """
@@ -58,11 +59,8 @@ class Property:
                 a list of acceptable and forbiden values.
                 e.g.: ['A', 'B'] -> check is true if value is A or B
                       ['!C', '!D'] -> check is true if value is not C and not D
-            dtype (optional): Datatype of the property. Must implement
-                conversion from string as constructor (e.g.: int).
             allow_none (bool): Flag if a check with value None is valid or not.
         """
-        self.__dtype = dtype
         self.allow_none = allow_none
         self.neg_values = []
         self.pos_values = []
@@ -75,11 +73,14 @@ class Property:
                         "Property configuration must be of type str or list[str]."
                     )
                 if len(item) > 0 and item[0] == "!":
-                    self.neg_values.append(dtype(item[1:]))
+                    self.neg_values.append(item[1:])
                 else:
-                    self.pos_values.append(dtype(item))
+                    self.pos_values.append(item)
 
-    def check(self, value) -> bool:
+    def check(self, value, check_value) -> bool:
+        return value == check_value
+
+    def __call__(self, value) -> bool:
         """
         Check if the property is true for the given value.
 
@@ -90,49 +91,147 @@ class Property:
         Returns:
             bool: True if the value fulfills the property, false otherwise.
         """
-        if self.allow_none and value is None:
-            return True
-        if not isinstance(value, self.__dtype):
-            raise ValueError("value must be of type '{}'.".format(self.__dtype))
+        if value is None:
+            if self.allow_none:
+                return True
+            else:
+                raise ValueError(
+                    "Passed value None to property that does not allow None."
+                )
         if len(self.pos_values) > 0:
             found = False
             for pv in self.pos_values:
-                if pv == value:
+                r = self.check(value, pv)
+                # print("{} pos. check return {}.".format(self.__class__.__name__, r))
+                if r:
                     found = True
                     break
             if not found:
                 return False
         if len(self.neg_values) > 0:
             for nv in self.neg_values:
-                if nv == value:
+                r = self.check(value, nv)
+                # print("{} neg. check return {}.".format(self.__class__.__name__, r))
+                if r:
                     return False
         return True
+
+
+class Action:
+    __actions = {}
+
+    @classmethod
+    def build(cls, name, **kwargs) -> Action:
+        if name not in cls.__actions.keys():
+            raise NotImplementedError("No action named '{}' found.".format(name))
+        inst = cls.__actions[name](**kwargs)
+        return inst
+
+    @classmethod
+    def register(cls, name: str, action):
+        if name in cls.__actions.keys():
+            raise ValueError("Action with name '{}' already exists.".format(name))
+        cls.__actions[name] = action
+
+    def apply(self, boundary: Boundary):
+        pass
+
+    def __call__(self, boundary: Boundary):
+        self.apply(boundary)
+
+
+class ChangeBondAction(Action):
+    def __init__(self, pattern=None, bond=None, **kwargs):
+        pattern = kwargs.get("pattern", pattern)
+        bond = kwargs.get("bond", bond)
+
+        if pattern is None:
+            raise ValueError("Missing required parameter 'pattern'.")
+
+        if bond is None:
+            raise ValueError("Missing required parameter 'bond'.")
+
+        self.pattern_mol = rdmolfiles.MolFromSmiles(pattern)
+        self.bond_type, _ = parse_bond_type(bond)
+
+        if (
+            len(self.pattern_mol.GetAtoms()) != 2
+            or len(self.pattern_mol.GetBonds()) != 1
+        ):
+            raise ValueError(
+                "Pattern for change_bond action must be a smiles with 2 "
+                + "atoms and 1 bond. "
+                + "Value '{}' is invalid.".format(pattern)
+            )
+
+    def apply(self, boundary: Boundary):
+        match, mapping = fgutils.pattern_match(
+            boundary.compound.mol, boundary.index, self.pattern_mol
+        )
+        assert match, (
+            "No match found for pattern '{}' in '{}' @ {}. "
+            + "Fix the condition in the rule configuration."
+        ).format(
+            rdmolfiles.MolToSmiles(self.pattern_mol),
+            boundary.compound.smiles,
+            boundary.index,
+        )
+        emol = rdchem.EditableMol(boundary.compound.mol)
+        emol.RemoveBond(mapping[0][0], mapping[1][0])
+        emol.AddBond(mapping[0][0], mapping[1][0], self.bond_type)
+        boundary.compound.mol = emol.GetMol()
+
+
+Action.register("change_bond", ChangeBondAction)
 
 
 class FunctionalGroupProperty(Property):
-    def __init__(self, functional_groups=None):
-        super().__init__(functional_groups, allow_none=False)
+    def __init__(self, config=None):
+        super().__init__(config, allow_none=False)
 
-    def check(self, value: Boundary) -> bool:
-        if not isinstance(value, Boundary):
-            raise TypeError("Value must be of type boundary.")
-        if len(self.pos_values) + len(self.neg_values) == 0:
-            return True
-        src_mol = value.promise_src()
-        neighbor_index = value.promise_neighbor_index()
-        if len(self.pos_values) > 0:
-            found = False
-            for v in self.pos_values:
-                if fgutils.is_functional_group(src_mol, v, neighbor_index):
-                    found = True
-                    break
-            if not found:
-                return False
-        if len(self.neg_values) > 0:
-            for v in self.neg_values:
-                if fgutils.is_functional_group(src_mol, v, neighbor_index):
-                    return False
-        return True
+    def check(self, value: Boundary, check_value) -> bool:
+        if value.compound.src_mol is not None and value.neighbor_index is not None:
+            src_mol = value.promise_src()
+            neighbor_index = value.promise_neighbor_index()
+            return fgutils.is_functional_group(src_mol, check_value, neighbor_index)
+        else:
+            return False
+
+
+class PatternProperty(Property):
+    def __init__(self, config=None, use_src_mol: bool = False):
+        super().__init__(config, allow_none=False)
+        self.use_src_mol = use_src_mol
+
+    def check(self, boundary: Boundary, value) -> bool:
+        pattern_mol = rdmolfiles.MolFromSmiles(value)
+        mol = boundary.compound.mol
+        index = boundary.index
+        if self.use_src_mol:
+            mol = boundary.promise_src()
+            index = boundary.promise_neighbor_index()
+        match, _ = fgutils.pattern_match(
+            mol,
+            index,
+            pattern_mol,
+        )
+        return match
+
+
+class BoundarySymbolProperty(Property):
+    def __init__(self, config=None):
+        super().__init__(config, allow_none=False)
+
+    def check(self, value: Boundary, check_value) -> bool:
+        return value.symbol == check_value
+
+
+class NeighborSymbolProperty(Property):
+    def __init__(self, config=None):
+        super().__init__(config, allow_none=False)
+
+    def check(self, value: Boundary, check_value) -> bool:
+        return value.neighbor_symbol == check_value
 
 
 class BoundaryCondition:
@@ -150,10 +249,18 @@ class BoundaryCondition:
 
     Attributes:
         atom (SynRBL.SynMCSImputer.rule_formation.Property): Atom property
-        neighbors (SynRBL.SynMCSImputer.rule_formation.Property): Neighbors property
+        neighbor_atom (SynRBL.SynMCSImputer.rule_formation.Property): Neighbors property
     """
 
-    def __init__(self, atom=None, neighbors=None, functional_groups=None, **kwargs):
+    def __init__(
+        self,
+        atom=None,
+        neighbor_atom=None,
+        functional_group=None,
+        pattern=None,
+        src_pattern=None,
+        **kwargs,
+    ):
         """
         Atom condition class to check if a rule is applicable to a specific
         molecule. Property configs can be prefixed with '!' to negate the
@@ -161,18 +268,24 @@ class BoundaryCondition:
 
         Arguments:
             atom: Atom property configuration.
-            neighbors: Neighbors property configuration.
+            neighbor: Neighbor property configuration.
             functional_groups: Functional group property configuration.
         """
         atom = kwargs.get("atom", atom)
-        neighbors = kwargs.get("neighbors", neighbors)
-        functional_groups = kwargs.get("functional_groups", functional_groups)
+        neighbor_atom = kwargs.get("neighbor_atom", neighbor_atom)
+        functional_group = kwargs.get("functional_group", functional_group)
+        pattern = kwargs.get("pattern", pattern)
+        src_pattern = kwargs.get("src_pattern", src_pattern)
 
-        self.atom = Property(atom)
-        self.neighbors = Property(neighbors, allow_none=True)
-        self.functional_groups = FunctionalGroupProperty(functional_groups)
+        self.properties = [
+            BoundarySymbolProperty(atom),
+            NeighborSymbolProperty(neighbor_atom),
+            FunctionalGroupProperty(functional_group),
+            PatternProperty(pattern),
+            PatternProperty(src_pattern, use_src_mol=True),
+        ]
 
-    def check(self, boundary: Boundary):
+    def __call__(self, boundary: Boundary):
         """
         Check if the boundary meets the condition.
 
@@ -183,13 +296,10 @@ class BoundaryCondition:
         Returns:
             bool: True if the boundary fulfills the condition, false otherwise.
         """
-        return all(
-            [
-                self.atom.check(boundary.symbol),
-                self.neighbors.check(boundary.neighbor_symbol),
-                self.functional_groups.check(boundary),
-            ]
-        )
+        for prop in self.properties:
+            if not prop(boundary):
+                return False
+        return True
 
 
 class NoMergeRuleError(Exception):
@@ -269,8 +379,6 @@ class MergeRule:
         condition2 (AtomCondition, optional): Condition
             for the second boundary atom.
         bond (str, optional): The bond type to form between the two compounds.
-        sym (bool): If the rule is symmetric. If set to True order of condition
-            and passed compounds does not matter. Default: True
     """
 
     _merge_rules: list[MergeRule] | None = None
@@ -279,8 +387,17 @@ class MergeRule:
         self.name = kwargs.get("name", "unnamed")
         self.condition1 = BoundaryCondition(**kwargs.get("condition1", {}))
         self.condition2 = BoundaryCondition(**kwargs.get("condition2", {}))
+
+        actions1 = kwargs.get("action1", [])
+        actions2 = kwargs.get("action2", [])
+        if not isinstance(actions1, list):
+            actions1 = [actions1]
+        if not isinstance(actions2, list):
+            actions2 = [actions2]
+
+        self.action1 = [Action.build(a["type"], **a) for a in actions1]
+        self.action2 = [Action.build(a["type"], **a) for a in actions2]
         self.bond = kwargs.get("bond", None)
-        self.sym = kwargs.get("sym", True)
 
     @classmethod
     def get_all(cls) -> list[MergeRule]:
@@ -300,9 +417,6 @@ class MergeRule:
             cls._merge_rules = [MergeRule(**c) for c in json.loads(json_data)]
         return cls._merge_rules
 
-    def __can_apply(self, boundary1, boundary2):
-        return self.condition1.check(boundary1) and self.condition2.check(boundary2)
-
     def can_apply(self, boundary1: Boundary, boundary2: Boundary):
         """
         Check if the rule can be applied to merge atom1 and atom2.
@@ -314,38 +428,48 @@ class MergeRule:
         Returns:
             bool: True if the rule can be applied, false otherwise.
         """
-        if self.sym:
-            return self.__can_apply(boundary1, boundary2) or self.__can_apply(
-                boundary2, boundary1
-            )
-        else:
-            return self.__can_apply(boundary1, boundary2)
+        return (self.condition1(boundary1) and self.condition2(boundary2)) or (
+            self.condition1(boundary2) and self.condition2(boundary1)
+        )
 
-    def apply(self, mol, atom1, atom2):
-        """
-        Apply the merge rule to the given molecule.
-
-        Arguments:
-            mol (rdkit.Chem.Mol): The molecule containing both compounds.
-            atom1 (rdkit.Chem.Atom): The boundary atom in compound 1.
-            atom2 (rdkit.Chem.Atom): The boundary atom in compound 2.
-
-        Returns:
-            rdkit.Chem.Mol: The merged molecule.
-        """
-
+    def apply(self, boundary1: Boundary, boundary2: Boundary) -> Compound | None:
         def _fix_Hs(atom, bond_nr):
             if atom.GetNumExplicitHs() > 0:
                 atom.SetNumExplicitHs(
                     int(np.max([0, atom.GetNumExplicitHs() - bond_nr]))
                 )
 
+        if not (self.condition1(boundary1) and self.condition2(boundary2)):
+            boundary1, boundary2 = boundary2, boundary1
+        assert self.condition1(boundary1) and self.condition2(
+            boundary2
+        ), "Rule can not be applied."
+
+        for a in self.action1:
+            a(boundary1)
+        for a in self.action2:
+            a(boundary2)
+
         bond_type, bond_nr = parse_bond_type(self.bond)
         if bond_type is not None:
-            _fix_Hs(atom1, bond_nr)
-            _fix_Hs(atom2, bond_nr)
-            mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type)
-        return mol
+            _fix_Hs(boundary1.get_atom(), bond_nr)
+            _fix_Hs(boundary2.get_atom(), bond_nr)
+
+        merge_result = utils.merge_two_mols(
+            boundary1.compound.mol,
+            boundary2.compound.mol,
+            boundary1.index,
+            boundary2.index,
+            bond_type,
+        )
+
+        mol = merge_result["mol"]
+        rdmolops.SanitizeMol(mol)
+
+        boundary1.compound.update(mol, boundary1)
+        boundary1.compound.rules.extend(boundary2.compound.rules)
+        boundary1.compound.rules.append(self)
+        return boundary1.compound
 
 
 class CompoundRule:
@@ -403,7 +527,7 @@ class CompoundRule:
         Returns:
             bool: True if the compound rule can be applied, false otherwise.
         """
-        return self.condition.check(boundary)
+        return self.condition(boundary)
 
     def apply(self) -> Compound:
         """

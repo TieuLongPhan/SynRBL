@@ -24,6 +24,11 @@ class Boundary:
             self.neighbor_symbol = src_mol.GetAtomWithIdx(neighbor_index).GetSymbol()
         self.is_merged = False
 
+    def __str__(self) -> str:
+        return "Boundary '{}' @ {} in '{}' from '{}'.".format(
+            self.symbol, self.index, self.compound.smiles, self.compound.src_smiles
+        )
+
     def promise_src(self) -> rdchem.Mol:
         mol = self.compound.src_mol
         if mol is None:
@@ -110,6 +115,10 @@ class Compound:
         if self.src_mol is None:
             return None
         return rdmolfiles.MolToSmiles(self.src_mol)
+
+    @property
+    def is_catalyst(self) -> bool:
+        return self.smiles == self.src_smiles and len(self.boundaries) == 0
 
     def add_boundary(
         self,

@@ -63,7 +63,16 @@ functional_group_config = {
     "amid": FGConfig("NC=O", anti_pattern=["O=C(N)O"]),
     "acyl": FGConfig(
         "C=O",
-        anti_pattern=["SC=O", "C(N)=O", "O=C(O)O", "O=C(C)OC", "O=C(C)O", "CC(=O)OC=O"],
+        anti_pattern=[
+            "CC(C)=O",
+            "SC=O",
+            "CC=O",
+            "C(N)=O",
+            "O=C(O)O",
+            "O=C(C)OC",
+            "O=C(C)O",
+            "CC(=O)OC=O",
+        ],
     ),
     "diol": FGConfig("OCO", anti_pattern=["OCOC", "O=C(O)O"]),
     "hemiacetal": FGConfig("COCO", anti_pattern=["COCOC", "O=C(O)O"]),
@@ -85,6 +94,12 @@ functional_group_config = {
     "nitro": FGConfig("O=NO"),
     "thioether": FGConfig("CSC", anti_pattern=["O=CS"]),
     "thioester": FGConfig(["O=CS", "OC=S"]),
+    "aldehyde": FGConfig(
+        "CC=O",
+        group_atoms=[1, 2],
+        anti_pattern=["CC(C)=O", "SC(=O)C", "COC(C)=O", "NC=O", "CC(=O)O"],
+    ),
+    "keton": FGConfig("CC(C)=O", group_atoms=[1, 3]),
 }
 
 
@@ -210,13 +225,7 @@ def pattern_match(mol, anchor, pattern_mol, pattern_anchor=None):
         return _fits(atom, pattern_atom)
 
 
-def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
-    if group_name not in functional_group_config.keys():
-        raise NotImplementedError(
-            "Functional group '{}' is not implemented.".format(group_name)
-        )
-    config = functional_group_config[group_name]
-
+def check_functional_group(mol: rdchem.Mol, config: FGConfig, index: int) -> bool:
     is_func_group = False
 
     for p_mol, g_mol in zip(config.pattern, config.groups):
@@ -239,3 +248,12 @@ def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
         is_match, _ = pattern_match(mol, index, ap_mol)
         is_func_group = is_func_group and not is_match
     return is_func_group
+
+
+def is_functional_group(mol: rdchem.Mol, group_name: str, index: int) -> bool:
+    if group_name not in functional_group_config.keys():
+        raise NotImplementedError(
+            "Functional group '{}' is not implemented.".format(group_name)
+        )
+    config = functional_group_config[group_name]
+    return check_functional_group(mol, config, index)

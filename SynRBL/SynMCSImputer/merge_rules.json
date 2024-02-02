@@ -1,22 +1,41 @@
 [
-	{
-		"name": "phosphor double bond",
-		"condition1": {"atom": ["P"]}, 
-		"bond": "double"
-	},
-	{
-		"name": "S bond restriction",
-		"condition1": {"atom": ["S"]},
-		"condition2": {"atom": ["F", "Cl", "Br", "I"]}
-	},
-	{
-		"name": "bond restriction",
-		"condition1": {"atom": ["N", "O", "F", "Cl", "Br", "I"]},
-		"condition2": {"atom": ["N", "O", "F", "Cl", "Br", "I"]}
-	},
-	{
-		"name": "default single bond",
-		"bond": "single"
-	}
+    {
+        "name": "phosphor double bond change",
+        "condition1": {
+            "atom": ["O"],
+            "functional_group": ["keton", "aldehyde", "ester", "acid", "amid"]
+        },
+        "condition2": {"atom": ["P"], "pattern": "P=O"},
+        "action2": {"type": "change_bond", "pattern": "P=O", "bond": "single"},
+        "bond": "double"
+    },
+    {
+        "name": "phosphor double bond",
+        "condition1": {
+            "atom": ["O"],
+            "functional_group": ["keton", "aldehyde", "ester", "acid", "amid"]
+        },
+        "condition2": {"atom": ["P"], "pattern": "!P=O"},
+        "bond": "double"
+    },
+    {
+        "name": "phosphor single bond",
+        "condition1": {
+            "atom": ["O"],
+            "functional_group": ["enol", "alcohol", "phenol"]
+        },
+        "condition2": {"atom": ["P"]},
+        "bond": "single"
+    },
+    {
+        "name": "S bond restriction",
+        "condition1": {"atom": ["S"]},
+        "condition2": {"atom": ["F", "Cl", "Br", "I"]}
+    },
+    {
+        "name": "bond restriction",
+        "condition1": {"atom": ["N", "O", "F", "Cl", "Br", "I"]},
+        "condition2": {"atom": ["N", "O", "F", "Cl", "Br", "I"]}
+    },
+    {"name": "default single bond", "bond": "single"}
 ]
-

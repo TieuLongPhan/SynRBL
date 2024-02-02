@@ -1,0 +1,19 @@
+[
+	{
+		"name": "rule_name",
+		"condition1": {
+			"atom": ["O"],
+			"neighbor_atom": ["C"],
+			"functional_group": ["ether"],
+			"pattern_match": ["C=O"],
+			"charge": [0],
+			"radical": [0]
+		},
+		"action1": [
+			{"type": "change_bond", "pattern": "P=O", "bond": "single"},
+			{"type": "change_radical", "relative": -1, "absolute": 0},
+			{"type": "change_charge", "relative": -1, "absolute": 0}
+		],
+		"bond": "double"
+	}
+]

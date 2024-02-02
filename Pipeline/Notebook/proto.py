@@ -84,13 +84,13 @@ def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
     print("Rules:", entry["rules"])
 
 
-s = "C[Si](C)C"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "O=P"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 s = Chem.CanonSmiles(s)
 print(s)
 mol = rdmolfiles.MolFromSmiles(s)
 enumerator = rdMolStandardize.TautomerEnumerator()
 mol = enumerator.Canonicalize(mol)
-if False:
+if True:
     for i, atom in enumerate(mol.GetAtoms()):
         atom.SetProp("molAtomMapNumber", str(atom.GetIdx()))
 atom = mol.GetAtomWithIdx(0)
