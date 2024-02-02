@@ -3,8 +3,8 @@
         "name": "C-O Ether break",
         "condition": {
             "atom": ["C"],
-            "neighbors": ["O"],
-            "functional_groups": ["ether"]
+            "neighbor_atom": ["O"],
+            "functional_group": ["ether"]
         },
         "compound": {"smiles": "I", "index": 0}
     },
@@ -12,8 +12,8 @@
         "name": "C-S Thioether break",
         "condition": {
             "atom": ["C"],
-            "neighbors": ["S"],
-            "functional_groups": ["thioether"]
+            "neighbor_atom": ["S"],
+            "functional_group": ["thioether"]
         },
         "compound": {"smiles": "I", "index": 0}
     },
@@ -21,8 +21,8 @@
         "name": "C-O Ester break",
         "condition": {
             "atom": ["C"],
-            "neighbors": ["O"],
-            "functional_groups": ["ester"]
+            "neighbor_atom": ["O"],
+            "functional_group": ["ester"]
         },
         "compound": {"smiles": "O", "index": 0}
     },
@@ -30,8 +30,8 @@
         "name": "C-S Thioester break",
         "condition": {
             "atom": ["C"],
-            "neighbors": ["S"],
-            "functional_groups": ["thioester"]
+            "neighbor_atom": ["S"],
+            "functional_group": ["thioester"]
         },
         "compound": {"smiles": "O", "index": 0}
     },
@@ -39,8 +39,8 @@
 		"name": "C-N Amide break",
 		"condition": {
 			"atom": ["C"],
-			"neighbors": ["N"],
-			"functional_groups": ["amid"]
+			"neighbor_atom": ["N"],
+			"functional_group": ["amid"]
 		},
 		"compound": {"smiles": "O", "index": 0}
 	},
@@ -53,12 +53,12 @@
 	},
     {
         "name": "append O when next to O or N",
-        "condition": {"atom": ["!O", "!N"], "neighbors": ["O", "N"]},
+        "condition": {"atom": ["!O", "!N"], "neighbor_atom": ["O", "N"]},
         "compound": {"smiles": "O", "index": 0}
     },
     {
         "name": "append O to C-C bond",
-        "condition": {"atom": ["C"], "neighbors": ["C"]},
+        "condition": {"atom": ["C"], "neighbor_atom": ["C"]},
         "compound": {"smiles": "O", "index": 0}
     }
 ]

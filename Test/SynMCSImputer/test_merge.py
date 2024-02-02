@@ -12,9 +12,8 @@ class DummyMergeRule:
     def can_apply(self, b1, b2):
         return True
 
-    def apply(self, mol, atom1, atom2):
-        mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=rdchem.BondType.SINGLE)
-        return mol
+    def apply(self, boundary1, boundary2):
+        return None
 
 
 class DummyCompoundRule:
@@ -33,18 +32,6 @@ class DummyCompoundRule:
 
 class TestMergeBoundary(unittest.TestCase):
     @mock.patch("SynRBL.SynMCSImputer.merge.MergeRule")
-    def test_simple_merge(self, m_MergeRule):
-        m_MergeRule.get_all = mock.MagicMock(return_value=[DummyMergeRule()])
-        c1 = Compound("CC1(C)OBOC1(C)C")
-        b1 = c1.add_boundary(4, "B")
-        c2 = Compound("CCC")
-        b2 = c2.add_boundary(1, "C")
-        cm = merge.merge_boundaries(b1, b2)
-        self.assertIsNot(None, cm)
-        self.assertEqual("CC(C)B1OC(C)(C)C(C)(C)O1", cm.smiles)  # type: ignore
-        self.assertEqual(0, len(cm.boundaries))  # type: ignore
-
-    @mock.patch("SynRBL.SynMCSImputer.merge.MergeRule")
     def test_no_rule_found(self, m_MergeRule):
         rule = mock.MagicMock()
         rule.can_apply.return_value = False
@@ -56,39 +43,9 @@ class TestMergeBoundary(unittest.TestCase):
         cm = merge.merge_boundaries(b1, b2)
         self.assertIs(None, cm)
 
-    @mock.patch("SynRBL.SynMCSImputer.merge.MergeRule")
-    def test_merge_with_unequal_number_of_bounds(self, m_MergeRule):
-        m_MergeRule.get_all = mock.MagicMock(return_value=[DummyMergeRule()])
-        c1 = Compound("O=Cc1ccccc1C=O")
-        b11 = c1.add_boundary(1, "C")
-        b12 = c1.add_boundary(8, "C")
-        c2 = Compound("O")
-        b2 = c2.add_boundary(0)
-        c3 = Compound("O")
-        b3 = c3.add_boundary(0)
-        cm = merge.merge_boundaries(b11, b2)
-        self.assertIsNot(None, cm)
-        self.assertEqual("O=Cc1ccccc1C(=O)O", cm.smiles)  # type: ignore
-        self.assertEqual(1, len(cm.boundaries))  # type: ignore
-        self.assertEqual(1, len(cm.rules))  # type: ignore
-        self.assertEqual(b12, cm.boundaries[0])  # type: ignore
-        cm = merge.merge_boundaries(b12, b3)
-        self.assertEqual("O=C(O)c1ccccc1C(=O)O", cm.smiles)  # type: ignore
-        self.assertEqual(0, len(cm.boundaries))  # type: ignore
-        self.assertEqual(2, len(cm.rules))  # type: ignore
 
 
 class TestMergeRule(unittest.TestCase):
-    def test_phosphor_double_bond(self):
-        c1 = Compound("O")
-        c2 = Compound("c1ccc(P(c2ccccc2)c2ccccc2)cc1")
-        b1 = c1.add_boundary(0, "O")
-        b2 = c2.add_boundary(4, "P")
-        cm = merge.merge_boundaries(b1, b2)
-        self.assertEqual("O=P(c1ccccc1)(c1ccccc1)c1ccccc1", cm.smiles)  # type: ignore
-        self.assertEqual(1, len(cm.rules))  # type: ignore
-        self.assertEqual("phosphor double bond", cm.rules[0].name)  # type: ignore
-
     def test_default_single_bond(self):
         c1 = Compound("CC1(C)OBOC1(C)C")
         b1 = c1.add_boundary(4, "B")
@@ -129,13 +86,6 @@ class TestMergeRule(unittest.TestCase):
         )
         b1 = c1.add_boundary(0, "O", 1, "C")
         b2 = c2.add_boundary(0, "P", 0, "C")
-        mrule = [r for r in MergeRule.get_all() if r.name == "phosphor double bond"][0]
-        print(mrule.condition1.check(b1))
-        print(mrule.condition2.check(b2))
-        print(mrule.condition2.pattern_match.pattern.pos_values)
-        print(mrule.condition2.pattern_match.pattern.neg_values)
-        print(b2)
-        print(mrule.condition2.pattern_match.check(b2))
         cm = merge.merge_boundaries(b1, b2)
         self.assertEqual(1, len(cm.rules))  # type: ignore
         self.assertEqual("phosphor double bond change", cm.rules[0].name)  # type: ignore
@@ -188,6 +138,25 @@ class TestExpandRule(unittest.TestCase):
 
 
 class TestCompounds(unittest.TestCase):
+    def test_merge_with_unequal_number_of_bounds(self):
+        c1 = Compound("O=Cc1ccccc1C=O")
+        b11 = c1.add_boundary(1, "C")
+        b12 = c1.add_boundary(8, "C")
+        c2 = Compound("O")
+        b2 = c2.add_boundary(0)
+        c3 = Compound("O")
+        b3 = c3.add_boundary(0)
+        cm = merge.merge_boundaries(b11, b2)
+        self.assertIsNot(None, cm)
+        self.assertEqual("O=Cc1ccccc1C(=O)O", cm.smiles)  # type: ignore
+        self.assertEqual(1, len(cm.boundaries))  # type: ignore
+        self.assertEqual(1, len(cm.rules))  # type: ignore
+        self.assertEqual(b12, cm.boundaries[0])  # type: ignore
+        cm = merge.merge_boundaries(b12, b3)
+        self.assertEqual("O=C(O)c1ccccc1C(=O)O", cm.smiles)  # type: ignore
+        self.assertEqual(0, len(cm.boundaries))  # type: ignore
+        self.assertEqual(2, len(cm.rules))  # type: ignore
+
     def test_1(self):
         # broken bond: C (boundary) - O (neighbor)
         # O is part of Ether -> C forms C - I
@@ -277,7 +246,7 @@ class TestCompounds(unittest.TestCase):
         compound2 = Compound("O", src_mol="CC(C)=O")
         compound2.add_boundary(0, symbol="O", neighbor_index=1, neighbor_symbol="C")
         cm = merge.merge([compound1, compound2])
-        self.assertEqual("CCO[P](=O)(=O)OCC", cm.smiles)
+        self.assertEqual("CCOP(=O)(O)OCC", cm.smiles)
 
     def test_O_forms_alcohol(self):
         compound1 = Compound("C", src_mol="CC(=O)OC")

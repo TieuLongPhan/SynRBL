@@ -190,20 +190,29 @@ class FunctionalGroupProperty(Property):
         super().__init__(config, allow_none=False)
 
     def check(self, value: Boundary, check_value) -> bool:
-        src_mol = value.promise_src()
-        neighbor_index = value.promise_neighbor_index()
-        return fgutils.is_functional_group(src_mol, check_value, neighbor_index)
+        if value.compound.src_mol is not None and value.neighbor_index is not None:
+            src_mol = value.promise_src()
+            neighbor_index = value.promise_neighbor_index()
+            return fgutils.is_functional_group(src_mol, check_value, neighbor_index)
+        else:
+            return False
 
 
 class PatternProperty(Property):
-    def __init__(self, config=None):
+    def __init__(self, config=None, use_src_mol: bool = False):
         super().__init__(config, allow_none=False)
+        self.use_src_mol = use_src_mol
 
     def check(self, boundary: Boundary, value) -> bool:
         pattern_mol = rdmolfiles.MolFromSmiles(value)
+        mol = boundary.compound.mol
+        index = boundary.index
+        if self.use_src_mol:
+            mol = boundary.promise_src()
+            index = boundary.promise_neighbor_index()
         match, _ = fgutils.pattern_match(
-            boundary.promise_src(),
-            boundary.promise_neighbor_index(),
+            mol,
+            index,
             pattern_mol,
         )
         return match
@@ -249,6 +258,7 @@ class BoundaryCondition:
         neighbor_atom=None,
         functional_group=None,
         pattern=None,
+        src_pattern=None,
         **kwargs,
     ):
         """
@@ -265,12 +275,14 @@ class BoundaryCondition:
         neighbor_atom = kwargs.get("neighbor_atom", neighbor_atom)
         functional_group = kwargs.get("functional_group", functional_group)
         pattern = kwargs.get("pattern", pattern)
+        src_pattern = kwargs.get("src_pattern", src_pattern)
 
         self.properties = [
             BoundarySymbolProperty(atom),
             NeighborSymbolProperty(neighbor_atom),
             FunctionalGroupProperty(functional_group),
             PatternProperty(pattern),
+            PatternProperty(src_pattern, use_src_mol=True),
         ]
 
     def __call__(self, boundary: Boundary):
@@ -372,20 +384,19 @@ class MergeRule:
     _merge_rules: list[MergeRule] | None = None
 
     def __init__(self, **kwargs):
-        print("init", kwargs)
         self.name = kwargs.get("name", "unnamed")
         self.condition1 = BoundaryCondition(**kwargs.get("condition1", {}))
         self.condition2 = BoundaryCondition(**kwargs.get("condition2", {}))
-        
-        actions1 = kwargs.get("action1",[])
-        actions2 = kwargs.get("action2",[])
+
+        actions1 = kwargs.get("action1", [])
+        actions2 = kwargs.get("action2", [])
         if not isinstance(actions1, list):
             actions1 = [actions1]
         if not isinstance(actions2, list):
             actions2 = [actions2]
 
-        self.action1 = [Action.build(a['type'], **a) for a in actions1]
-        self.action2 = [Action.build(a['type'], **a) for a in actions2]
+        self.action1 = [Action.build(a["type"], **a) for a in actions1]
+        self.action2 = [Action.build(a["type"], **a) for a in actions2]
         self.bond = kwargs.get("bond", None)
 
     @classmethod
@@ -422,11 +433,12 @@ class MergeRule:
         )
 
     def apply(self, boundary1: Boundary, boundary2: Boundary) -> Compound | None:
-        #def _fix_Hs(atom, bond_nr):
-        #   if atom.GetNumExplicitHs() > 0:
-        #       atom.SetNumExplicitHs(
-        #           int(np.max([0, atom.GetNumExplicitHs() - bond_nr]))
-        #       )
+        def _fix_Hs(atom, bond_nr):
+            if atom.GetNumExplicitHs() > 0:
+                atom.SetNumExplicitHs(
+                    int(np.max([0, atom.GetNumExplicitHs() - bond_nr]))
+                )
+
         if not (self.condition1(boundary1) and self.condition2(boundary2)):
             boundary1, boundary2 = boundary2, boundary1
         assert self.condition1(boundary1) and self.condition2(
@@ -439,9 +451,9 @@ class MergeRule:
             a(boundary2)
 
         bond_type, bond_nr = parse_bond_type(self.bond)
-        #if bond_type is not None:
-        #    _fix_Hs(boundary1.get_atom(), bond_nr)
-        #    _fix_Hs(boundary2.get_atom(), bond_nr)
+        if bond_type is not None:
+            _fix_Hs(boundary1.get_atom(), bond_nr)
+            _fix_Hs(boundary2.get_atom(), bond_nr)
 
         merge_result = utils.merge_two_mols(
             boundary1.compound.mol,

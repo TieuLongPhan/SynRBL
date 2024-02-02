@@ -77,8 +77,7 @@ class TestFunctionalGroupProperty(unittest.TestCase):
         p = FunctionalGroupProperty(["ester"])
         c = Compound("CCC")
         b = c.add_boundary(0)
-        with self.assertRaisesRegex(ValueError, r"^[Mm]issing.*$"):
-            p(b)
+        self.assertFalse(p(b))
 
     def test_pos_successful_check(self):
         p = FunctionalGroupProperty(["ester"])
@@ -113,6 +112,13 @@ class TestFunctionalGroupProperty(unittest.TestCase):
         c = Compound("C")
         b = c.add_boundary(0)
         self.assertTrue(p(b))
+
+    def test_check_with_missing_src(self):
+        p = FunctionalGroupProperty(["ester"])
+        c = Compound("CC(=O)OCCC")
+        b = c.add_boundary(3)
+        result = p(b)
+        self.assertFalse(result)
 
 class TestBoundarySymbolProperty(unittest.TestCase):
     def test_defaults_to_true(self):
@@ -180,45 +186,52 @@ class TestBoundaryCondition(unittest.TestCase):
         self.__check_cond(cond, "C", 0, True, src_smiles="CO", neighbor=1)
 
     def test_pattern_match(self):
-        cond = BoundaryCondition(pattern="P=O")
+        cond = BoundaryCondition(src_pattern="P=O")
         self.__check_cond(cond, "Cl", 0, True, src_smiles="O=P(Cl)Cl", neighbor=1)
 
     def test_unseccessful_pattern_match(self):
-        cond = BoundaryCondition(pattern="P=O")
+        cond = BoundaryCondition(src_pattern="P=O")
         self.__check_cond(cond, "Cl", 0, False, src_smiles="O=C(Cl)Cl", neighbor=1)
 
 
 class TestPatternProperty(unittest.TestCase):
-    def test_successful_match(self):
-        cond = PatternProperty("P=O")
+    def test_successful_src_match(self):
+        cond = PatternProperty("P=O", use_src_mol=True)
         comp = Compound("Cl", src_mol="O=P(Cl)Cl")
         boundary = comp.add_boundary(0, neighbor_index=1, neighbor_symbol="P")
         result = cond(boundary)
         self.assertTrue(result)
 
+    def test_successful_match(self):
+        cond = PatternProperty("P=O", use_src_mol=False)
+        comp = Compound("O=P(Cl)Cl")
+        boundary = comp.add_boundary(0)
+        result = cond(boundary)
+        self.assertTrue(result)
+
     def test_unsuccessful_match(self):
-        cond = PatternProperty("P=O")
+        cond = PatternProperty("P=O", use_src_mol=True)
         comp = Compound("Cl", src_mol="O=C(Cl)Cl")
         boundary = comp.add_boundary(0, neighbor_index=0, neighbor_symbol="O")
         result = cond(boundary)
         self.assertFalse(result)
 
     def test_successful_match_with_anchor(self):
-        cond = PatternProperty("P=O")
+        cond = PatternProperty("P=O", use_src_mol=True)
         comp = Compound("Cl", src_mol="O=P(Cl)(Cl)Cl")
         boundary = comp.add_boundary(0, neighbor_index=1, neighbor_symbol="P")
         result = cond(boundary)
         self.assertTrue(result)
 
     def test_uninitialized(self):
-        cond = PatternProperty()
+        cond = PatternProperty(use_src_mol=True)
         comp = Compound("Cl", src_mol="O=P(Cl)(Cl)Cl")
         boundary = comp.add_boundary(0, neighbor_index=1, neighbor_symbol="P")
         result = cond(boundary)
         self.assertTrue(result)
 
     def test_antipattern_match(self):
-        cond = PatternProperty("!P=O")
+        cond = PatternProperty("!P=O", use_src_mol=True)
         comp = Compound("BrPBr", src_mol="BrP(Br)Br")
         boundary = comp.add_boundary(1, "P", neighbor_index=2, neighbor_symbol="Br")
         result = cond(boundary)
