@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -9,6 +10,9 @@ from rdkit import Chem
 from rdkit.Chem import Draw
 from matplotlib.gridspec import GridSpec
 import re
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, average_precision_score
+
+
 
 def barplot_accuracy_comparison(
     dfs: List[pd.DataFrame], 
@@ -171,4 +175,70 @@ def mcs_comparsion(
     if save_path:
         plt.savefig(save_path, dpi=600, transparent=True, bbox_inches='tight')
     
+    plt.show()
+
+
+
+def classification_visualization(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray, save_path: str = None, figsize: tuple = (14, 14)):
+    """
+    Visualize classification metrics including Confusion Matrix, Classification Report, ROC Curve, and Precision-Recall Curve.
+
+    Parameters:
+    y_true (np.ndarray): True labels.
+    y_pred (np.ndarray): Predicted labels.
+    y_proba (np.ndarray): Predicted probabilities.
+    save_path (str, optional): Path to save the figure. If None, the figure is not saved. Default is None.
+    figsize (tuple, optional): Figure size (width, height). Default is (14, 14).
+
+    Returns:
+    None
+    """
+    # Setup the matplotlib figure and axes, 2x2 layout
+    fig, axes = plt.subplots(2, 2, figsize=figsize)
+    #fig.suptitle('Advanced Classification Metrics Visualization', fontsize=16)
+
+    labels = ['A', 'B', 'C', 'D']  # Labels for each subplot
+    for ax, label in zip(axes.flat, labels):
+        ax.text(-0.1, 1.1, label, transform=ax.transAxes, size=20, weight='bold', va='top', ha='right')
+
+    # Subfig 1: Confusion Matrix
+    ax = axes[0, 0]
+    cm = confusion_matrix(y_true, y_pred)
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax, annot_kws={"size": 14})
+    ax.set(xlabel='Predicted labels', ylabel='True labels')
+    ax.set_title('Confusion Matrix', fontsize=18, weight='bold', pad=20)
+
+    # Subfig 2: Classification Report
+    ax = axes[0, 1]
+    report = classification_report(y_true, y_pred, output_dict=True)
+    report_df = pd.DataFrame(report).transpose()
+    sns.heatmap(report_df.iloc[:-1, :].astype(float), annot=True, cmap='Spectral', cbar=True, fmt=".2f", ax=ax, annot_kws={"size": 14})
+    ax.set_title('Classification Report', fontsize=18, weight='bold', pad=20)
+
+    # Enhance ROC Curve visual
+    ax = axes[1, 0]
+    fpr, tpr, thresholds = roc_curve(y_true, y_proba)
+    roc_auc = auc(fpr, tpr)
+    ax.plot(fpr, tpr, label='ROC curve (AUC = %0.2f)' % roc_auc, color='darkorange', lw=2)
+    ax.fill_between(fpr, tpr, color='darkorange', alpha=0.3)
+    ax.plot([0, 1], [0, 1], linestyle='--', lw=2, color='navy')
+    ax.set(xlim=[0.0, 1.0], ylim=[0.0, 1.05], xlabel='False Positive Rate', ylabel='True Positive Rate')
+    ax.set_title('ROC Curve', fontsize=18, weight='bold', pad=20)
+
+    ax.legend(loc="lower right")
+
+    # Enhance Precision-Recall Curve visual
+    ax = axes[1, 1]
+    precision, recall, _ = precision_recall_curve(y_true, y_proba)
+    average_precision = average_precision_score(y_true, y_proba)
+    ax.plot(recall, precision, label='Precision-Recall curve (AP = %0.2f)' % average_precision, color='blue', lw=2)
+    ax.fill_between(recall, precision, color='blue', alpha=0.3)
+    ax.set(xlim=[0.0, 1.0], ylim=[0.0, 1.05], xlabel='Recall', ylabel='Precision')
+    ax.set_title('Precision-Recall Curve', fontsize=18, weight='bold', pad=20)
+
+    ax.legend(loc="lower left")
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    if save_path:
+        plt.savefig(save_path, dpi=600, transparent=True, bbox_inches='tight')
     plt.show()
