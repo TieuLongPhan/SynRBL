@@ -11,3 +11,4 @@ venv/
 *.pdf
 .coverage
 tmp/
+out/
