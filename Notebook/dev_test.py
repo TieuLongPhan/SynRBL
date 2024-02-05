@@ -11,11 +11,11 @@ import rdkit.Chem.rdChemReactions as rdChemReactions
 import PIL.Image as Image
 from SynRBL.rsmi_utils import load_database
 
-# FINAL_VALIDATION_PATH = "./Pipeline/Validation/Analysis/final_validation.csv"
-FINAL_VALIDATION_PATH = "/homes/biertank/klaus/Documents/final_validation.csv"
+FINAL_VALIDATION_PATH = "./Pipeline/Validation/Analysis/final_validation.csv"
+# FINAL_VALIDATION_PATH = "/homes/biertank/klaus/Documents/final_validation.csv"
 DATASET_PATH_FMT = "./Data/Validation_set/{}/MCS/MCS_Impute.json.gz"
-# SNAPSHOT_PATH = "./Data/Validation_set/snapshot.json"
-SNAPSHOT_PATH = "/homes/biertank/klaus/Documents/snapshot.json"
+SNAPSHOT_PATH = "./Data/Validation_set/snapshot.json"
+# SNAPSHOT_PATH = "/homes/biertank/klaus/Documents/snapshot.json"
 DATASETS = [
     "Jaworski",
     "golden_dataset",
