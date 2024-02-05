@@ -1301,9 +1301,7 @@
     },
     "Jaworski_221": {
         "checked_reaction": "NS(=O)(=O)c1ccc(cc1)-n1nc(c(CBr)c1-c1ccccc1)C(F)(F)F.CS(C)=O>>NS(=O)(=O)c1ccc(cc1)-n1nc(c(C=O)c1-c1ccccc1)C(F)(F)F.Br.CSC",
-        "wrong_reactions": [
-            "NS(=O)(=O)c1ccc(cc1)-n1nc(c(CBr)c1-c1ccccc1)C(F)(F)F.CS(C)=O>>NS(=O)(=O)c1ccc(cc1)-n1nc(c(C=O)c1-c1ccccc1)C(F)(F)F.Br.CSC"
-        ]
+        "wrong_reactions": []
     },
     "Jaworski_226": {
         "checked_reaction": "COC(=O)C(Cc1ccc(Cl)c(Cl)c1)NC(=O)c1ccc(Cl)cc1NS(=O)(=O)c1cccc2nsnc12.O>>OC(=O)C(Cc1ccc(Cl)c(Cl)c1)NC(=O)c1ccc(Cl)cc1NS(=O)(=O)c1cccc2nsnc12.CO",
