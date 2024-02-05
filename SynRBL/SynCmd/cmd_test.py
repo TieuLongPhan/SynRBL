@@ -55,6 +55,8 @@ def plot_reactions(smiles, titles=None, suptitle=None, filename=None, dpi=300):
         plt.savefig(filename)
     else:
         plt.show()
+    fig.clf()
+    plt.close()
 
 
 def plot_reaction(item, path=None, dpi=300):
@@ -186,11 +188,15 @@ def verify_dataset(dataset):
             wrong_reactions = sn_item["wrong_reactions"]
             wrong_reactions_n = [normalize_smiles(r) for r in wrong_reactions]
             if result_reaction_n not in wrong_reactions_n:
+                wrong_reaction = None
+                if len(wrong_reactions_n) > 0:
+                    wrong_reaction = wrong_reactions_n[0]
                 unknown_rxn.append(
                     _fmt(
                         id,
                         initial_reaction,
                         result_reaction,
+                        checked_r=wrong_reaction
                     )
                 )
         rxn_cnt += 1
@@ -258,11 +264,15 @@ def print_verification_result(results):
         print("[INFO] All good!")
 
 
-def export(results, path):
+def export(results, path, n=None):
     wrong_reactions, unknown_reactions = [], []
     for _, v in results.items():
         wrong_reactions.extend(v["wrong_reactions"])
         unknown_reactions.extend(v["unknown_reactions"])
+    if n is not None:
+        n = int(n)
+        unknown_reactions = unknown_reactions[:n]
+        wrong_reactions = wrong_reactions[:n]
     print(
         "[INFO] Export {} unknown reactions to {}.".format(len(unknown_reactions), path)
     )
@@ -292,7 +302,7 @@ def run_test(args):
     print_result_table(results)
     print_verification_result(results)
     if args.export:
-        export(results, args.o)
+        export(results, args.o, args.export_count)
 
 
 
@@ -310,6 +320,11 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         action="store_true",
         help="Export unknown and wrong reactions as image. "
         + "Use -o to specify the output directory.",
+    )
+    test_parser.add_argument(
+        "--export-count",
+        default = None,
+        help="Set the number of reactions to export.",
     )
 
     test_parser.add_argument(

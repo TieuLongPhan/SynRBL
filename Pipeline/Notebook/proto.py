@@ -133,7 +133,7 @@ clear_atom_nums(results)
 print_error_summary(results)
 #i, rx = get_reaction_by_id(results, "golden_dataset_177")
 #print(i)
-rx = results[872]
+rx = results[838]
 
 plot_reaction(rx, show_atom_numbers=False)
 

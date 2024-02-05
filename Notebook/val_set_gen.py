@@ -39,10 +39,10 @@ def save_valset(data, dataset):
 
 
 def get_by_id(data, id):
-    for e in data:
+    for i, e in enumerate(data):
         if e["R-id"] == id:
-            return e
-    return None
+            return i, e
+    return None, None
 
 
 def build_validation_set(data, results):
@@ -198,11 +198,11 @@ new_vset = build_validation_set(data, results)
 
 override_ids = []
 mvset = merge_validation_sets(vset, new_vset, override_ids=override_ids)
-if save:
-    save_valset(mvset, dataset)
+#if save:
+#    save_valset(mvset, dataset)
 
 # |%%--%%| <OqsCzC6wdl|Ubskix1QjQ>
 
-index = 838 
+index, _ = get_by_id(data, "golden_dataset_598")
 print(data[index])
 plot_reaction(vset, index, new_vset)
