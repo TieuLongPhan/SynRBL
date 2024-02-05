@@ -1332,7 +1332,7 @@
         "wrong_reactions": []
     },
     "Jaworski_239": {
-        "checked_reaction": "CCc1cc(C=O)ccc1N=C1SCC2(CCCC2)N1C1CCCC1.CCOP(=O)(CC(C)=O)OCC>>CCc1cc(C=CC(C)=O)ccc1N=C1SCC2(CCCC2)N1C1CCCC1.CCO[P](=O)(=O)OCC",
+        "checked_reaction": "CCc1cc(C=O)ccc1N=C1SCC2(CCCC2)N1C1CCCC1.CCOP(=O)(CC(C)=O)OCC>>CCc1cc(C=CC(C)=O)ccc1N=C1SCC2(CCCC2)N1C1CCCC1.CCOP(=O)(O)OCC",
         "wrong_reactions": []
     },
     "Jaworski_240": {

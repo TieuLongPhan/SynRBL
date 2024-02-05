@@ -102,12 +102,16 @@ def load_reaction_data(id):
     raise KeyError("Reaction '{}' not found.".format(id))
 
 
-def set_reaction_correct(id, save=False):
+def set_reaction_correct(id, save=False, override=None):
     item, df, df_index, snapshot = load_reaction_data(id)
     row = df.iloc[df_index]
     correct_reaction = item["new_reaction"]
     if row["Result"] == True:
-        raise RuntimeError("Reaction '{}' is already marked correct.".format(id))
+        msg = "Reaction '{}' is already marked correct.".format(id)
+        if override == True:
+            print("[WARN] {} Override correct reaction.".format(msg))
+        else:
+            raise RuntimeError(msg)
     with open(_SNAPSHOT_PATH, "r") as f:
         snapshot = json.load(f)
     if id not in snapshot.keys():
@@ -289,7 +293,7 @@ def run_test(args):
         run_fix = True
         for id in args.set_correct:
             print("[INFO] Save reaction '{}' as correct.".format(id))
-            set_reaction_correct(id, save=True)
+            set_reaction_correct(id, save=True, override=args.override)
     if args.set_wrong is not None:
         run_fix = True
         for id in args.set_wrong:
@@ -332,6 +336,9 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     )
     test_parser.add_argument(
         "--set-wrong", nargs="*", metavar="id", help="The reaction ids that are now wrong."
+    )
+    test_parser.add_argument(
+        "--override", action="store_true", help="Flag to override correct reactions."
     )
 
     test_parser.set_defaults(func=run_test)
