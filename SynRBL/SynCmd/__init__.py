@@ -1,10 +1,7 @@
 import argparse
 
 from .cmd_test import configure_argparser as configure_test_parser
-
-
-def run_test(args):
-    print(args)
+from .cmd_run import configure_argparser as configure_run_parser
 
 
 def setup_argparser() -> argparse.ArgumentParser:
@@ -14,6 +11,7 @@ def setup_argparser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command")
 
+    configure_run_parser(subparsers)
     configure_test_parser(subparsers)
 
     return parser

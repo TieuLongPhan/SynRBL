@@ -3,6 +3,7 @@ from rdkit import Chem
 from joblib import Parallel, delayed
 from SynRBL.rsmi_utils import save_database, load_database
 
+import os
 import logging
 
 
@@ -44,7 +45,7 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Time
 
 def ensemble_mcs(data, root_dir, save_dir, conditions, batch_size=100, Timeout=60):
     # Configure logging
-    logging.basicConfig(filename=save_dir / f'process.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=os.path.join(save_dir, f'process.log'), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
     if conditions is None:
         conditions = [
@@ -69,7 +70,7 @@ def ensemble_mcs(data, root_dir, save_dir, conditions, batch_size=100, Timeout=6
             logging.info(f"Condition {idx} | Batch Progress: {batch_progress:.2f}% | Data Progress: {data_progress:.2f}%")
 
         # Save all results for the current condition into a single file
-        save_database(all_results, pathname= save_dir / f'Condition_{idx}.json.gz')
+        save_database(all_results, pathname=os.path.join(save_dir, f'Condition_{idx}.json.gz'))
         logging.info(f"Condition {idx}: Finished")
 
     # After processing all conditions
