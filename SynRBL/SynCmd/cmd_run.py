@@ -26,7 +26,6 @@ from SynRBL.SynMCSImputer.SubStructure.mcs_process import ensemble_mcs
 from SynRBL.SynUtils.data_utils import load_database, save_database
 from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
 from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
-from SynRBL.SynMCSImputer.rules import MergeRule, CompoundRule
 from SynRBL.SynMCSImputer.model import MCSImputer
 
 _PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../..")

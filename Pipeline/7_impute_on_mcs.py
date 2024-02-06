@@ -3,7 +3,7 @@ import argparse
 import collections
 
 from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCSImputer.rules import MergeRule, CompoundRule
+from SynRBL.SynMCSImputer.rules import MergeRule, ExpandRule
 from SynRBL.SynMCSImputer.model import MCSImputer
 from SynRBL.SynUtils.chem_utils import normalize_smiles
 
@@ -17,7 +17,7 @@ def print_rule_summary(rule_map):
     print(header)
     print("{}".format("-" * len(header)))
     merge_rules = [r.name for r in MergeRule.get_all()]
-    compound_rules = [r.name for r in CompoundRule.get_all()]
+    compound_rules = [r.name for r in ExpandRule.get_all()]
     for rule, ids in rule_map.items():
         rule_type = ""
         if rule in merge_rules:
@@ -41,7 +41,7 @@ def print_success_rate(dataset):
 
 def impute_new_reactions(data, verbose=True):
     imputer = MCSImputer(cs_passthrough=True)
-    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
+    rule_map = {r.name: set() for r in ExpandRule.get_all() + MergeRule.get_all()}
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
         imputer.impute_reaction(item)

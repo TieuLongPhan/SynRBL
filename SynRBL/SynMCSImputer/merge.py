@@ -1,24 +1,20 @@
-import rdkit.Chem.rdchem as rdchem
-import rdkit.Chem.rdmolops as rdmolops
-import rdkit.Chem.rdmolfiles as rdmolfiles
-
-from .rules import MergeRule, CompoundRule, Compound2Rule
+from .rules import MergeRule, ExpandRule, Compound2Rule
 from .structure import Boundary, Compound
 
 
-class NoCompoundRule(Exception):
+class NoExpandRule(Exception):
     def __str__(self):
-        return "No compound rule found."
+        return "No expand rule found."
 
 
 def expand_boundary(boundary: Boundary) -> Compound:
     compound = None
-    for rule in CompoundRule.get_all():
+    for rule in ExpandRule.get_all():
         if rule.can_apply(boundary):
             compound = rule.apply()
             break
     if compound is None:
-        raise NoCompoundRule()
+        raise NoExpandRule()
     return compound
 
 
@@ -66,7 +62,7 @@ def _merge_one_compound(compound: Compound) -> Compound:
                     + "compounds with a single boundary atom."
                 )
             merged_compound = merge_boundaries(boundary1, compound2.boundaries[0])
-        except NoCompoundRule:
+        except NoExpandRule:
             # If no compound rule is found, leave the compound as is
             merged_compound.update(merged_compound.mol, boundary1)
             pass

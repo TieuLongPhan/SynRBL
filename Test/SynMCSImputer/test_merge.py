@@ -16,7 +16,7 @@ class DummyMergeRule:
         return None
 
 
-class DummyCompoundRule:
+class DummyExpandRule:
     def __init__(self, can_apply=True, smiles="O"):
         self.__can_apply = can_apply
         self.__smiles = smiles
@@ -93,21 +93,21 @@ class TestMergeRule(unittest.TestCase):
 
 
 class TestExpansion(unittest.TestCase):
-    @mock.patch("SynRBL.SynMCSImputer.merge.CompoundRule")
-    def test_simple_expansion(self, m_CompoundRule):
-        m_CompoundRule.get_all = mock.MagicMock(return_value=[DummyCompoundRule()])
+    @mock.patch("SynRBL.SynMCSImputer.merge.ExpandRule")
+    def test_simple_expansion(self, m_ExpandRule):
+        m_ExpandRule.get_all = mock.MagicMock(return_value=[DummyExpandRule()])
         c = Compound("C")
         b = c.add_boundary(0)
         cm = merge.expand_boundary(b)
         self.assertEqual("O", cm.smiles)  # type: ignore
         self.assertEqual(1, len(cm.boundaries))  # type: ignore
 
-    @mock.patch("SynRBL.SynMCSImputer.merge.CompoundRule")
-    def test_rule_apply_check(self, m_CompoundRule):
-        m_CompoundRule.get_all = mock.MagicMock(
+    @mock.patch("SynRBL.SynMCSImputer.merge.ExpandRule")
+    def test_rule_apply_check(self, m_ExpandRule):
+        m_ExpandRule.get_all = mock.MagicMock(
             return_value=[
-                DummyCompoundRule(can_apply=False),
-                DummyCompoundRule(smiles="C"),
+                DummyExpandRule(can_apply=False),
+                DummyExpandRule(smiles="C"),
             ]
         )
         c = Compound("C")

@@ -9,6 +9,7 @@ from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 import rdkit.Chem.MolStandardize.rdMolStandardize as rdMolStandardize
 from SynRBL.rsmi_utils import load_database, save_database
 from SynRBL.SynUtils.chem_utils import remove_atom_mapping
+from SynRBL.SynMCSImputer.rules import MergeRule, Compound2Rule, ExpandRule
 
 path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "Final_Graph")
 org_data = load_database(path)
@@ -49,7 +50,7 @@ def print_error_summary(data):
 
 
 def print_rule_summary(data):
-    rule_map = {r.name: set() for r in CompoundRule.get_all() + MergeRule.get_all()}
+    rule_map = {r.name: set() for r in ExpandRule.get_all() + MergeRule.get_all()}
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
         if "rules" not in item.keys() or len(item["rules"]) == 0:
@@ -124,16 +125,16 @@ plot_reaction(sample, show_atom_numbers=False)
 
 #|%%--%%| <kL4B2dKA6i|U1toLALgcc>
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "MCS_Impute")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "MCS_Impute")
 results = load_database(path)
 clear_atom_nums(results)
 
 # |%%--%%| <U1toLALgcc|ftWMEjJznz>
 
 print_error_summary(results)
-#i, rx = get_reaction_by_id(results, "golden_dataset_177")
+i, rx = get_reaction_by_id(results, "golden_dataset_266")
 #print(i)
-rx = results[126]
+rx = results[204]
 
 plot_reaction(rx, show_atom_numbers=False)
 
