@@ -11,19 +11,29 @@ import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import rdkit.Chem.rdChemReactions as rdChemReactions
 import PIL.Image as Image
 
+from .cmd_run import impute
+
 _PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../..")
 _FINAL_VALIDATION_PATH = os.path.join(
     _PATH, "Pipeline/Validation/Analysis/final_validation.csv"
 )
-_DATASET_PATH_FMT = os.path.join(_PATH, "Data/Validation_set/{}/MCS/MCS_Impute.json.gz")
+_VALSET_PATH_FMT = os.path.join(_PATH, "Data/Validation_set/{}.csv")
 _SNAPSHOT_PATH = os.path.join(_PATH, "Data/Validation_set/snapshot.json")
 _DATASETS = [
-    "Jaworski",
-    "golden_dataset",
+    #"Jaworski",
+    #"golden_dataset",
     "USPTO_unbalance_class",
-    "USPTO_random_class",
-    "USPTO_diff",
+    #"USPTO_random_class",
+    #"USPTO_diff",
 ]
+
+
+def get_valset_raw_path(dataset):
+    return os.path.join(_PATH, _VALSET_PATH_FMT.format(dataset + "_val"))
+
+
+def get_valset_result_path(dataset):
+    return os.path.join(_PATH, _VALSET_PATH_FMT.format(dataset + "_result"))
 
 
 def get_reaction_img(smiles):
@@ -81,18 +91,18 @@ def plot_reaction(item, path=None, dpi=300):
 
 
 def load_data(dataset):
-    data = load_database(os.path.abspath(_DATASET_PATH_FMT.format(dataset)))
-    df = pd.read_csv(_FINAL_VALIDATION_PATH)
+    result = pd.read_csv(get_valset_result_path(dataset))
+    df = pd.read_csv(_FINAL_VALIDATION_PATH, index_col=0)
     with open(_SNAPSHOT_PATH, "r") as f:
         snapshot = json.load(f)
-    return data, df, snapshot
+    return result, df, snapshot
 
 
 def load_reaction_data(id):
     for dataset in _DATASETS:
         data, df, snapshot = load_data(dataset)
-        for item in data:
-            _id = item["R-id"]
+        for _, item in data.iterrows():
+            _id = item["val-id"]
             if id == _id:
                 assert id in snapshot.keys(), "Id not in snapshot."
                 df_index = df.index[df["R-id"] == id].to_list()
@@ -157,26 +167,26 @@ def verify_dataset(dataset, ignore_rib=False):
     rxn_cnt = 0
     success_cnt = 0
     correct_cnt = 0
-    data, df, snapshot = load_data(dataset)
+    results, df, snapshot = load_data(dataset)
 
-    for item in data:
-        id = item["R-id"]
-        df_index = df.index[df["R-id"] == id].to_list()
+    for _, item in results.iterrows():
+        rid = item["val-id"]
+        df_index = df.index[df["R-id"] == rid].to_list()
         if len(df_index) == 0:
-            print("[WARNING] Reaction '{}' is not part of final_validation.".format(id))
+            print("[WARNING] Reaction '{}' is not part of final_validation.".format(rid))
             continue
         rxn_cnt += 1
         if ignore_rib and item["carbon_balance_check"] == "reactants":
             continue
         assert len(df_index) == 1
-        sn_item = snapshot[id]
-        assert id in snapshot.keys(), "Id not in snapshot."
+        sn_item = snapshot[rid]
+        assert rid in snapshot.keys(), "Id '{}' not in snapshot.".format(rid)
         df_index = df_index[0]
         df_row = df.iloc[df_index]
         is_correct = df_row["Result"]
         initial_reaction = df_row["reactions"]
         result_reaction = item["new_reaction"]
-        if item["issue"] == "":
+        if item["solved"]:
             success_cnt += 1
         result_reaction_n = normalize_smiles(result_reaction)
         if is_correct:
@@ -184,7 +194,7 @@ def verify_dataset(dataset, ignore_rib=False):
             if result_reaction_n != normalize_smiles(correct_reaction):
                 wrong_rxn.append(
                     _fmt(
-                        id,
+                        rid,
                         initial_reaction,
                         result_reaction,
                         correct_r=correct_reaction,
@@ -201,7 +211,7 @@ def verify_dataset(dataset, ignore_rib=False):
                     wrong_reaction = wrong_reactions_n[0]
                 unknown_rxn.append(
                     _fmt(
-                        id, initial_reaction, result_reaction, checked_r=wrong_reaction
+                        rid, initial_reaction, result_reaction, checked_r=wrong_reaction
                     )
                 )
     return {
@@ -286,21 +296,31 @@ def export(results, path, n=None):
     for item in wrong_reactions:
         plot_reaction(item, path=path)
 
+def run_impute(no_cache=False):
+    for dataset in _DATASETS:
+        print("[INFO] Impute validation set '{}'.".format(dataset))
+        src_file = get_valset_raw_path(dataset)
+        result_file = get_valset_result_path(dataset)
+        impute(src_file, result_file, col="reaction", id_col="val-id", no_cache=no_cache)
+
 
 def run_test(args):
-    run_fix = False
+    run_fix_mode = False
     if args.set_correct is not None:
-        run_fix = True
+        run_fix_mode = True
         for id in args.set_correct:
             print("[INFO] Save reaction '{}' as correct.".format(id))
             set_reaction_correct(id, save=True, override=args.override)
     if args.set_wrong is not None:
-        run_fix = True
+        run_fix_mode = True
         for id in args.set_wrong:
             print("[INFO] Save reaction '{}' as wrong.".format(id))
             set_reaction_wrong(id, save=True)
-    if run_fix:
+    if run_fix_mode:
         return
+
+    if args.impute:
+        run_impute(no_cache=args.no_cache)
 
     results = verify_datasets(args.dataset, args.ignore_rib)
     print_result_table(results)
@@ -349,6 +369,16 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "--ignore-rib",
         action="store_true",
         help="Flag to ignore reactant side imbalances.",
+    )
+    test_parser.add_argument(
+        "--impute",
+        action="store_true",
+        help="Flag to (re)-impute test cases.",
+    )
+    test_parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Disable caching of intermediate results.",
     )
 
     test_parser.set_defaults(func=run_test)

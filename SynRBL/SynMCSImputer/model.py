@@ -54,10 +54,11 @@ def build_compounds(data_dict) -> CompoundSet:
     return cset
 
 
-def impute_reaction(reaction_dict, **kwargs):
+def impute_reaction(reaction_dict):
     reaction_dict["rules"] = []
     new_reaction = reaction_dict["old_reaction"]
     reaction_dict["mcs_carbon_balanced"] = reaction_dict["carbon_balance_check"] == 'balanced'
+    reaction_dict["solved"] = False
     try:
         if reaction_dict["issue"] != "":
             raise ValueError(
@@ -66,7 +67,7 @@ def impute_reaction(reaction_dict, **kwargs):
         compound_set = build_compounds(reaction_dict)
         if len(compound_set) == 0:
             return
-        result = merge(compound_set, **kwargs)
+        result = merge(compound_set)
         carbon_balance = reaction_dict["carbon_balance_check"]
         if carbon_balance == "reactants":
             # Imputing reactant side carbon imbalance is not (yet) supported
@@ -91,6 +92,7 @@ def impute_reaction(reaction_dict, **kwargs):
             )
         new_reaction = imputed_reaction
         reaction_dict["rules"] = rules
+        reaction_dict["solved"] = True
     except Exception as e:
         reaction_dict["issue"] = str(e)
     finally:
@@ -98,9 +100,8 @@ def impute_reaction(reaction_dict, **kwargs):
 
 
 class MCSImputer:
-    def __init__(self, **kwargs):
-        self.kwargs = kwargs
+    def __init__(self):
         pass
 
     def impute_reaction(self, reaction_dict):
-        impute_reaction(reaction_dict, **self.kwargs)
+        impute_reaction(reaction_dict)

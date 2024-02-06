@@ -1,10 +1,12 @@
 import collections
 import numpy as np
+import pandas as pd
 import rdkit.Chem as Chem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw as Draw
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import matplotlib.pyplot as plt
+from SynRBL.SynCmd.cmd_test import _DATASETS
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 import rdkit.Chem.MolStandardize.rdMolStandardize as rdMolStandardize
 from SynRBL.rsmi_utils import load_database, save_database
@@ -138,7 +140,7 @@ clear_atom_nums(results)
 print_error_summary(results)
 i, rx = get_reaction_by_id(results, "golden_dataset_628")
 # print(i)
-#rx = results[204]
+# rx = results[204]
 
 plot_reaction(rx, show_atom_numbers=False)
 
@@ -181,12 +183,61 @@ vis.plot_reactions(
     new_reaction_col="n",
     compare=True,
 )
-#|%%--%%| <0ppeA6PwQO|dK58cHCURm>
-import inspect
-class Test:
-    def __init__(self, a, b=None, **kwargs):
-        pass
+# |%%--%%| <0ppeA6PwQO|dK58cHCURm>
+from SynRBL.SynCmd.cmd_test import _DATASETS
 
-kwargs = {"a": 1, "c": 2}
-print("c" in inspect.getfullargspec(Test)[0])
-print(kwargs.keys())
+for dataset in _DATASETS:
+    path = "./Data/Validation_set/{}/MCS/{}.json.gz".format(dataset, "Final_Graph")
+    results = load_database(path)
+
+    val_data = []
+    for r in results:
+        val_data.append(
+            {"val-id": r["R-id"], "reaction": r["old_reaction"]}
+        )
+    df = pd.DataFrame(val_data)
+    print("Create val set:", dataset)
+    df.to_csv("./Data/Validation_set/{}_val.csv".format(dataset))
+
+# |%%--%%| <dK58cHCURm|PFfLfKJ9Bi>
+
+
+path = "./Pipeline/Validation/Analysis/final_validation.csv"
+df = pd.read_csv(path)
+df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+df.to_csv(path)
+print(df)
+
+# |%%--%%| <PFfLfKJ9Bi|45VJHrRjLA>
+
+dataset = "USPTO_random_class"
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format(dataset, "Final_Graph")
+results = load_database(path)
+
+val_data = []
+for i, r in enumerate(results):
+    # val_data.append({"id": r["id"], "val-id": r["R-id"], "reaction": r["reactions"]})
+    val_data.append(
+        {
+            "val-id": r["R-id"],
+            "reaction": r["old_reaction"],
+        }
+    )
+df = pd.DataFrame(val_data)
+print("Create val set:", dataset)
+df.to_csv("./Data/Validation_set/{}_val.csv".format(dataset))
+#|%%--%%| <45VJHrRjLA|Ffoj2H07hg>
+
+search_id = "USPTO_random_class_802"
+df = pd.read_csv("./Pipeline/Validation/Analysis/final_validation.csv", index_col=0)
+
+for i, row in df.iterrows():
+    rid = row["R-id"]
+    if "USPTO_random" in rid:
+        print(rid)
+        continue
+    if rid == search_id:
+        print("FOUND")
+        continue
+
+
