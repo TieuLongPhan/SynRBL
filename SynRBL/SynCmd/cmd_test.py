@@ -143,7 +143,7 @@ def set_reaction_wrong(id, save=False):
             json.dump(snapshot, f, indent=4)
 
 
-def verify_dataset(dataset):
+def verify_dataset(dataset, ignore_rib=False):
     def _fmt(id, initial_r, result_r, correct_r=None, checked_r=None):
         return {
             "initial_reaction": initial_r,
@@ -163,6 +163,10 @@ def verify_dataset(dataset):
         id = item["R-id"]
         df_index = df.index[df["R-id"] == id].to_list()
         if len(df_index) == 0:
+            print("[WARNING] Reaction '{}' is not part of final_validation.".format(id))
+            continue
+        rxn_cnt += 1
+        if ignore_rib and item["carbon_balance_check"] == "reactants":
             continue
         assert len(df_index) == 1
         sn_item = snapshot[id]
@@ -197,13 +201,9 @@ def verify_dataset(dataset):
                     wrong_reaction = wrong_reactions_n[0]
                 unknown_rxn.append(
                     _fmt(
-                        id,
-                        initial_reaction,
-                        result_reaction,
-                        checked_r=wrong_reaction
+                        id, initial_reaction, result_reaction, checked_r=wrong_reaction
                     )
                 )
-        rxn_cnt += 1
     return {
         "wrong_reactions": wrong_rxn,
         "unknown_reactions": unknown_rxn,
@@ -213,12 +213,12 @@ def verify_dataset(dataset):
     }
 
 
-def verify_datasets(dataset_name=None):
+def verify_datasets(dataset_name=None, ignore_rib=False):
     results = {}
     for dataset in _DATASETS:
         if dataset_name is not None and dataset_name.lower() != dataset.lower():
             continue
-        results[dataset] = verify_dataset(dataset)
+        results[dataset] = verify_dataset(dataset, ignore_rib)
     return results
 
 
@@ -302,12 +302,11 @@ def run_test(args):
     if run_fix:
         return
 
-    results = verify_datasets(args.dataset)
+    results = verify_datasets(args.dataset, args.ignore_rib)
     print_result_table(results)
     print_verification_result(results)
     if args.export:
         export(results, args.o, args.export_count)
-
 
 
 def configure_argparser(argparser: argparse._SubParsersAction):
@@ -327,18 +326,29 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     )
     test_parser.add_argument(
         "--export-count",
-        default = None,
+        default=None,
         help="Set the number of reactions to export.",
     )
 
     test_parser.add_argument(
-        "--set-correct", nargs="*", metavar="id", help="The reaction ids that are now correct."
+        "--set-correct",
+        nargs="*",
+        metavar="id",
+        help="The reaction ids that are now correct.",
     )
     test_parser.add_argument(
-        "--set-wrong", nargs="*", metavar="id", help="The reaction ids that are now wrong."
+        "--set-wrong",
+        nargs="*",
+        metavar="id",
+        help="The reaction ids that are now wrong.",
     )
     test_parser.add_argument(
         "--override", action="store_true", help="Flag to override correct reactions."
+    )
+    test_parser.add_argument(
+        "--ignore-rib",
+        action="store_true",
+        help="Flag to ignore reactant side imbalances.",
     )
 
     test_parser.set_defaults(func=run_test)
