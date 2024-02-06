@@ -631,7 +631,7 @@ class ExpandRule:
     Class for defining a compound expansion rule. The compound is added if the
     boundary atom meets the condition. A compound rule can be configured by
     providing a suitable dictionary. Examples on how to configure compound
-    rules can be found in SynRBL/SynMCS/compound_rules.json file.
+    rules can be found in SynRBL/SynMCS/expand_rules.json file.
 
     Attributes:
         name (str, optional): A descriptive name for the rule. This attribute
@@ -652,8 +652,8 @@ class ExpandRule:
     @classmethod
     def get_all(cls) -> list[ExpandRule]:
         """
-        Get a list of compound rules. The rules are configured in
-        SynRBL/SynMCS/compound_rules.json.
+        Get a list of compound expansion rules. The rules are configured in
+        SynRBL/SynMCS/expand.json.
 
         Returns:
             list[ExpandRule]: Returns a list of compound rules.
@@ -661,7 +661,7 @@ class ExpandRule:
         if cls._expand_rules is None:
             json_data = (
                 importlib.resources.files(SynRBL.SynMCSImputer)
-                .joinpath("compound_rules.json")
+                .joinpath("expand_rules.json")
                 .read_text()
             )
             cls._expand_rules = [ExpandRule(**c) for c in json.loads(json_data)]
@@ -696,8 +696,8 @@ class ExpandRule:
         compound.rules.append(self)
         return compound
 
-class Compound2Rule:
-    _compound_rules: list[Compound2Rule] | None = None
+class CompoundRule:
+    _compound_rules: list[CompoundRule] | None = None
 
     def __init__(self, **kwargs):
         action = kwargs.get("action", [])
@@ -709,14 +709,14 @@ class Compound2Rule:
         self.action = [CompoundAction.build(a["type"], **a) for a in action]
 
     @classmethod
-    def get_all(cls) -> list[Compound2Rule]:
+    def get_all(cls) -> list[CompoundRule]:
         if cls._compound_rules is None:
             json_data = (
                 importlib.resources.files(SynRBL.SynMCSImputer)
-                .joinpath("compound2_rules.json")
+                .joinpath("compound_rules.json")
                 .read_text()
             )
-            cls._compound_rules = [Compound2Rule(**c) for c in json.loads(json_data)]
+            cls._compound_rules = [CompoundRule(**c) for c in json.loads(json_data)]
         return cls._compound_rules
 
     def can_apply(self, compound: Compound):
@@ -743,12 +743,12 @@ def get_merge_rules() -> list[MergeRule]:
 def get_expand_rules() -> list[ExpandRule]:
     """
     Get a list of compound expandsion rules. The rules are configured in
-    SynRBL/SynMCS/compound_rules.json.
+    SynRBL/SynMCS/expand_rules.json.
 
     Returns:
         list[ExpandRule]: Returns a list of compound rules.
     """
     return ExpandRule.get_all()
 
-def get_compound_rules2() -> list[Compound2Rule]:
-    return Compound2Rule.get_all()
+def get_compound_rules() -> list[CompoundRule]:
+    return CompoundRule.get_all()

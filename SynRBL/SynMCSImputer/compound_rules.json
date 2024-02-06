@@ -1,64 +1,22 @@
 [
-    {
-        "name": "C-O Ether break",
-        "condition": {
-            "atom": ["C"],
-            "neighbor_atom": ["O"],
-            "functional_group": ["ether"]
-        },
-        "compound": {"smiles": "I", "index": 0}
-    },
-    {
-        "name": "C-S Thioether break",
-        "condition": {
-            "atom": ["C"],
-            "neighbor_atom": ["S"],
-            "functional_group": ["thioether"]
-        },
-        "compound": {"smiles": "I", "index": 0}
-    },
-    {
-        "name": "C-O Ester break",
-        "condition": {
-            "atom": ["C"],
-            "neighbor_atom": ["O"],
-            "functional_group": ["ester"]
-        },
-        "compound": {"smiles": "O", "index": 0}
-    },
-    {
-        "name": "C-S Thioester break",
-        "condition": {
-            "atom": ["C"],
-            "neighbor_atom": ["S"],
-            "functional_group": ["thioester"]
-        },
-        "compound": {"smiles": "O", "index": 0}
-    },
 	{
-		"name": "C-N Amide break",
+		"name": "fix_alcohol_catalyst",
 		"condition": {
-			"atom": ["C"],
-			"neighbor_atom": ["N"],
-			"functional_group": ["amid"]
+			"nr_boundaries": "0",
+			"functional_group": "alcohol"
 		},
-		"compound": {"smiles": "O", "index": 0}
+        "action": {
+			"type": "add_boundary", 
+			"functional_group": "alcohol", 
+			"pattern": "CO", "index": "1"
+		}
 	},
 	{
-		"name": "form M-OH",
+		"name": "remove_water_catalyst",
 		"condition": {
-			"atom": ["Mg", "Zn", "Si", "B"]
+			"nr_boundaries": "0",
+			"smiles": "O"
 		},
-		"compound": {"smiles": "O", "index": 0}
-	},
-    {
-        "name": "append O when next to O or N",
-        "condition": {"atom": ["!O", "!N"], "neighbor_atom": ["O", "N"]},
-        "compound": {"smiles": "O", "index": 0}
-    },
-    {
-        "name": "append O to C-C bond",
-        "condition": {"atom": ["C"], "neighbor_atom": ["C"]},
-        "compound": {"smiles": "O", "index": 0}
-    }
+        "action": {"type": "set_active", "active": false}
+	}
 ]

@@ -1,4 +1,4 @@
-from .rules import MergeRule, ExpandRule, Compound2Rule
+from .rules import MergeRule, ExpandRule, CompoundRule
 from .structure import Boundary, Compound
 
 
@@ -26,7 +26,7 @@ def merge_boundaries(boundary1: Boundary, boundary2: Boundary) -> Compound | Non
     return None
 
 def update_compound(compound: Compound):
-    for rule in Compound2Rule.get_all():
+    for rule in CompoundRule.get_all():
         if rule.can_apply(compound):
             rule.apply(compound)
             break
