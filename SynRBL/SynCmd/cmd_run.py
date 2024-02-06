@@ -3,7 +3,6 @@ import json
 import copy
 import argparse
 import hashlib
-from numpy import who
 import pandas as pd
 import rdkit
 
@@ -41,7 +40,7 @@ _CACHE_KEYS = [
     "rule_based_unsolved",
     "mcs",
     "mcs_based",
-    "output"
+    "output",
 ]
 
 
@@ -129,7 +128,7 @@ def print_dataset_stats(data):
         r_suc = r_suc_c / len(data["rule_based_input"])
     print(
         "[INFO] Rule-based method solved {} reactions. (Success rate: {:.2%})".format(
-            r_suc_c, r_suc 
+            r_suc_c, r_suc
         )
     )
     mcs_suc = 0
@@ -162,7 +161,7 @@ def load_reactions(file, reaction_col, n_jobs):
         n_jobs=n_jobs,
         data_name="index",
         save_json=False,
-        save_path_name=None,
+        save_path_name=None,  # type: ignore
     )
     reactions = process.data_splitter().to_dict("records")
 
@@ -174,8 +173,8 @@ def load_reactions(file, reaction_col, n_jobs):
 
     # 3. decompose into dict of symbols
     decompose = RSMIDecomposer(
-        smiles=None,
-        data=reactions,
+        smiles=None,  # type: ignore
+        data=reactions,  # type: ignore
         reactant_col="reactants",
         product_col="products",
         parallel=True,
@@ -185,7 +184,7 @@ def load_reactions(file, reaction_col, n_jobs):
     react_dict, product_dict = decompose.data_decomposer()
 
     # 4. compare dict and check balance
-    comp = RSMIComparator(reactants=react_dict, products=product_dict, n_jobs=n_jobs)
+    comp = RSMIComparator(reactants=react_dict, products=product_dict, n_jobs=n_jobs)  # type: ignore
     unbalance, diff_formula = comp.run_parallel(
         reactants=react_dict, products=product_dict
     )
@@ -243,7 +242,7 @@ def rule_based_method(data, n_jobs):
     )
     certain_reactions, uncertain_reactions = constrain.fit()
 
-    id_uncertain = [entry["R-id"] for entry in uncertain_reactions]
+    id_uncertain = [entry["R-id"] for entry in uncertain_reactions] # type: ignore
     new_uncertain_reactions = [
         entry for entry in reactions if entry["R-id"] in id_uncertain
     ]
@@ -317,7 +316,7 @@ def find_mcs(data, col):
     condition_5 = load_database(f"{_TMP_DIR}/Condition_5.json.gz")
 
     analysis = ExtractMCS()
-    mcs_dict, threshold_index = analysis.extract_matching_conditions(
+    mcs_dict, _ = analysis.extract_matching_conditions(
         0,
         100,
         condition_1,
@@ -361,10 +360,10 @@ def find_mcs(data, col):
     return data
 
 
-def mcs_based_method(data, cs_passthrough):
+def mcs_based_method(data):
     mcs_reactions = copy.deepcopy(data["mcs"])
     print("[INFO] Run MCS-based method on {} reactions.".format(len(mcs_reactions)))
-    imputer = MCSImputer(cs_passthrough=cs_passthrough)
+    imputer = MCSImputer()
     for item in mcs_reactions:
         imputer.impute_reaction(item)
     data["mcs_based"] = mcs_reactions
@@ -455,10 +454,10 @@ def run(args):
         print("[INFO] Caching is disabled.")
     if args.tmp_dir is not None:
         _TMP_DIR = os.path.abspath(args.tmp_dir)
-    lg = rdkit.RDLogger.logger()
-    lg.setLevel(rdkit.RDLogger.ERROR)
-    rdkit.RDLogger.DisableLog("rdApp.info")
-    rdkit.RDLogger.DisableLog("rdApp.*")
+    lg = rdkit.RDLogger.logger() # type: ignore
+    lg.setLevel(rdkit.RDLogger.ERROR) # type: ignore
+    rdkit.RDLogger.DisableLog("rdApp.info") # type: ignore
+    rdkit.RDLogger.DisableLog("rdApp.*") # type: ignore
 
     if is_cached("reactions"):
         print("[INFO] Load preprocessed reactions from cache.")
@@ -482,7 +481,7 @@ def run(args):
             reactions = read_cache("mcs")
 
         if args.mcs_based:
-            reactions = mcs_based_method(reactions, args.cs_passthrough)
+            reactions = mcs_based_method(reactions)
             write_cache(reactions)
         elif is_cached("mcs_based"):
             reactions = read_cache("mcs_based")
@@ -491,7 +490,7 @@ def run(args):
         write_cache(reactions)
         reactions = find_mcs(reactions, args.col)
         write_cache(reactions)
-        mcs_based_result = mcs_based_method(reactions, args.cs_passthrough)
+        mcs_based_result = mcs_based_method(reactions)
         write_cache(mcs_based_result)
         reactions = generate_output(reactions, args.col)
         write_cache(reactions)
@@ -547,15 +546,6 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "--no-cache",
         action="store_true",
         help="Disable caching of intermediate results.",
-    )
-    cs_passthrough_default = True
-    test_parser.add_argument(
-        "--cs-passthrough",
-        default=cs_passthrough_default,
-        help="Flag to controle if catalyst and solvent compounds are "
-        + "passed through to the product side. (Default={})".format(
-            cs_passthrough_default
-        ),
     )
 
     test_parser.set_defaults(func=run)
