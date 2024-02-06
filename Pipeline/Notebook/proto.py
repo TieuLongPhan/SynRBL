@@ -84,7 +84,7 @@ def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
     print("Rules:", entry["rules"])
 
 
-s = "O=P"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "Clc1cccccc1CBr"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 s = Chem.CanonSmiles(s)
 print(s)
 mol = rdmolfiles.MolFromSmiles(s)
@@ -124,7 +124,7 @@ plot_reaction(sample, show_atom_numbers=False)
 
 #|%%--%%| <kL4B2dKA6i|U1toLALgcc>
 
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("golden_dataset", "MCS_Impute")
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format("Jaworski", "MCS_Impute")
 results = load_database(path)
 clear_atom_nums(results)
 
@@ -133,7 +133,7 @@ clear_atom_nums(results)
 print_error_summary(results)
 #i, rx = get_reaction_by_id(results, "golden_dataset_177")
 #print(i)
-rx = results[838]
+rx = results[126]
 
 plot_reaction(rx, show_atom_numbers=False)
 

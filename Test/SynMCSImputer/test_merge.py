@@ -279,3 +279,11 @@ class TestCompounds(unittest.TestCase):
         self.assertEqual("Cl.O=C(O)c1ccccc1C(=O)O", cm.smiles)
         self.assertIn("r1", cm.rules)
         self.assertIn("r2", cm.rules)
+
+    def test_6(self):
+        compound1 = Compound("Br", src_mol="Clc1ccccc1CBr")
+        compound2 = Compound("N", src_mol="N#CC1CC1")
+        compound1.add_boundary(0, symbol="Br", neighbor_index=7, neighbor_symbol="C")
+        compound2.add_boundary(0, symbol="N", neighbor_index=1, neighbor_symbol="C")
+        cm = merge.merge([compound1, compound2])
+        self.assertEqual("Br.N", cm.smiles)

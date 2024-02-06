@@ -141,7 +141,8 @@ def merge_two_mols(mol1, mol2, idx1, idx2, bond_type, mol1_track=None, mol2_trac
     atom1 = mol.GetAtoms()[idx1]
     atom2 = mol.GetAtoms()[mol2_offset + idx2]
 
-    mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type)
+    if bond_type is not None:
+        mol.AddBond(atom1.GetIdx(), atom2.GetIdx(), order=bond_type)
 
     return {
         "mol": mol,
