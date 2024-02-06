@@ -255,39 +255,39 @@ class TestChangeBondAction(unittest.TestCase):
         self.assertEqual("OP(O)O", boundary.compound.smiles)
 
 
-class TestNrBoundariesCompProperty(unittest.TestCase):
+class TestNrBoundariesCompoundProperty(unittest.TestCase):
     def test_pos_check(self):
-        prop = NrBoundariesCompProperty("0")
+        prop = NrBoundariesCompoundProperty("0")
         comp = Compound("O=P(O)O", src_mol="O=P(C)(O)O")
         self.assertTrue(prop(comp))
 
     def test_neg_check(self):
-        prop = NrBoundariesCompProperty("1")
+        prop = NrBoundariesCompoundProperty("1")
         comp = Compound("O=P(O)O", src_mol="O=P(C)(O)O")
         self.assertFalse(prop(comp))
 
 
-class TestFunctionalGroupCompProperty(unittest.TestCase):
+class TestFunctionalGroupCompoundProperty(unittest.TestCase):
     def test_single_fg_pos_check(self):
-        prop = FunctionalGroupCompProperty("alcohol")
+        prop = FunctionalGroupCompoundProperty("alcohol")
         comp = Compound("CO")
         self.assertTrue(prop(comp))
 
     def test_single_fg_neg_check(self):
-        prop = FunctionalGroupCompProperty("ether")
+        prop = FunctionalGroupCompoundProperty("ether")
         comp = Compound("CO")
         self.assertFalse(prop(comp))
 
     def test_multiple_fgs(self):
-        prop1 = FunctionalGroupCompProperty("alcohol")
-        prop2 = FunctionalGroupCompProperty("ether")
+        prop1 = FunctionalGroupCompoundProperty("alcohol")
+        prop2 = FunctionalGroupCompoundProperty("ether")
         comp = Compound("COCCO")
         self.assertTrue(prop1(comp))
         self.assertTrue(prop2(comp))
 
-class TestAddBoundaryCompAction(unittest.TestCase):
+class TestAddBoundaryAction(unittest.TestCase):
     def test_1(self):
-        action = AddBoundaryCompAction("alcohol", "CO", "1")
+        action = AddBoundaryAction("alcohol", "CO", "1")
         comp = Compound("COCCO")
         action(comp)
         self.assertEqual(1, len(comp.boundaries)) # type: ignore

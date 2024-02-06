@@ -117,7 +117,7 @@ class Property:
         return True
 
 
-class CompProperty(Property):
+class CompoundProperty(Property):
     def __init__(self, config=None, allow_none=False):
         super().__init__(config, allow_none)
 
@@ -197,11 +197,11 @@ class ChangeBondAction(Action):
 Action.register("change_bond", ChangeBondAction)
 
 
-class CompAction:
+class CompoundAction:
     __actions = {}
 
     @classmethod
-    def build(cls, name, **kwargs) -> CompAction:
+    def build(cls, name, **kwargs) -> CompoundAction:
         if name not in cls.__actions.keys():
             raise NotImplementedError(
                 "No compound action named '{}' found.".format(name)
@@ -224,7 +224,7 @@ class CompAction:
         self.apply(compound)
 
 
-class AddBoundaryCompAction(CompAction):
+class AddBoundaryAction(CompoundAction):
     def __init__(self, functional_group=None, pattern=None, index=None, **kwargs):
         functional_group = kwargs.get("functional_group", functional_group)
         pattern = kwargs.get("pattern", pattern)
@@ -267,7 +267,7 @@ class AddBoundaryCompAction(CompAction):
         raise RuntimeError("Action add_boundary could not be applied.")
 
 
-class SetActiveCompAction(CompAction):
+class SetActiveAction(CompoundAction):
     def __init__(self, active=None, **kwargs):
         self.active = bool(kwargs.get("active", active))
 
@@ -275,8 +275,8 @@ class SetActiveCompAction(CompAction):
         compound.active = self.active
 
 
-CompAction.register("add_boundary", AddBoundaryCompAction)
-CompAction.register("set_active", SetActiveCompAction)
+CompoundAction.register("add_boundary", AddBoundaryAction)
+CompoundAction.register("set_active", SetActiveAction)
 
 
 class FunctionalGroupProperty(Property):
@@ -328,7 +328,7 @@ class NeighborSymbolProperty(Property):
         return value.neighbor_symbol == check_value
 
 
-class NrBoundariesCompProperty(CompProperty):
+class NrBoundariesCompoundProperty(CompoundProperty):
     def __init__(self, config=None):
         super().__init__(config, allow_none=False)
 
@@ -337,7 +337,7 @@ class NrBoundariesCompProperty(CompProperty):
         return len(value.boundaries) == exp_nr
 
 
-class FunctionalGroupCompProperty(Property):
+class FunctionalGroupCompoundProperty(CompoundProperty):
     def __init__(self, config=None):
         super().__init__(config, allow_none=False)
 
@@ -351,7 +351,7 @@ class FunctionalGroupCompProperty(Property):
         return False
 
 
-class SmilesCompProperty(Property):
+class SmilesCompoundProperty(CompoundProperty):
     def __init__(self, config=None, use_src_mol: bool = False):
         super().__init__(config, allow_none=False)
         self.use_src_mol = use_src_mol
@@ -444,9 +444,9 @@ class CompoundCondition:
         functional_group = kwargs.get("functional_group", functional_group)
 
         self.properties = [
-            NrBoundariesCompProperty(nr_boundaries),
-            SmilesCompProperty(smiles),
-            FunctionalGroupCompProperty(functional_group),
+            NrBoundariesCompoundProperty(nr_boundaries),
+            SmilesCompoundProperty(smiles),
+            FunctionalGroupCompoundProperty(functional_group),
         ]
 
     def __call__(self, compound: Compound):
@@ -626,7 +626,7 @@ class MergeRule:
         return boundary1.compound
 
 
-class CompoundRule:
+class ExpandRule:
     """
     Class for defining a compound expansion rule. The compound is added if the
     boundary atom meets the condition. A compound rule can be configured by
@@ -642,7 +642,7 @@ class CompoundRule:
             form: {'smiles': <SMILES>, 'index': <boundary atom index>}.
     """
 
-    _compound_rules: list[CompoundRule] | None = None
+    _expand_rules: list[ExpandRule] | None = None
 
     def __init__(self, **kwargs):
         self.name = kwargs.get("name", "unnamed")
@@ -650,22 +650,22 @@ class CompoundRule:
         self.compound = kwargs.get("compound", None)
 
     @classmethod
-    def get_all(cls) -> list[CompoundRule]:
+    def get_all(cls) -> list[ExpandRule]:
         """
         Get a list of compound rules. The rules are configured in
         SynRBL/SynMCS/compound_rules.json.
 
         Returns:
-            list[CompoundRule]: Returns a list of compound rules.
+            list[ExpandRule]: Returns a list of compound rules.
         """
-        if cls._compound_rules is None:
+        if cls._expand_rules is None:
             json_data = (
                 importlib.resources.files(SynRBL.SynMCSImputer)
                 .joinpath("compound_rules.json")
                 .read_text()
             )
-            cls._compound_rules = [CompoundRule(**c) for c in json.loads(json_data)]
-        return cls._compound_rules
+            cls._expand_rules = [ExpandRule(**c) for c in json.loads(json_data)]
+        return cls._expand_rules
 
     def can_apply(self, boundary: Boundary):
         """
@@ -696,9 +696,6 @@ class CompoundRule:
         compound.rules.append(self)
         return compound
 
-
-
-
 class Compound2Rule:
     _compound_rules: list[Compound2Rule] | None = None
 
@@ -709,7 +706,7 @@ class Compound2Rule:
 
         self.name = kwargs.get("name", "unnamed")
         self.condition = CompoundCondition(**kwargs.get("condition", {}))
-        self.action = [CompAction.build(a["type"], **a) for a in action]
+        self.action = [CompoundAction.build(a["type"], **a) for a in action]
 
     @classmethod
     def get_all(cls) -> list[Compound2Rule]:
@@ -743,15 +740,15 @@ def get_merge_rules() -> list[MergeRule]:
     return MergeRule.get_all()
 
 
-def get_compound_rules() -> list[CompoundRule]:
+def get_expand_rules() -> list[ExpandRule]:
     """
-    Get a list of compound rules. The rules are configured in
+    Get a list of compound expandsion rules. The rules are configured in
     SynRBL/SynMCS/compound_rules.json.
 
     Returns:
-        list[CompoundRule]: Returns a list of compound rules.
+        list[ExpandRule]: Returns a list of compound rules.
     """
-    return CompoundRule.get_all()
+    return ExpandRule.get_all()
 
 def get_compound_rules2() -> list[Compound2Rule]:
     return Compound2Rule.get_all()
