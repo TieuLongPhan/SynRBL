@@ -117,6 +117,18 @@ class Property:
         return True
 
 
+class CompProperty(Property):
+    def __init__(self, config=None, allow_none=False):
+        super().__init__(config, allow_none)
+
+    def __call__(self, value) -> bool:
+        if not isinstance(value, Compound):
+            raise TypeError(
+                "Compound property can only be called with a compound as argument."
+            )
+        return super().__call__(value)
+
+
 class Action:
     __actions = {}
 
@@ -185,6 +197,88 @@ class ChangeBondAction(Action):
 Action.register("change_bond", ChangeBondAction)
 
 
+class CompAction:
+    __actions = {}
+
+    @classmethod
+    def build(cls, name, **kwargs) -> CompAction:
+        if name not in cls.__actions.keys():
+            raise NotImplementedError(
+                "No compound action named '{}' found.".format(name)
+            )
+        inst = cls.__actions[name](**kwargs)
+        return inst
+
+    @classmethod
+    def register(cls, name: str, action):
+        if name in cls.__actions.keys():
+            raise ValueError(
+                "Compound action with name '{}' already exists.".format(name)
+            )
+        cls.__actions[name] = action
+
+    def apply(self, compound: Compound):
+        pass
+
+    def __call__(self, compound: Compound) -> Compound | None:
+        self.apply(compound)
+
+
+class AddBoundaryCompAction(CompAction):
+    def __init__(self, functional_group=None, pattern=None, index=None, **kwargs):
+        functional_group = kwargs.get("functional_group", functional_group)
+        pattern = kwargs.get("pattern", pattern)
+        index = kwargs.get("index", index)
+
+        if pattern is None:
+            raise ValueError("Missing required parameter 'pattern'.")
+
+        if index is None:
+            raise ValueError("Missing required parameter 'index'.")
+
+        self.functional_group = functional_group
+        self.pattern_mol = rdmolfiles.MolFromSmiles(pattern)
+        self.index = int(index)
+
+        if len(self.pattern_mol.GetAtoms()) <= self.index:
+            raise ValueError(
+                "Index for pattern in add_boundary action is out of range."
+            )
+
+    def apply(self, compound: Compound):
+        for atom in compound.mol.GetAtoms():
+            if atom.GetSymbol() in ["C", "H"]:
+                continue
+            atom_index = atom.GetIdx()
+            if self.functional_group is not None:
+                is_fg = fgutils.is_functional_group(
+                    compound.mol, self.functional_group, atom_index
+                )
+                if not is_fg:
+                    continue
+            match, mapping = fgutils.pattern_match(
+                compound.mol, atom_index, self.pattern_mol, self.index
+            )
+            if match:
+                for m in mapping:
+                    if m[1] == self.index:
+                        compound.add_boundary(m[0])
+                        return
+        raise RuntimeError("Action add_boundary could not be applied.")
+
+
+class SetActiveCompAction(CompAction):
+    def __init__(self, active=None, **kwargs):
+        self.active = bool(kwargs.get("active", active))
+
+    def apply(self, compound: Compound):
+        compound.active = self.active
+
+
+CompAction.register("add_boundary", AddBoundaryCompAction)
+CompAction.register("set_active", SetActiveCompAction)
+
+
 class FunctionalGroupProperty(Property):
     def __init__(self, config=None):
         super().__init__(config, allow_none=False)
@@ -232,6 +326,41 @@ class NeighborSymbolProperty(Property):
 
     def check(self, value: Boundary, check_value) -> bool:
         return value.neighbor_symbol == check_value
+
+
+class NrBoundariesCompProperty(CompProperty):
+    def __init__(self, config=None):
+        super().__init__(config, allow_none=False)
+
+    def check(self, value: Compound, check_value) -> bool:
+        exp_nr = int(check_value)
+        return len(value.boundaries) == exp_nr
+
+
+class FunctionalGroupCompProperty(Property):
+    def __init__(self, config=None):
+        super().__init__(config, allow_none=False)
+
+    def check(self, value: Compound, check_value) -> bool:
+        for atom in value.mol.GetAtoms():
+            idx = atom.GetIdx()
+            if atom.GetSymbol() not in ["H", "C"]:
+                is_fg = fgutils.is_functional_group(value.mol, check_value, idx)
+                if is_fg:
+                    return True
+        return False
+
+
+class SmilesCompProperty(Property):
+    def __init__(self, config=None, use_src_mol: bool = False):
+        super().__init__(config, allow_none=False)
+        self.use_src_mol = use_src_mol
+
+    def check(self, value: Compound, check_value) -> bool:
+        if self.use_src_mol:
+            return value.src_smiles == check_value
+        else:
+            return value.smiles == check_value
 
 
 class BoundaryCondition:
@@ -298,6 +427,31 @@ class BoundaryCondition:
         """
         for prop in self.properties:
             if not prop(boundary):
+                return False
+        return True
+
+
+class CompoundCondition:
+    def __init__(
+        self,
+        nr_boundaries=None,
+        smiles=None,
+        functional_group=None,
+        **kwargs,
+    ):
+        nr_boundaries = kwargs.get("nr_boundaries", nr_boundaries)
+        smiles = kwargs.get("smiles", smiles)
+        functional_group = kwargs.get("functional_group", functional_group)
+
+        self.properties = [
+            NrBoundariesCompProperty(nr_boundaries),
+            SmilesCompProperty(smiles),
+            FunctionalGroupCompProperty(functional_group),
+        ]
+
+    def __call__(self, compound: Compound):
+        for prop in self.properties:
+            if not prop(compound):
                 return False
         return True
 
@@ -539,6 +693,42 @@ class CompoundRule:
         """
         compound = Compound(self.compound["smiles"])
         compound.add_boundary(self.compound["index"])
+        compound.rules.append(self)
+        return compound
+
+
+
+
+class Compound2Rule:
+    _compound_rules: list[Compound2Rule] | None = None
+
+    def __init__(self, **kwargs):
+        action = kwargs.get("action", [])
+        if not isinstance(action, list):
+            action = [action]
+
+        self.name = kwargs.get("name", "unnamed")
+        self.condition = CompoundCondition(**kwargs.get("condition", {}))
+        self.action = [CompAction.build(a["type"], **a) for a in action]
+
+    @classmethod
+    def get_all(cls) -> list[Compound2Rule]:
+        if cls._compound_rules is None:
+            json_data = (
+                importlib.resources.files(SynRBL.SynMCSImputer)
+                .joinpath("compound2_rules.json")
+                .read_text()
+            )
+            cls._compound_rules = [Compound2Rule(**c) for c in json.loads(json_data)]
+        return cls._compound_rules
+
+    def can_apply(self, compound: Compound):
+        return self.condition(compound)
+
+    def apply(self, compound: Compound) -> Compound:
+        for action in self.action:
+            action(compound)
+        compound.rules.append(self)
         return compound
 
 
@@ -562,3 +752,6 @@ def get_compound_rules() -> list[CompoundRule]:
         list[CompoundRule]: Returns a list of compound rules.
     """
     return CompoundRule.get_all()
+
+def get_compound_rules2() -> list[Compound2Rule]:
+    return Compound2Rule.get_all()
