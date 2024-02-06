@@ -101,6 +101,7 @@ class Compound:
         self.src_mol = _to_mol(src_mol)
         self.boundaries: list[Boundary] = []
         self.rules = []
+        self.active = True
 
     @property
     def smiles(self) -> str:

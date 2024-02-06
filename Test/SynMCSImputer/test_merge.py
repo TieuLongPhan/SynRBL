@@ -287,3 +287,14 @@ class TestCompounds(unittest.TestCase):
         compound2.add_boundary(0, symbol="N", neighbor_index=1, neighbor_symbol="C")
         cm = merge.merge([compound1, compound2])
         self.assertEqual("Br.N", cm.smiles)
+
+    def test_ignore_water_in_passthrough(self):
+        compound1 = Compound("C", src_mol="C")
+        compound1.add_boundary(0, symbol="C")
+        compound2 = Compound("O", src_mol="O")
+        compound2.add_boundary(0, symbol="O")
+        compound3 = Compound("O", src_mol="O")
+        cm = merge.merge([compound1, compound2, compound3])
+        self.assertEqual("remove_water_catalyst", cm.rules[0].name)
+        self.assertEqual("CO", cm.smiles)
+

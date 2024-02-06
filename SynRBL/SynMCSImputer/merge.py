@@ -2,7 +2,7 @@ import rdkit.Chem.rdchem as rdchem
 import rdkit.Chem.rdmolops as rdmolops
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
-from .rules import MergeRule, CompoundRule
+from .rules import MergeRule, CompoundRule, Compound2Rule
 from .structure import Boundary, Compound
 
 
@@ -16,7 +16,6 @@ def expand_boundary(boundary: Boundary) -> Compound:
     for rule in CompoundRule.get_all():
         if rule.can_apply(boundary):
             compound = rule.apply()
-            compound.rules.append(rule)
             break
     if compound is None:
         raise NoCompoundRule()
@@ -29,6 +28,12 @@ def merge_boundaries(boundary1: Boundary, boundary2: Boundary) -> Compound | Non
             continue
         return rule.apply(boundary1, boundary2)
     return None
+
+def update_compound(compound: Compound):
+    for rule in Compound2Rule.get_all():
+        if rule.can_apply(compound):
+            rule.apply(compound)
+            break
 
 
 def concat_compounds(compound1: Compound, compound2: Compound) -> Compound:
@@ -102,32 +107,36 @@ def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
     return merged_compound
 
 
-def merge(compounds: Compound | list[Compound], cs_passthrough=False) -> Compound:
+def merge(compounds: Compound | list[Compound]) -> Compound:
     merged_compound = None
 
     if isinstance(compounds, Compound):
         compounds = list([compounds])
 
-    catalysts_solvents = []
-    if cs_passthrough:
-        b_compounds = []  # compounds with open boundaries
-        for compound in compounds:
-            if len(compound.boundaries) == 0:
-                catalysts_solvents.append(compound)
-            else:
-                b_compounds.append(compound)
-        compounds = b_compounds
+    comps_with_boundaries, comps_without_boundaries = [], []
+    removed_rules = []
+    for c in compounds:
+        update_compound(c) 
+        if not c.active:
+            removed_rules.extend(c.rules)
+            continue
+        if len(c.boundaries) == 0:
+            comps_without_boundaries.append(c)
+        else:
+            comps_with_boundaries.append(c)
 
-    if len(compounds) == 1:
-        merged_compound = _merge_one_compound(compounds[0])
-    elif len(compounds) == 2:
-        merged_compound = _merge_two_compounds(compounds[0], compounds[1])
+    if len(comps_with_boundaries) == 1:
+        merged_compound = _merge_one_compound(comps_with_boundaries[0])
+    elif len(comps_with_boundaries) == 2:
+        merged_compound = _merge_two_compounds(comps_with_boundaries[0], comps_with_boundaries[1])
 
-    if merged_compound is not None:
-        for c in catalysts_solvents:
-            merged_compound = concat_compounds(merged_compound, c)
-        return merged_compound
+    if merged_compound is None:
+        raise NotImplementedError(
+            "Merging {} compounds is not supported.".format(len(comps_with_boundaries))
+        )
 
-    raise NotImplementedError(
-        "Merging {} compounds is not supported.".format(len(compounds))
-    )
+    merged_compound.rules = removed_rules + merged_compound.rules
+    for c in comps_without_boundaries:
+        merged_compound = concat_compounds(merged_compound, c)
+    return merged_compound
+

@@ -1,16 +1,7 @@
 import unittest
 import rdkit.Chem as Chem
 from SynRBL.SynMCSImputer.structure import Compound
-from SynRBL.SynMCSImputer.rules import (
-    Property,
-    FunctionalGroupProperty,
-    PatternProperty,
-    BoundaryCondition,
-    BoundarySymbolProperty,
-    NeighborSymbolProperty,
-    Action,
-    ChangeBondAction
-)
+from SynRBL.SynMCSImputer.rules import *
 
 
 class TestProperty(unittest.TestCase):
@@ -120,13 +111,14 @@ class TestFunctionalGroupProperty(unittest.TestCase):
         result = p(b)
         self.assertFalse(result)
 
+
 class TestBoundarySymbolProperty(unittest.TestCase):
     def test_defaults_to_true(self):
         p = BoundarySymbolProperty()
         c = Compound("C")
         b = c.add_boundary(0)
         self.assertTrue(p(b))
-        
+
     def test_match_atom(self):
         p = BoundarySymbolProperty("C")
         c = Compound("C")
@@ -139,13 +131,14 @@ class TestBoundarySymbolProperty(unittest.TestCase):
         b = c.add_boundary(0)
         self.assertFalse(p(b))
 
+
 class TestNeighborSymbolProperty(unittest.TestCase):
     def test_defaults_to_true(self):
         p = NeighborSymbolProperty()
         c = Compound("O", "CCO")
         b = c.add_boundary(0, neighbor_index=1)
         self.assertTrue(p(b))
-        
+
     def test_match_atom(self):
         p = NeighborSymbolProperty("C")
         c = Compound("O", "CCO")
@@ -157,6 +150,7 @@ class TestNeighborSymbolProperty(unittest.TestCase):
         c = Compound("O", "CCO")
         b = c.add_boundary(0, neighbor_index=1)
         self.assertFalse(p(b))
+
 
 class TestBoundaryCondition(unittest.TestCase):
     def __check_cond(
@@ -261,3 +255,41 @@ class TestChangeBondAction(unittest.TestCase):
         self.assertEqual("OP(O)O", boundary.compound.smiles)
 
 
+class TestNrBoundariesCompProperty(unittest.TestCase):
+    def test_pos_check(self):
+        prop = NrBoundariesCompProperty("0")
+        comp = Compound("O=P(O)O", src_mol="O=P(C)(O)O")
+        self.assertTrue(prop(comp))
+
+    def test_neg_check(self):
+        prop = NrBoundariesCompProperty("1")
+        comp = Compound("O=P(O)O", src_mol="O=P(C)(O)O")
+        self.assertFalse(prop(comp))
+
+
+class TestFunctionalGroupCompProperty(unittest.TestCase):
+    def test_single_fg_pos_check(self):
+        prop = FunctionalGroupCompProperty("alcohol")
+        comp = Compound("CO")
+        self.assertTrue(prop(comp))
+
+    def test_single_fg_neg_check(self):
+        prop = FunctionalGroupCompProperty("ether")
+        comp = Compound("CO")
+        self.assertFalse(prop(comp))
+
+    def test_multiple_fgs(self):
+        prop1 = FunctionalGroupCompProperty("alcohol")
+        prop2 = FunctionalGroupCompProperty("ether")
+        comp = Compound("COCCO")
+        self.assertTrue(prop1(comp))
+        self.assertTrue(prop2(comp))
+
+class TestAddBoundaryCompAction(unittest.TestCase):
+    def test_1(self):
+        action = AddBoundaryCompAction("alcohol", "CO", "1")
+        comp = Compound("COCCO")
+        action(comp)
+        self.assertEqual(1, len(comp.boundaries)) # type: ignore
+        self.assertEqual(4, comp.boundaries[0].index) # type: ignore
+        self.assertEqual("O", comp.boundaries[0].symbol) # type: ignorte
