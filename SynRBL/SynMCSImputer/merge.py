@@ -1,5 +1,5 @@
 from .rules import MergeRule, ExpandRule, CompoundRule
-from .structure import Boundary, Compound
+from .structure import Boundary, Compound, CompoundSet
 
 
 class NoExpandRule(Exception):
@@ -25,29 +25,12 @@ def merge_boundaries(boundary1: Boundary, boundary2: Boundary) -> Compound | Non
         return rule.apply(boundary1, boundary2)
     return None
 
+
 def update_compound(compound: Compound):
     for rule in CompoundRule.get_all():
         if rule.can_apply(compound):
             rule.apply(compound)
             break
-
-
-def concat_compounds(compound1: Compound, compound2: Compound) -> Compound:
-    if len(compound1.boundaries) > 0 or len(compound2.boundaries) > 0:
-        raise ValueError(
-            "Can not concat compounds with open boundaries. Try merging them."
-        )
-    src_mol = None
-    try:
-        src_mol = "{}.{}".format(compound1.src_smiles, compound2.src_smiles)
-    except:
-        pass
-    concat_compound = Compound(
-        "{}.{}".format(compound1.smiles, compound2.smiles),
-        src_mol=src_mol,
-    )
-    concat_compound.rules = compound1.rules + compound2.rules
-    return concat_compound
 
 
 def _merge_one_compound(compound: Compound) -> Compound:
@@ -88,7 +71,8 @@ def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
             # otherwise MCS was probably wrong.
             compound1 = _merge_one_compound(compound1)
             compound2 = _merge_one_compound(compound2)
-            merged_compound = concat_compounds(compound1, compound2)
+            compound1.concat(compound2)
+            merged_compound = compound1
         else:
             raise ValueError(
                 (
@@ -103,16 +87,13 @@ def _merge_two_compounds(compound1: Compound, compound2: Compound) -> Compound:
     return merged_compound
 
 
-def merge(compounds: Compound | list[Compound]) -> Compound:
+def merge(compound_set: CompoundSet) -> Compound:
     merged_compound = None
-
-    if isinstance(compounds, Compound):
-        compounds = list([compounds])
 
     comps_with_boundaries, comps_without_boundaries = [], []
     removed_rules = []
-    for c in compounds:
-        update_compound(c) 
+    for c in compound_set.compounds:
+        update_compound(c)
         if not c.active:
             removed_rules.extend(c.rules)
             continue
@@ -124,7 +105,9 @@ def merge(compounds: Compound | list[Compound]) -> Compound:
     if len(comps_with_boundaries) == 1:
         merged_compound = _merge_one_compound(comps_with_boundaries[0])
     elif len(comps_with_boundaries) == 2:
-        merged_compound = _merge_two_compounds(comps_with_boundaries[0], comps_with_boundaries[1])
+        merged_compound = _merge_two_compounds(
+            comps_with_boundaries[0], comps_with_boundaries[1]
+        )
 
     if merged_compound is None:
         raise NotImplementedError(
@@ -133,6 +116,5 @@ def merge(compounds: Compound | list[Compound]) -> Compound:
 
     merged_compound.rules = removed_rules + merged_compound.rules
     for c in comps_without_boundaries:
-        merged_compound = concat_compounds(merged_compound, c)
+        merged_compound.concat(c)
     return merged_compound
-

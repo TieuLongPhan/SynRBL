@@ -2,20 +2,28 @@
 	{
 		"name": "fix_alcohol_catalyst",
 		"condition": {
-			"nr_boundaries": "0",
-			"functional_group": "alcohol"
+			"compound": {
+				"is_catalyst": true,
+				"functional_group": "alcohol"
+			},
+			"set": {
+				"nr_compounds": 2,
+				"nr_boundaries": 1
+			}
 		},
         "action": {
 			"type": "add_boundary", 
 			"functional_group": "alcohol", 
-			"pattern": "CO", "index": "1"
+			"pattern": "CO", "index": 1
 		}
 	},
 	{
 		"name": "remove_water_catalyst",
 		"condition": {
-			"nr_boundaries": "0",
-			"smiles": "O"
+			"compound": {
+				"is_catalyst": true,
+				"smiles": "O"
+			}
 		},
         "action": {"type": "set_active", "active": false}
 	}
