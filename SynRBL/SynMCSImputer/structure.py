@@ -89,6 +89,7 @@ class Compound:
         self,
         mol: str | rdchem.Mol,
         src_mol: str | rdchem.Mol | None = None,
+        compound_set: CompoundSet | None = None,
     ):
         self.mol: rdchem.Mol = _to_mol(mol)
         if self.mol is None:
@@ -102,6 +103,12 @@ class Compound:
         self.boundaries: list[Boundary] = []
         self.rules = []
         self.active = True
+        self.__compound_set = compound_set
+
+    def __str__(self):
+        return "Compound '{}' | Boundaries: {} ".format(
+            self.smiles, [(b.symbol, b.index) for b in self.boundaries]
+        )
 
     @property
     def smiles(self) -> str:
@@ -120,6 +127,12 @@ class Compound:
     @property
     def is_catalyst(self) -> bool:
         return self.smiles == self.src_smiles and len(self.boundaries) == 0
+
+    @property
+    def compound_set(self) -> CompoundSet:
+        if self.__compound_set is None:
+            raise RuntimeError("This compound does not belong to a set.")
+        return self.__compound_set
 
     def add_boundary(
         self,
@@ -142,3 +155,55 @@ class Compound:
     def update(self, new_mol: rdchem.Mol, merged_boundary: Boundary):
         self.mol = new_mol
         self.boundaries.remove(merged_boundary)
+
+    def concat(self, compound: Compound):
+        if self.compound_set != compound.compound_set:
+            raise ValueError("Compounds are not from the same set.")
+        if len(self.boundaries) > 0 or len(self.boundaries) > 0:
+            raise ValueError(
+                "Can not concat compounds with open boundaries. Try merging them."
+            )
+        src_mol = None
+        try:
+            src_mol = _to_mol("{}.{}".format(self.src_smiles, compound.src_smiles))
+        except:
+            pass
+        self.mol = _to_mol("{}.{}".format(self.smiles, compound.smiles))
+        self.src_mol = src_mol
+        self.rules.extend(compound.rules)
+        self.compound_set.remove_compound(compound)
+
+    def reset_compound_set(self):
+        self.__compound_set = None
+
+
+class CompoundSet:
+    def __init__(self):
+        self.__compounds: list[Compound] = []
+
+    def __len__(self):
+        return len(self.__compounds)
+
+    @property
+    def compounds(self) -> list[Compound]:
+        return self.__compounds
+
+    @property
+    def boundaries(self) -> list[Boundary]:
+        boundaries = []
+        for c in self.compounds:
+            boundaries.extend(c.boundaries)
+        return boundaries
+
+    def add_compound(
+        self, mol: str | rdchem.Mol, src_mol: str | rdchem.Mol | None = None
+    ):
+        compound = Compound(mol, src_mol, compound_set=self)
+        self.__compounds.append(compound)
+        return compound
+
+    def remove_compound(self, compound: Compound):
+        if compound.compound_set != self:
+            raise ValueError("Compound is not from this set.")
+        self.__compounds.remove(compound)
+        compound.reset_compound_set()

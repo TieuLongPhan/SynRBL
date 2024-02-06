@@ -55,7 +55,7 @@ class TestProperty(unittest.TestCase):
 
     def test_invalid_config_type(self):
         with self.assertRaises(ValueError):
-            Property(8)  # type: ignore
+            Property({'test': 0})  # type: ignore
 
 
 class TestFunctionalGroupProperty(unittest.TestCase):
@@ -176,7 +176,7 @@ class TestBoundaryCondition(unittest.TestCase):
         self.__check_cond(cond, "[Na+].[Cl-]", 1, False)
 
     def test_positive_check_with_neighbors(self):
-        cond = BoundaryCondition(atom="C", neighbors=["O", "N"])
+        cond = BoundaryCondition(atom="C", neighbor_atom=["O", "N"])
         self.__check_cond(cond, "C", 0, True, src_smiles="CO", neighbor=1)
 
     def test_pattern_match(self):
@@ -257,12 +257,12 @@ class TestChangeBondAction(unittest.TestCase):
 
 class TestNrBoundariesCompoundProperty(unittest.TestCase):
     def test_pos_check(self):
-        prop = NrBoundariesCompoundProperty("0")
+        prop = CountBoundariesCompoundProperty("0")
         comp = Compound("O=P(O)O", src_mol="O=P(C)(O)O")
         self.assertTrue(prop(comp))
 
     def test_neg_check(self):
-        prop = NrBoundariesCompoundProperty("1")
+        prop = CountBoundariesCompoundProperty("1")
         comp = Compound("O=P(O)O", src_mol="O=P(C)(O)O")
         self.assertFalse(prop(comp))
 

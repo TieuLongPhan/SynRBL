@@ -1,9 +1,9 @@
-from SynRBL.SynMCSImputer.structure import Compound
+from SynRBL.SynMCSImputer.structure import Compound, CompoundSet
 from SynRBL.SynMCSImputer.utils import is_carbon_balanced
 from SynRBL.SynMCSImputer.merge import merge
 
 
-def build_compounds(data_dict) -> list[Compound]:
+def build_compounds(data_dict) -> CompoundSet:
     src_smiles = data_dict["sorted_reactants"]
     smiles = data_dict["smiles"]
     boundaries = data_dict["boundary_atoms_products"]
@@ -22,23 +22,23 @@ def build_compounds(data_dict) -> list[Compound]:
         )
     if n != len(mcs_results):
         raise ValueError("MCS results must be of same length as compounds.")
-    compounds = []
+    cset = CompoundSet()
     for s, ss, b, n, mcs in zip(smiles, src_smiles, boundaries, neighbors, mcs_results):
-        c = None
         if s is None:
             if mcs == "":
+                # TODO use compound rule for that
                 if ss == "O":
                     # water is not catalyst -> binds to other compound
-                    c = Compound(ss, src_mol=ss)
+                    c = cset.add_compound(ss, src_mol=ss)
                     c.add_boundary(0, symbol="O")
                 else:
                     # catalysis compound
-                    c = Compound(ss, src_mol=ss)
+                    c = cset.add_compound(ss, src_mol=ss)
             else:
                 # empty compound
                 pass
         else:
-            c = Compound(s, src_mol=ss)
+            c = cset.add_compound(s, src_mol=ss)
             if len(b) != len(n):
                 raise ValueError(
                     "Boundary and neighbor missmatch. (boundary={}, neighbor={})".format(
@@ -51,9 +51,7 @@ def build_compounds(data_dict) -> list[Compound]:
                 c.add_boundary(
                     bi_i, symbol=bi_s, neighbor_index=ni_i, neighbor_symbol=ni_s
                 )
-        if c is not None:
-            compounds.append(c)
-    return compounds
+    return cset
 
 
 def impute_reaction(reaction_dict, **kwargs):
@@ -65,10 +63,10 @@ def impute_reaction(reaction_dict, **kwargs):
             raise ValueError(
                 "Skip reaction because of previous issue.\n" + reaction_dict["issue"]
             )
-        compounds = build_compounds(reaction_dict)
-        if len(compounds) == 0:
+        compound_set = build_compounds(reaction_dict)
+        if len(compound_set) == 0:
             return
-        result = merge(compounds, **kwargs)
+        result = merge(compound_set, **kwargs)
         carbon_balance = reaction_dict["carbon_balance_check"]
         if carbon_balance == "reactants":
             imputed_reaction = "{}.{}".format(

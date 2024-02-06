@@ -1,5 +1,7 @@
 from __future__ import annotations
+from typing import Literal
 import json
+import inspect
 import numpy as np
 import importlib.resources
 import rdkit.Chem as Chem
@@ -12,6 +14,17 @@ import SynRBL.SynUtils.functional_group_utils as fgutils
 import SynRBL.SynMCSImputer.utils as utils
 
 from .structure import Boundary, Compound
+
+
+def _check_config(init, ignore=[], **kwargs):
+    exp_args = inspect.getfullargspec(init)[0]
+    for k in kwargs.keys():
+        if k in ignore:
+            continue
+        if k not in exp_args:
+            raise KeyError(
+                "Parameter '{}' is not valid for '{}'.".format(k, init.__name__)
+            )
 
 
 def parse_bond_type(bond):
@@ -65,17 +78,22 @@ class Property:
         self.neg_values = []
         self.pos_values = []
         if config is not None:
-            if not isinstance(config, list):
-                config = [config]
-            for item in config:
-                if not isinstance(item, str):
-                    raise ValueError(
-                        "Property configuration must be of type str or list[str]."
-                    )
-                if len(item) > 0 and item[0] == "!":
-                    self.neg_values.append(item[1:])
-                else:
-                    self.pos_values.append(item)
+            # type bool or int
+            if isinstance(config, bool) or isinstance(config, int):
+                self.pos_values.append(config)
+            # type str
+            else:
+                if not isinstance(config, list):
+                    config = [config]
+                for item in config:
+                    if not isinstance(item, str):
+                        raise ValueError(
+                            "Property configuration must be of type str or list[str]."
+                        )
+                    if len(item) > 0 and item[0] == "!":
+                        self.neg_values.append(item[1:])
+                    else:
+                        self.pos_values.append(item)
 
     def check(self, value, check_value) -> bool:
         return value == check_value
@@ -154,6 +172,7 @@ class Action:
 
 class ChangeBondAction(Action):
     def __init__(self, pattern=None, bond=None, **kwargs):
+        _check_config(ChangeBondAction, ignore=["type"], **kwargs)
         pattern = kwargs.get("pattern", pattern)
         bond = kwargs.get("bond", bond)
 
@@ -226,6 +245,7 @@ class CompoundAction:
 
 class AddBoundaryAction(CompoundAction):
     def __init__(self, functional_group=None, pattern=None, index=None, **kwargs):
+        _check_config(AddBoundaryAction, ignore=["type"], **kwargs)
         functional_group = kwargs.get("functional_group", functional_group)
         pattern = kwargs.get("pattern", pattern)
         index = kwargs.get("index", index)
@@ -269,6 +289,7 @@ class AddBoundaryAction(CompoundAction):
 
 class SetActiveAction(CompoundAction):
     def __init__(self, active=None, **kwargs):
+        _check_config(SetActiveAction, ignore=["type"], **kwargs)
         self.active = bool(kwargs.get("active", active))
 
     def apply(self, compound: Compound):
@@ -328,13 +349,38 @@ class NeighborSymbolProperty(Property):
         return value.neighbor_symbol == check_value
 
 
-class NrBoundariesCompoundProperty(CompoundProperty):
+class CountBoundariesCompoundProperty(CompoundProperty):
+    def __init__(self, config=None, use_set=False):
+        super().__init__(config, allow_none=False)
+        self.use_set = use_set
+
+    def check(self, value: Compound, check_value) -> bool:
+        l = len(value.boundaries)
+        if self.use_set:
+            l = len(value.compound_set.boundaries)
+        return l == int(check_value)
+
+
+class CountCompoundsCompoundProperty(CompoundProperty):
+    def __init__(self, config=None, compound_type=None):
+        super().__init__(config, allow_none=False)
+        self.compound_type = compound_type
+
+    def check(self, value: Compound, check_value) -> bool:
+        compounds = value.compound_set.compounds
+        if self.compound_type == "open":
+            compounds = [c for c in compounds if not c.is_catalyst]
+        elif self.compound_type == "catalyst":
+            compounds = [c for c in compounds if c.is_catalyst]
+        return len(compounds) == int(check_value)
+
+
+class IsCatalystCompoundProperty(CompoundProperty):
     def __init__(self, config=None):
         super().__init__(config, allow_none=False)
 
     def check(self, value: Compound, check_value) -> bool:
-        exp_nr = int(check_value)
-        return len(value.boundaries) == exp_nr
+        return value.is_catalyst == bool(check_value)
 
 
 class FunctionalGroupCompoundProperty(CompoundProperty):
@@ -400,6 +446,7 @@ class BoundaryCondition:
             neighbor: Neighbor property configuration.
             functional_groups: Functional group property configuration.
         """
+        _check_config(BoundaryCondition, **kwargs)
         atom = kwargs.get("atom", atom)
         neighbor_atom = kwargs.get("neighbor_atom", neighbor_atom)
         functional_group = kwargs.get("functional_group", functional_group)
@@ -435,16 +482,20 @@ class CompoundCondition:
     def __init__(
         self,
         nr_boundaries=None,
+        is_catalyst=None,
         smiles=None,
         functional_group=None,
         **kwargs,
     ):
+        _check_config(CompoundCondition, **kwargs)
         nr_boundaries = kwargs.get("nr_boundaries", nr_boundaries)
+        is_catalyst = kwargs.get("is_catalyst", is_catalyst)
         smiles = kwargs.get("smiles", smiles)
         functional_group = kwargs.get("functional_group", functional_group)
 
         self.properties = [
-            NrBoundariesCompoundProperty(nr_boundaries),
+            CountBoundariesCompoundProperty(nr_boundaries),
+            IsCatalystCompoundProperty(is_catalyst),
             SmilesCompoundProperty(smiles),
             FunctionalGroupCompoundProperty(functional_group),
         ]
@@ -454,6 +505,37 @@ class CompoundCondition:
             if not prop(compound):
                 return False
         return True
+
+
+class SetCondition:
+    def __init__(self, nr_boundaries=None, nr_compounds=None, **kwargs):
+        _check_config(SetCondition, **kwargs)
+        nr_boundaries = kwargs.get("nr_boundaries", nr_boundaries)
+        nr_compounds = kwargs.get("nr_compounds", nr_compounds)
+
+        self.properties = [
+            CountBoundariesCompoundProperty(nr_boundaries, use_set=True),
+            CountCompoundsCompoundProperty(nr_compounds),
+        ]
+
+    def __call__(self, compound: Compound):
+        for prop in self.properties:
+            if not prop(compound):
+                return False
+        return True
+
+
+class CompoundRuleCondition:
+    def __init__(self, compound={}, set={}, **kwargs):
+        _check_config(CompoundRuleCondition, **kwargs)
+        compound_condition = kwargs.get("compound", compound)
+        set_condition = kwargs.get("set", set)
+
+        self.compound_condition = CompoundCondition(**compound_condition)
+        self.set_condition = SetCondition(**set_condition)
+
+    def __call__(self, compound: Compound) -> bool:
+        return self.compound_condition(compound) and self.set_condition(compound)
 
 
 class NoMergeRuleError(Exception):
@@ -537,13 +619,23 @@ class MergeRule:
 
     _merge_rules: list[MergeRule] | None = None
 
-    def __init__(self, **kwargs):
-        self.name = kwargs.get("name", "unnamed")
-        self.condition1 = BoundaryCondition(**kwargs.get("condition1", {}))
-        self.condition2 = BoundaryCondition(**kwargs.get("condition2", {}))
+    def __init__(
+        self,
+        name="unnamed",
+        condition1={},
+        condition2={},
+        action1=[],
+        action2=[],
+        bond=None,
+        **kwargs,
+    ):
+        _check_config(MergeRule, **kwargs)
+        self.name = kwargs.get("name", name)
+        self.condition1 = BoundaryCondition(**kwargs.get("condition1", condition1))
+        self.condition2 = BoundaryCondition(**kwargs.get("condition2", condition2))
 
-        actions1 = kwargs.get("action1", [])
-        actions2 = kwargs.get("action2", [])
+        actions1 = kwargs.get("action1", action1)
+        actions2 = kwargs.get("action2", action2)
         if not isinstance(actions1, list):
             actions1 = [actions1]
         if not isinstance(actions2, list):
@@ -551,7 +643,7 @@ class MergeRule:
 
         self.action1 = [Action.build(a["type"], **a) for a in actions1]
         self.action2 = [Action.build(a["type"], **a) for a in actions2]
-        self.bond = kwargs.get("bond", None)
+        self.bond = kwargs.get("bond", bond)
 
     @classmethod
     def get_all(cls) -> list[MergeRule]:
@@ -644,10 +736,11 @@ class ExpandRule:
 
     _expand_rules: list[ExpandRule] | None = None
 
-    def __init__(self, **kwargs):
-        self.name = kwargs.get("name", "unnamed")
-        self.condition = BoundaryCondition(**kwargs.get("condition", {}))
-        self.compound = kwargs.get("compound", None)
+    def __init__(self, name="unnamed", condition={}, compound=None, **kwargs):
+        _check_config(ExpandRule, **kwargs)
+        self.name = kwargs.get("name", name)
+        self.condition = BoundaryCondition(**kwargs.get("condition", condition))
+        self.compound = kwargs.get("compound", compound)
 
     @classmethod
     def get_all(cls) -> list[ExpandRule]:
@@ -696,16 +789,20 @@ class ExpandRule:
         compound.rules.append(self)
         return compound
 
+
 class CompoundRule:
     _compound_rules: list[CompoundRule] | None = None
 
-    def __init__(self, **kwargs):
-        action = kwargs.get("action", [])
+    def __init__(self, name="unnamed", condition={}, action=[], **kwargs):
+        _check_config(CompoundRule, **kwargs)
+
+        action = kwargs.get("action", action)
         if not isinstance(action, list):
             action = [action]
+        condition = kwargs.get("condition", condition)
 
-        self.name = kwargs.get("name", "unnamed")
-        self.condition = CompoundCondition(**kwargs.get("condition", {}))
+        self.name = kwargs.get("name", name)
+        self.condition = CompoundRuleCondition(**condition)
         self.action = [CompoundAction.build(a["type"], **a) for a in action]
 
     @classmethod
@@ -749,6 +846,7 @@ def get_expand_rules() -> list[ExpandRule]:
         list[ExpandRule]: Returns a list of compound rules.
     """
     return ExpandRule.get_all()
+
 
 def get_compound_rules() -> list[CompoundRule]:
     return CompoundRule.get_all()

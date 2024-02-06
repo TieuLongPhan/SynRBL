@@ -89,7 +89,7 @@ def plot_reaction(entry, show_atom_numbers=False, figsize=(10, 7.5)):
     print("Rules:", entry["rules"])
 
 
-s = "Clc1cccccc1CBr"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
+s = "Clc1ccccc1CBr"  # "c1ccc(P(=O)(c2ccccc2)c2ccccc2)cc1"
 s = Chem.CanonSmiles(s)
 print(s)
 mol = rdmolfiles.MolFromSmiles(s)
@@ -119,8 +119,8 @@ from SynRBL.SynMCSImputer.model import MCSImputer, build_compounds
 
 imputer = MCSImputer()
 sample = data[298]  # 67, 88 catalysis | 73 not catalysis
-compounds = build_compounds(sample)
-for c in compounds:
+cset = build_compounds(sample)
+for c in cset.compounds:
     print(len(c.boundaries), c.src_smiles == c.smiles, c.smiles)
 imputer.impute_reaction(sample)
 clear_atom_nums([sample])
@@ -136,9 +136,9 @@ clear_atom_nums(results)
 # |%%--%%| <U1toLALgcc|ftWMEjJznz>
 
 print_error_summary(results)
-i, rx = get_reaction_by_id(results, "golden_dataset_266")
+i, rx = get_reaction_by_id(results, "golden_dataset_628")
 # print(i)
-rx = results[204]
+#rx = results[204]
 
 plot_reaction(rx, show_atom_numbers=False)
 
@@ -181,3 +181,12 @@ vis.plot_reactions(
     new_reaction_col="n",
     compare=True,
 )
+#|%%--%%| <0ppeA6PwQO|dK58cHCURm>
+import inspect
+class Test:
+    def __init__(self, a, b=None, **kwargs):
+        pass
+
+kwargs = {"a": 1, "c": 2}
+print("c" in inspect.getfullargspec(Test)[0])
+print(kwargs.keys())
