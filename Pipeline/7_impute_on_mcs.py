@@ -1,9 +1,8 @@
 import os
 import argparse
-import collections
 
 from SynRBL.rsmi_utils import load_database, save_database
-from SynRBL.SynMCSImputer.rules import MergeRule, ExpandRule
+from SynRBL.SynMCSImputer.rules import MergeRule, ExpandRule, CompoundRule
 from SynRBL.SynMCSImputer.model import MCSImputer
 from SynRBL.SynUtils.chem_utils import normalize_smiles
 
@@ -17,11 +16,14 @@ def print_rule_summary(rule_map):
     print(header)
     print("{}".format("-" * len(header)))
     merge_rules = [r.name for r in MergeRule.get_all()]
-    compound_rules = [r.name for r in ExpandRule.get_all()]
+    expand_rules = [r.name for r in ExpandRule.get_all()]
+    compound_rules = [r.name for r in CompoundRule.get_all()]
     for rule, ids in rule_map.items():
         rule_type = ""
         if rule in merge_rules:
             rule_type = "MR"
+        elif rule in expand_rules:
+            rule_type = "ER"
         elif rule in compound_rules:
             rule_type = "CR"
         print(line_fmt.format(rule, rule_type, len(ids)))
@@ -40,8 +42,11 @@ def print_success_rate(dataset):
 
 
 def impute_new_reactions(data, verbose=True):
-    imputer = MCSImputer(cs_passthrough=True)
-    rule_map = {r.name: set() for r in ExpandRule.get_all() + MergeRule.get_all()}
+    imputer = MCSImputer()
+    rule_map = {
+        r.name: set()
+        for r in ExpandRule.get_all() + MergeRule.get_all() + CompoundRule.get_all()
+    }
     rule_map["no rule"] = set()
     for i, item in enumerate(data):
         imputer.impute_reaction(item)
@@ -167,11 +172,11 @@ if __name__ == "__main__":
         default=None,
         help="The name of the dataset directory in ./Data/Validation_set/",
     )
-    #impute_parser.add_argument(
+    # impute_parser.add_argument(
     #    "--cs-passthrough",
     #    action="store_true",
     #    help="Flag if catalysts and solvents should be passed through.",
-    #)
+    # )
     impute_parser.set_defaults(func=run_impute)
 
     report_parser = subparsers.add_parser(
