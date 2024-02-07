@@ -32,6 +32,7 @@ _TMP_DIR = os.path.join(_PATH, "tmp")
 _SRC_FILE = None
 _HASH_KEY = None
 _CACHE_ENA = True
+_ID_COL = "__synrbl_id"
 
 _CACHE_KEYS = [
     "raw",
@@ -153,8 +154,10 @@ def load_reactions(file, reaction_col, n_jobs):
     df = pd.read_csv(file)
     if reaction_col not in df.columns:
         raise RuntimeError(
-            ("No '{}' column found in input file. "
-            + "Use --col to specify the name of the smiles reaction column.").format(reaction_col)
+            (
+                "No '{}' column found in input file. "
+                + "Use --col to specify the name of the smiles reaction column."
+            ).format(reaction_col)
         )
     if "Unnamed: 0" in df.columns:
         df = df.drop("Unnamed: 0", axis=1)
@@ -165,7 +168,9 @@ def load_reactions(file, reaction_col, n_jobs):
         rsmi_col=reaction_col,
         parallel=True,
         n_jobs=n_jobs,
-        data_name="index",
+        data_name="",
+        index_col=_ID_COL,
+        drop_duplicates=False,
         save_json=False,
         save_path_name=None,  # type: ignore
     )
@@ -247,9 +252,9 @@ def rule_based_method(data, n_jobs):
     )
     certain_reactions, uncertain_reactions = constrain.fit()
 
-    id_uncertain = [entry["R-id"] for entry in uncertain_reactions]  # type: ignore
+    id_uncertain = [entry[_ID_COL] for entry in uncertain_reactions]  # type: ignore
     new_uncertain_reactions = [
-        entry for entry in reactions if entry["R-id"] in id_uncertain
+        entry for entry in reactions if entry[_ID_COL] in id_uncertain
     ]
 
     unsolve = unsolve + new_uncertain_reactions
@@ -334,14 +339,14 @@ def find_mcs(data, col):
         msc_dict_path=os.path.join(_TMP_DIR, "MCS_Largest.json.gz"),
         save_path=os.path.join(_TMP_DIR, "Final_Graph.json.gz"),
     )
-    miss_id = [value["R-id"] for value in mcs_dict]
+    miss_id = [value[_ID_COL] for value in mcs_dict]
     data_2 = [
         mcs_reactions[key]
         for key, value in enumerate(mcs_reactions)
-        if value["R-id"] in miss_id
+        if value[_ID_COL] in miss_id
     ]
     for key, _ in enumerate(missing_results_largest):
-        missing_results_largest[key]["R-id"] = mcs_dict[key]["R-id"]
+        missing_results_largest[key][_ID_COL] = mcs_dict[key][_ID_COL]
         missing_results_largest[key]["sorted_reactants"] = mcs_dict[key][
             "sorted_reactants"
         ]
@@ -369,24 +374,26 @@ def mcs_based_method(data):
     return data
 
 
-def generate_output(reactions, col, id_col=None):
+def generate_output(reactions, reaction_col, cols=[]):
     def _row(
+        reaction_col,
         initial_reaction,
+        cols: list,
+        values: list,
         new_reaction=None,
         solved_by=None,
         confidence=None,
         applied_rules=[],
         issue=None,
-        id=None,
-        id_col=None,
         solved=False,
     ):
         if new_reaction is None:
             new_reaction = initial_reaction
         row = {}
-        if id_col is not None:
-            row[id_col] = id
-        row[col] = initial_reaction
+        assert len(cols) == len(values)
+        for c, v in zip(cols, values):
+            row[c] = v
+        row[reaction_col] = initial_reaction
         row["new_reaction"] = new_reaction
         row["solved"] = solved
         row["solved_by"] = solved_by
@@ -400,36 +407,62 @@ def generate_output(reactions, col, id_col=None):
     )
     mcs_based_result = reactions["mcs_based"] if "mcs_based" in reactions.keys() else []
 
+    balanced_reactions = filter_data(
+            reactions["reactions"],
+            unbalance_values=["Balance"],
+            formula_key="Diff_formula",
+            element_key=None,
+            min_count=0,
+            max_count=0,
+        )
     result_map = {}
+    for r in balanced_reactions:
+        idx_id = r[_ID_COL]
+        assert idx_id not in result_map.keys()
+        result_map[idx_id] = {"solved_by": "was-balanced", "result": r}
     for r in rule_based_result:
-        id = r["R-id"]
-        assert id not in result_map.keys()
-        result_map[id] = {"solved_by": "rule-based-method", "result": r}
+        idx_id = r[_ID_COL]
+        assert idx_id not in result_map.keys()
+        result_map[idx_id] = {"solved_by": "rule-based-method", "result": r}
     for r in mcs_based_result:
-        id = r["R-id"]
-        assert id not in result_map.keys()
-        result_map[id] = {"solved_by": "mcs-based-method", "result": r}
+        idx_id = r[_ID_COL]
+        assert idx_id not in result_map.keys()
+        result_map[idx_id] = {"solved_by": "mcs-based-method", "result": r}
 
     output = []
-    for i, r in enumerate(reactions["reactions"]):
-        row_id = ""
-        if id_col is not None:
-            row_id = reactions["raw"][i][id_col]
-        id = r["R-id"]
-        initial_reaction = r[col]
-        assert initial_reaction == reactions["raw"][i][col]
-        if id in result_map.keys():
-            map_item = result_map[id]
+    assert len(reactions["raw"]) == len(reactions["reactions"])
+    for src_item, item in zip(reactions["raw"], reactions["reactions"]):
+        values = []
+        for c in cols:
+            values.append(src_item[c])
+        synrbl_id = item[_ID_COL]
+        initial_reaction = src_item[reaction_col]
+        assert initial_reaction == item[reaction_col]
+        if synrbl_id in result_map.keys():
+            map_item = result_map[synrbl_id]
             solved_by = map_item["solved_by"]
             result = map_item["result"]
-            if solved_by == "rule-based-method":
+            if solved_by == "was-balanced":
                 output.append(
                     _row(
+                        reaction_col,
                         initial_reaction,
-                        result["new_reaction"],
-                        solved_by,
-                        id_col=id_col,
-                        id=row_id,
+                        cols,
+                        values,
+                        new_reaction=initial_reaction,
+                        solved_by=solved_by,
+                        solved=True,
+                    )
+                )
+            elif solved_by == "rule-based-method":
+                output.append(
+                    _row(
+                        reaction_col,
+                        initial_reaction,
+                        cols,
+                        values,
+                        new_reaction=result["new_reaction"],
+                        solved_by=solved_by,
                         solved=True,
                     )
                 )
@@ -441,20 +474,23 @@ def generate_output(reactions, col, id_col=None):
                     assert mcs_carbon_balanced and issue == ""
                 output.append(
                     _row(
+                        reaction_col,
                         initial_reaction,
-                        result["new_reaction"],
-                        solved_by,
+                        cols,
+                        values,
+                        new_reaction=result["new_reaction"],
+                        solved_by=solved_by if solved else None,
                         applied_rules=result["rules"],
                         issue=issue,
-                        id_col=id_col,
-                        id=row_id,
                         solved=solved,
                     )
                 )
             else:
                 raise NotImplementedError()
         else:
-            output.append(_row(initial_reaction, id_col=id_col, id=row_id))
+            output.append(
+                _row(reaction_col, initial_reaction, cols, values)
+            )
     reactions["output"] = output
     return reactions
 
@@ -468,14 +504,15 @@ def export(reactions, file):
 def impute(
     src_file,
     output_file,
-    col="reaction",
+    reaction_col="reaction",
     n_jobs=-1,
+    force_preprocess=False,
     force_rule_based=False,
     force_mcs=False,
     force_mcs_based=False,
     tmp_dir="./tmp",
     no_cache=False,
-    id_col=None,
+    cols=[],
 ):
     global _TMP_DIR, _SRC_FILE, _HASH_KEY, _CACHE_ENA
     _SRC_FILE = src_file
@@ -490,13 +527,13 @@ def impute(
     rdkit.RDLogger.DisableLog("rdApp.info")  # type: ignore
     rdkit.RDLogger.DisableLog("rdApp.*")  # type: ignore
 
-    if is_cached("reactions"):
+    if force_preprocess or not is_cached("reactions"):
+        print("[INFO] Preprocess reactions.")
+        reactions = load_reactions(src_file, reaction_col, n_jobs)
+        write_cache(reactions)
+    else:
         print("[INFO] Load preprocessed reactions from cache.")
         reactions = read_cache()
-    else:
-        print("[INFO] Preprocess reactions.")
-        reactions = load_reactions(src_file, col, n_jobs)
-        write_cache(reactions)
 
     if force_rule_based or not is_cached("rule_based"):
         reactions = rule_based_method(reactions, n_jobs)
@@ -505,7 +542,7 @@ def impute(
         reactions = read_cache("rule_based")
 
     if force_mcs or not is_cached("mcs"):
-        reactions = find_mcs(reactions, col)
+        reactions = find_mcs(reactions, reaction_col)
         write_cache(reactions)
     else:
         reactions = read_cache("mcs")
@@ -516,7 +553,7 @@ def impute(
     else:
         reactions = read_cache("mcs_based")
 
-    reactions = generate_output(reactions, col, id_col=id_col)
+    reactions = generate_output(reactions, reaction_col, cols=cols)
     write_cache(reactions)
     print_dataset_stats(reactions)
     export(reactions, output_file)
@@ -526,8 +563,8 @@ def run(args):
     impute(
         args.filename,
         args.o,
-        col=args.col,
-        id_col=args.id_col,
+        reaction_col=args.col,
+        cols=args.columns,
         n_jobs=args.p,
         force_rule_based=args.rule_based,
         force_mcs=args.mcs,
@@ -564,14 +601,19 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         help="The column name for reactions in the input .csv file.",
     )
     test_parser.add_argument(
-        "--id-col",
-        default=None,
-        help="An ID column that should be passed through to the result.",
+        "--columns",
+        default=[],
+        help="A list of columns from the input that should be added to the output.",
     )
     test_parser.add_argument(
         "--rule-based",
         action="store_true",
         help="Run rule-based method.",
+    )
+    test_parser.add_argument(
+        "--preprocess",
+        action="store_true",
+        help="(Re)run data preprocessing step.",
     )
     test_parser.add_argument(
         "--mcs",

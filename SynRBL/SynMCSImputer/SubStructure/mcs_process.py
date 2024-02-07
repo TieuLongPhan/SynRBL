@@ -5,6 +5,7 @@ from SynRBL.rsmi_utils import save_database, load_database
 
 import os
 import logging
+import copy
 
 
 def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Timeout=60,
@@ -20,8 +21,10 @@ def single_mcs(data_dict, RingMatchesRingOnly=True, CompleteRingsOnly=True, Time
     Returns:
     - dict: A dictionary containing MCS results and any sorted reactants encountered.
     """
-
-    mcs_results_dict = {'R-id': data_dict['R-id'], 'mcs_results': [], 'sorted_reactants': [], 'issue': [], 'carbon_balance_check': data_dict['carbon_balance_check'], }
+    mcs_results_dict = copy.deepcopy(data_dict)
+    mcs_results_dict['mcs_results'] = []
+    mcs_results_dict['sorted_reactants'] = []
+    mcs_results_dict['issue'] = []
 
     try:
         analyzer = MCSMissingGraphAnalyzer()

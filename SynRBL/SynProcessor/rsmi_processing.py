@@ -56,9 +56,11 @@ class RSMIProcessing:
         reaction_smiles: str = None,
         data: pd.DataFrame = None,
         data_name: str = 'USPTO_50K',
+        index_col: str = 'R-id',
         rsmi_col: str = None,
         symbol: str = '>>',
         n_jobs: int = 10,
+        drop_duplicates: bool = True,
         verbose: int = 1,
         parallel: bool = True,
         save_json: bool = True,
@@ -73,6 +75,8 @@ class RSMIProcessing:
         self.parallel = parallel
         self.data = data
         self.data_name = data_name
+        self.index_col = index_col
+        self.drop_duplicates = drop_duplicates
         self.rsmi_col = rsmi_col
         self.save_json = save_json
         self.save_path_name = save_path_name
@@ -139,9 +143,10 @@ class RSMIProcessing:
         # Assign the second part of the split (products) to another new column
         self.data['products'] = split_smiles[1]
 
-        self.data.drop_duplicates(subset=self.rsmi_col, inplace=True)
+        if self.drop_duplicates:
+            self.data.drop_duplicates(subset=self.rsmi_col, inplace=True)
         self.data.reset_index(drop=True, inplace=True)
-        self.data['R-id'] = [self.data_name + '_' + str(i) for i in self.data.index]
+        self.data[self.index_col] = [self.data_name + '_' + str(i) for i in self.data.index]
         # Check if there's a need to save the processed data to a JSON file
         if self.save_json:
             data=self.data.to_dict(orient=self.orient)
