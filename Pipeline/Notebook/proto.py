@@ -1,10 +1,12 @@
 import collections
 import numpy as np
+import pandas as pd
 import rdkit.Chem as Chem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw as Draw
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import matplotlib.pyplot as plt
+from SynRBL.SynCmd.cmd_test import _DATASETS
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 import rdkit.Chem.MolStandardize.rdMolStandardize as rdMolStandardize
 from SynRBL.rsmi_utils import load_database, save_database
@@ -181,12 +183,128 @@ vis.plot_reactions(
     new_reaction_col="n",
     compare=True,
 )
-#|%%--%%| <0ppeA6PwQO|dK58cHCURm>
-import inspect
-class Test:
-    def __init__(self, a, b=None, **kwargs):
-        pass
+# |%%--%%| <0ppeA6PwQO|dK58cHCURm>
+from SynRBL.SynCmd.cmd_test import _DATASETS
 
-kwargs = {"a": 1, "c": 2}
-print("c" in inspect.getfullargspec(Test)[0])
-print(kwargs.keys())
+for dataset in _DATASETS:
+    path = "./Data/Validation_set/{}/MCS/{}.json.gz".format(dataset, "Final_Graph")
+    results = load_database(path)
+
+    val_data = []
+    for r in results:
+        val_data.append({"val-id": r["R-id"], "reaction": r["old_reaction"]})
+    df = pd.DataFrame(val_data)
+    print("Create val set:", dataset)
+    df.to_csv("./Data/Validation_set/{}_val.csv".format(dataset))
+
+# |%%--%%| <dK58cHCURm|PFfLfKJ9Bi>
+
+
+path = "./Pipeline/Validation/Analysis/final_validation.csv"
+df = pd.read_csv(path)
+df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+df.to_csv(path)
+print(df)
+
+# |%%--%%| <PFfLfKJ9Bi|45VJHrRjLA>
+
+dataset = "USPTO_random_class"
+path = "./Data/Validation_set/{}/MCS/{}.json.gz".format(dataset, "Final_Graph")
+results = load_database(path)
+
+val_data = []
+for i, r in enumerate(results):
+    # val_data.append({"id": r["id"], "val-id": r["R-id"], "reaction": r["reactions"]})
+    val_data.append(
+        {
+            "val-id": r["R-id"],
+            "reaction": r["old_reaction"],
+        }
+    )
+df = pd.DataFrame(val_data)
+print("Create val set:", dataset)
+# df.to_csv("./Data/Validation_set/{}_val.csv".format(dataset))
+# |%%--%%| <45VJHrRjLA|Ffoj2H07hg>
+from SynRBL.SynCmd.cmd_test import _DATASETS
+import collections
+
+
+def append_rids(val_set, src_id_map, data):
+    for row in data:
+        id = row["id"]
+        rid = row["R-id"]
+        rxn = row["reactions"]
+        val_index = None
+        for vi in src_id_map[id]:
+            if rxn == val_set[vi]["reaction"]:
+                if val_index is not None:
+                    assert False, "Found duplicate: {}".format(id)
+                val_index = vi
+        assert val_index is not None, "Not found in val_set."
+        assert val_set[val_index]["src_id"] == id
+        assert val_set[val_index]["reaction"] == rxn
+        val_set[val_index]["R-id"] = rid
+
+
+val_set = []
+blacklist_ids = ["patent_246"]
+src_id_map = collections.defaultdict(lambda: [])
+# load src data
+for ds in _DATASETS:
+    src_path = "./Data/Validation_set/{}.csv".format(ds)
+    src_df = pd.read_csv(src_path)
+    for i, row in src_df.iterrows():
+        src_id = row["id"]
+        if src_id in blacklist_ids:
+            print("Skip '{}'. (Blacklisted)".format(src_id))
+            continue
+        is_duplicate = False
+        for vi in src_id_map[src_id]:
+            val_item = val_set[vi]
+            if (
+                val_item["src_id"] == src_id
+                and val_item["reaction"] == row["reactions"]
+            ):
+                is_duplicate = True
+                break
+        if not is_duplicate:
+            src_id_map[src_id].append(len(val_set))
+            val_set.append(
+                {
+                    "src_id": src_id,
+                    "R-id": "",
+                    "dataset": ds,
+                    "reaction": row["reactions"],
+                }
+            )
+
+# check that no duplicates exist (id and reaction duplicates)
+for id, indices in src_id_map.items():
+    rxns = []
+    for index in indices:
+        val_item = val_set[index]
+        assert val_item["reaction"] not in rxns
+        rxns.append(val_item["reaction"])
+
+# load ids from rule-based sets
+for ds in _DATASETS:
+    src_path = "./Data/Validation_set/{}/reactions_clean.json.gz".format(ds)
+    data = load_database(src_path)
+    append_rids(val_set, src_id_map, data)
+
+val_df = pd.DataFrame(val_set)
+print("{} R-ids after rule-based datasets.".format(len(val_df[val_df["R-id"] != ""])))
+
+# load ids from mcs-based sets
+for ds in _DATASETS:
+    src_path = "./Data/Validation_set/{}/mcs_based_reactions.json.gz".format(ds)
+    data = load_database(src_path)
+    append_rids(val_set, src_id_map, data)
+
+val_df = pd.DataFrame(val_set)
+print("{} R-ids after mcs-based datasets.".format(len(val_df[val_df["R-id"] != ""])))
+assert len(val_df[val_df["R-id"] == ""]) == 0
+print(
+    "Validation set was built successfully containing {} reactions.".format(len(val_df))
+)
+val_df.to_csv("./Data/Validation_set/validation_set.csv")

@@ -9730,5 +9730,169 @@
         "wrong_reactions": [
             "BrC(Br)(Br)Br.O=Cc1ccco1>>BrC(Br)=Cc1ccco1"
         ]
+    },
+    "USPTO_unbalance_class_33": {
+        "checked_reaction": "CC(C)[Si](c1ncc(Br)s1)(C(C)C)C(C)C.COC(=O)[C@@H](CI)C(=O)OC(C)(C)C>>COC(=O)[C@H](Cc1cnc([Si](C(C)C)(C(C)C)C(C)C)s1)C(=O)OC(C)(C)C.Br.I",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_42": {
+        "checked_reaction": "CC[Mg+].O=CCn1ncc2ccc3occc3c21>>CCC(O)Cn1ncc2ccc3occc3c21.O[Mg+]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_49": {
+        "checked_reaction": "CI.C[C@@H]1CN(C(=O)OC(C)(C)C)C[C@H]2Cc3cc(Br)c(C(F)(F)F)cc3N21>>Cc1cc2c(cc1C(F)(F)F)N1[C@H](C2)CN(C(=O)OC(C)(C)C)C[C@H]1C.Br.I",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_51": {
+        "checked_reaction": "CC[Mg+].COCOCc1ccc(-c2ccc(C=O)nc2)cc1>>CCC(O)c1ccc(-c2ccc(COCOC)cc2)cn1.O[Mg+]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_52": {
+        "checked_reaction": "CC(=O)c1ccc(C(F)(F)F)cc1.[Mg+]C1CC1>>CC(O)(c1ccc(C(F)(F)F)cc1)C1CC1.O[Mg+]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_54": {
+        "checked_reaction": "C[Mg+].Cn1c(-c2cnccc2C=O)nc2ccc(Cl)cc21>>CC(O)c1ccncc1-c1nc2ccc(Cl)cc2n1C.O[Mg+]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_152": {
+        "checked_reaction": "CCCCCC(C=C(Br)Br)c1ccc2c(c1)N(C(=O)OC(C)(C)C)CCC2(C)C>>C#CC(CCCCC)c1ccc2c(c1)N(C(=O)OC(C)(C)C)CCC2(C)C.Br.Br",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_154": {
+        "checked_reaction": "ClCCC(c1ccccc1)n1ccc2c(Cl)ncnc21>>ClCCC(c1ccccc1)n1ccc2cncnc21.Cl",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_155": {
+        "checked_reaction": "CON=C1CN(C(=O)OCc2ccccc2)CC1CN=[N+]=[N-]>>CON=C1CN(C(=O)OCc2ccccc2)CC1CN.N#N",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_157": {
+        "checked_reaction": "CC(=O)OC[C@H]1O[C@H](O[C@@H]2[C@H](OC(C)=O)[C@@H](OC(C)=O)[C@H](O[C@H]3[C@H](OC(C)=O)[C@@H](OC(C)=O)[C@H](OCCBr)O[C@@H]3COC(C)=O)O[C@@H]2COC(C)=O)[C@H](OC(C)=O)[C@@H](OC(C)=O)[C@H]1OC(C)=O>>CCO[C@@H]1O[C@H](COC(C)=O)[C@@H](O[C@@H]2O[C@H](COC(C)=O)[C@H](O[C@H]3O[C@H](COC(C)=O)[C@H](OC(C)=O)[C@H](OC(C)=O)[C@H]3OC(C)=O)[C@H](OC(C)=O)[C@H]2OC(C)=O)[C@H](OC(C)=O)[C@H]1OC(C)=O.Br",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_160": {
+        "checked_reaction": "COC(=O)Cc1ccc2c(c1)C(Br)c1ccccc1CO2>>COC(=O)Cc1ccc2c(c1)Cc1ccccc1CO2.Br",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_161": {
+        "checked_reaction": "COC1CC2CC(N=[N+]=[N-])CC2C1>>COC1CC2CC(N)CC2C1.N#N",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_163": {
+        "checked_reaction": "CS(=O)(=O)c1ccc(-c2cc(F)c(OC3CCC(N=[N+]=[N-])CC3)c(F)c2)cc1>>CS(=O)(=O)c1ccc(-c2cc(F)c(OC3CCC(N)CC3)c(F)c2)cc1.N#N",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_167": {
+        "checked_reaction": "COCCCOc1cc(C[C@@H](C[C@H](N=[N+]=[N-])[C@@H](O)C[C@H](C(=O)N[C@@H]2CCN(C)C2)C(C)C)C(C)C)ccc1OC>>COCCCOc1cc(C[C@@H](C[C@H](N)[C@@H](O)C[C@H](C(=O)N[C@@H]2CCN(C)C2)C(C)C)C(C)C)ccc1OC.N#N",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_168": {
+        "checked_reaction": "CCC[C@@H]1CC[C@@H]([C@H]2CC[C@H](C=C(F)F)CC2)CC1>>CCC[C@@H]1CC[C@@H]([C@H]2CC[C@H](/C=C/F)CC2)CC1.F",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_172": {
+        "checked_reaction": "[N-]=[N+]=N[C@@H]1CCN(C(=O)OCc2ccccc2)C[C@H]1O>>N[C@@H]1CCN(C(=O)OCc2ccccc2)C[C@H]1O.N#N",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_174": {
+        "checked_reaction": "CCCCCCC1(CN=[N+]=[N-])c2ccccc2Oc2ccccc21>>CCCCCCC1(CN)c2ccccc2Oc2ccccc21.N#N",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_176": {
+        "checked_reaction": "CCCCCC/C=C/C(=O)Cl>>CCCCCC/C=C/C=O.Cl",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_180": {
+        "checked_reaction": "CCN(C(=O)OC(C)(C)C)C1CCCC(c2c[nH]c3ccc([N+](=O)[O-])cc23)C1>>CCN(C(=O)OC(C)(C)C)C1CCCC(c2c[nH]c3ccc(N)cc23)C1.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_181": {
+        "checked_reaction": "O=C1c2ccc(O)cc2C(=O)N1C1CCCC1>>O=C1c2ccc(O)cc2CN1C1CCCC1.O",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_183": {
+        "checked_reaction": "C[C@H]1CN(Cc2ccc([N+](=O)[O-])cc2)CCN1C(=O)OC(C)(C)C>>C[C@H]1CN(Cc2ccc(N)cc2)CCN1C(=O)OC(C)(C)C.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_184": {
+        "checked_reaction": "CCCO[C@@H]1CC[C@@H](N2CCC(Nc3cc(C)cc(F)c3[N+](=O)[O-])CC2)CC1>>CCCO[C@@H]1CC[C@@H](N2CCC(Nc3cc(C)cc(F)c3N)CC2)CC1.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_185": {
+        "checked_reaction": "CC(C)N1CC(=O)N(c2cc([N+](=O)[O-])c(Cl)cc2F)C1=O>>CC(C)N1CC(=O)N(c2cc(N)c(Cl)cc2F)C1=O.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_186": {
+        "checked_reaction": "COc1cc(C2=NCCc3ccc(Cl)cc32)ccc1[N+](=O)[O-]>>COc1cc(C2=NCCc3ccc(Cl)cc32)ccc1N.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_189": {
+        "checked_reaction": "Nc1nc(NC2CCN(CC34CC(c5ccccc53)c3ccccc34)CC2)ncc1[N+](=O)[O-]>>Nc1cnc(NC2CCN(CC34CC(c5ccccc53)c3ccccc34)CC2)nc1N.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_190": {
+        "checked_reaction": "COc1cc2c(cc1[N+](=O)[O-])C(=O)CCC2>>COc1cc2c(cc1N)C(=O)CCC2.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_191": {
+        "checked_reaction": "CCN1CCN(C(=O)c2ccc(N)cc2C(F)(F)F)CC1>>CCN1CCN(Cc2ccc(N)cc2C(F)(F)F)CC1.O",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_192": {
+        "checked_reaction": "CCOC(=O)c1ncc2[nH]c3ccc([N+](=O)[O-])cc3c2c1C>>CCOC(=O)c1ncc2[nH]c3ccc(N)cc3c2c1C.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_193": {
+        "checked_reaction": "COCCCN1CCOc2ccc(CO[C@H]3CN(S(=O)(=O)c4ccc(C)cc4)CC[C@@]34OCCc3cc(C(=O)O)ccc34)cc21>>COCCCN1CCOc2ccc(CO[C@H]3CN(S(=O)(=O)c4ccc(C)cc4)CC[C@@]34OCCc3cc(CO)ccc34)cc21.O",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_194": {
+        "checked_reaction": "CC(C)(Cc1ccc(Cl)c(F)c1)Nc1ccc([N+](=O)[O-])cc1Cl>>CC(C)(Cc1ccc(Cl)c(F)c1)Nc1ccc(N)cc1Cl.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_195": {
+        "checked_reaction": "CCOC(=O)c1cccc(Nc2ccc(C#N)cc2[N+](=O)[O-])c1>>CCOC(=O)c1cccc(Nc2ccc(C#N)cc2N)c1.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_196": {
+        "checked_reaction": "COc1cc(N2CCN(C(C)C)CC2)c(F)cc1[N+](=O)[O-]>>COc1cc(N2CCN(C(C)C)CC2)c(F)cc1N.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_197": {
+        "checked_reaction": "CC1(C(=O)O)CCC(=O)c2cc(C3CCCCC3)ccc21>>CC1(C(=O)O)CCCc2cc(C3CCCCC3)ccc21.O",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_200": {
+        "checked_reaction": "O=C1Nc2ccccc2N2CCCCCC12>>c1ccc2c(c1)NCC1CCCCCN21.O",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_201": {
+        "checked_reaction": "C[Si](C)(C)CCOCn1ccc(=O)c([N+](=O)[O-])c1NCC(F)(F)c1cccc[n+]1[O-]>>C[Si](C)(C)CCOCn1ccc(=O)c(N)c1NCC(F)(F)c1cccc[n+]1[O-].O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_204": {
+        "checked_reaction": "O=C(c1ccc([N+](=O)[O-])cc1Cl)N1CCc2cccn2-c2ccccc21>>Nc1ccc(C(=O)N2CCc3cccn3-c3ccccc32)c(Cl)c1.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_207": {
+        "checked_reaction": "COC(=O)[C@@H](NC(=O)c1ccc(F)cc1[N+](=O)[O-])C1CCCCC1>>COC(=O)[C@@H](NC(=O)c1ccc(F)cc1N)C1CCCCC1.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_208": {
+        "checked_reaction": "O=[N+]([O-])c1cc(-c2cccc(Cl)c2)ccc1NC1CCN(c2ncccn2)CC1>>Nc1cc(-c2cccc(Cl)c2)ccc1NC1CCN(c2ncccn2)CC1.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_209": {
+        "checked_reaction": "CCCCCc1nn(C(=O)OC(C)(C)C)c2ccc(Oc3c(C)cc([N+](=O)[O-])cc3C)cc12>>CCCCCc1nn(C(=O)OC(C)(C)C)c2ccc(Oc3c(C)cc(N)cc3C)cc12.O.[OH-]",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_223": {
+        "checked_reaction": "CCCC[Sn](Cl)(CCCC)CCCC.Cc1cccc(Br)n1>>CCCC[Sn](CCCC)(CCCC)c1cccc(C)n1.Br.Cl",
+        "wrong_reactions": []
+    },
+    "USPTO_unbalance_class_238": {
+        "checked_reaction": "CCCC[Sn](Cl)(CCCC)CCCC.CNC(=O)c1ccnc(I)c1>>CCCC[Sn](CCCC)(CCCC)c1cc(C(=O)NC)ccn1.Cl.I",
+        "wrong_reactions": []
     }
 }
