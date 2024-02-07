@@ -20,11 +20,11 @@ _FINAL_VALIDATION_PATH = os.path.join(
 _VALSET_PATH_FMT = os.path.join(_PATH, "Data/Validation_set/{}.csv")
 _SNAPSHOT_PATH = os.path.join(_PATH, "Data/Validation_set/snapshot.json")
 _DATASETS = [
-    #"Jaworski",
-    #"golden_dataset",
+    "Jaworski",
+    "golden_dataset",
     "USPTO_unbalance_class",
-    #"USPTO_random_class",
-    #"USPTO_diff",
+    "USPTO_random_class",
+    "USPTO_diff",
 ]
 
 
