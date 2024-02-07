@@ -19,9 +19,7 @@ _FINAL_VALIDATION_PATH = os.path.join(
     _PATH, "Pipeline/Validation/Analysis/final_validation.csv"
 )
 _VALSET_PATH = os.path.join(_PATH, "Data/Validation_set/validation_set.csv")
-_RESULT_PATH = os.path.join(
-    _PATH, "Data/Validation_set/validation_set_result.csv"
-)
+_RESULT_PATH = os.path.join(_PATH, "Data/Validation_set/validation_set_result.csv")
 _SNAPSHOT_PATH = os.path.join(_PATH, "Data/Validation_set/snapshot.json")
 _REACTION_COL = "reaction"
 
@@ -113,6 +111,9 @@ def load_data(use_cache=True):
         _val_set = pd.read_csv(_FINAL_VALIDATION_PATH, index_col=0)
         with open(_SNAPSHOT_PATH, "r") as f:
             _snapshot = json.load(f)
+            _snapshot = collections.defaultdict(
+                lambda: {"correct_reaction": [], "wrong_reactions": []}, _snapshot
+            )
     return _results, _val_set, _snapshot
 
 
@@ -126,7 +127,7 @@ def get_reaction(rid):
         _rid_dict = {}
         for _idx, _item in results.iterrows():
             _rid = _item["R-id"]
-            assert rid in snapshot.keys(), "Id not in snapshot."
+            # assert rid in snapshot.keys(), "Id not in snapshot."
             _val_idx = get_val_index(val_set, _rid)
             assert _rid not in _rid_dict.keys(), "Duplicate in _rid_dict."
             _rid_dict[_rid] = (_idx, _val_idx)
@@ -134,8 +135,8 @@ def get_reaction(rid):
         raise KeyError("Reaction with R-id '{}' not found.".format(id))
     ids = _rid_dict[rid]
     item = results.iloc[ids[0]]
-    val_item = val_set.iloc[ids[1]]
-    s_item = snapshot[rid]
+    val_item = val_set.iloc[ids[1]] if ids[1] is not None else None
+    s_item = snapshot.get(rid)
     return item, val_item, s_item, ids
 
 
@@ -144,19 +145,29 @@ def set_reaction_correct(rid, save=False, override=None):
     item, val_item, _, ids = get_reaction(rid)
     _, val_idx = ids
     correct_reaction = item["new_reaction"]
-    if val_item["Result"] == True:
-        msg = "Reaction '{}' is already marked correct.".format(rid)
-        if override == True:
-            print("[WARN] {} Override correct reaction.".format(msg))
-        else:
-            raise RuntimeError(msg)
-    val_set.at[val_idx, "correct_reaction"] = correct_reaction
-    val_set.at[val_idx, "Result"] = True
+    if val_item is None:
+        # New reaction
+        val_set.loc[len(val_set)] = {
+            "R-id": rid,
+            "reactions": item[_REACTION_COL],
+            "correct_reaction": correct_reaction,
+            "Result": True,
+        }
+    else:
+        # Validation result exists
+        if val_item["Result"] == True:
+            msg = "Reaction '{}' is already marked correct.".format(rid)
+            if override == True:
+                print("[WARN] {} Override correct reaction.".format(msg))
+            else:
+                raise RuntimeError(msg)
+        val_set.at[val_idx, "correct_reaction"] = correct_reaction
+        val_set.at[val_idx, "Result"] = True
     snapshot[rid]["checked_reaction"] = correct_reaction
     if save:
-        val_set.to_csv(_FINAL_VALIDATION_PATH)
-        with open(_SNAPSHOT_PATH, "w") as f:
-            json.dump(snapshot, f, indent=4)
+       val_set.to_csv(_FINAL_VALIDATION_PATH)
+       with open(_SNAPSHOT_PATH, "w") as f:
+           json.dump(snapshot, f, indent=4)
 
 
 def set_reaction_wrong(rid, save=False):
