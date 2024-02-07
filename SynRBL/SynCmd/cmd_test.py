@@ -127,7 +127,6 @@ def get_reaction(rid):
         _rid_dict = {}
         for _idx, _item in results.iterrows():
             _rid = _item["R-id"]
-            # assert rid in snapshot.keys(), "Id not in snapshot."
             _val_idx = get_val_index(val_set, _rid)
             assert _rid not in _rid_dict.keys(), "Duplicate in _rid_dict."
             _rid_dict[_rid] = (_idx, _val_idx)
@@ -165,8 +164,7 @@ def set_reaction_correct(rid, save=False, override=None):
         val_set.at[val_idx, "Result"] = True
     snapshot[rid]["checked_reaction"] = correct_reaction
     if save:
-        print(val_set)
-        #val_set.to_csv(_FINAL_VALIDATION_PATH)
+        val_set.to_csv(_FINAL_VALIDATION_PATH)
         with open(_SNAPSHOT_PATH, "w") as f:
             json.dump(snapshot, f, indent=4)
 
