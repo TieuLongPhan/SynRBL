@@ -444,13 +444,13 @@ def configure_argparser(argparser: argparse._SubParsersAction):
 
     test_parser.add_argument(
         "--set-correct",
-        nargs="*",
+        nargs="+",
         metavar="id",
         help="The reaction ids that are now correct.",
     )
     test_parser.add_argument(
         "--set-wrong",
-        nargs="*",
+        nargs="+",
         metavar="id",
         help="The reaction ids that are now wrong.",
     )
