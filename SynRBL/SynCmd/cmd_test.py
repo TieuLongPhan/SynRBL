@@ -112,7 +112,7 @@ def load_data(use_cache=True):
         with open(_SNAPSHOT_PATH, "r") as f:
             _snapshot = json.load(f)
             _snapshot = collections.defaultdict(
-                lambda: {"correct_reaction": [], "wrong_reactions": []}, _snapshot
+                lambda: {"checked_reaction": None, "wrong_reactions": []}, _snapshot
             )
     return _results, _val_set, _snapshot
 
@@ -165,9 +165,10 @@ def set_reaction_correct(rid, save=False, override=None):
         val_set.at[val_idx, "Result"] = True
     snapshot[rid]["checked_reaction"] = correct_reaction
     if save:
-       val_set.to_csv(_FINAL_VALIDATION_PATH)
-       with open(_SNAPSHOT_PATH, "w") as f:
-           json.dump(snapshot, f, indent=4)
+        print(val_set)
+        #val_set.to_csv(_FINAL_VALIDATION_PATH)
+        with open(_SNAPSHOT_PATH, "w") as f:
+            json.dump(snapshot, f, indent=4)
 
 
 def set_reaction_wrong(rid, save=False):
