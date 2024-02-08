@@ -211,13 +211,12 @@ def get_rule_based_rxn_cnts():
         dataset = item["dataset"]
         rxns[dataset].append(item)
     for k, v in rxns.items():
-        rxns[k] = pd.DataFrame(v)
+        rxns[k] = pd.DataFrame(v)  # type: ignore
 
-    rxn_cnts = collections.defaultdict(lambda: {})
+    rxn_cnts = {}
     for dataset, reactions in rxns.items():
-        rxn_cnts[dataset]["in"] = len(reactions)
         process = RSMIProcessing(
-            data=reactions,
+            data=reactions,  # type: ignore
             rsmi_col=_REACTION_COL,
             parallel=True,
             n_jobs=-1,
@@ -228,7 +227,6 @@ def get_rule_based_rxn_cnts():
             save_path_name=None,  # type: ignore
         )
         reactions = process.data_splitter().to_dict("records")
-        rxn_cnts[dataset]["reactions"] = len(reactions)
 
         # 2. check carbon balance
         check = CheckCarbonBalance(
@@ -240,7 +238,6 @@ def get_rule_based_rxn_cnts():
             for key, value in enumerate(reactions)
             if value["carbon_balance_check"] == "balanced"
         ]
-        rxn_cnts[dataset]["cbalanced"] = len(reactions)
 
         # 3. decompose into dict of symbols
         decompose = RSMIDecomposer(
@@ -253,7 +250,6 @@ def get_rule_based_rxn_cnts():
             verbose=1,
         )
         react_dict, product_dict = decompose.data_decomposer()
-        rxn_cnts[dataset]["react_dict"] = len(react_dict)
 
         # 4. compare dict and check balance
         comp = RSMIComparator(reactants=react_dict, products=product_dict, n_jobs=-1)  # type: ignore
@@ -273,7 +269,6 @@ def get_rule_based_rxn_cnts():
             ],
             axis=1,
         ).to_dict(orient="records")
-        rxn_cnts[dataset]["reactions_clean"] = len(reactions)
 
         cbalanced_reactions = [
             reactions[key]
@@ -289,7 +284,7 @@ def get_rule_based_rxn_cnts():
             max_count=0,
         )
 
-        rxn_cnts[dataset]["out"] = len(rule_based_reactions)
+        rxn_cnts[dataset] = len(rule_based_reactions)
     return rxn_cnts
 
 
@@ -317,10 +312,8 @@ def verify_results(show_unsolved=False):
         }
     )
     results, val_set, snapshot = load_data()
-    x = get_rule_based_rxn_cnts()
-    for dataset, rb_cnt in x.items():
-        print(dataset, rb_cnt)
-        output[dataset]["rb_cnt"] = rb_cnt["out"]
+    for dataset, rb_cnt in get_rule_based_rxn_cnts().items():
+        output[dataset]["rb_cnt"] = rb_cnt
 
     for _, item in results.iterrows():
         rid = item["R-id"]
@@ -432,12 +425,28 @@ def print_verification_result(results):
     good = True
     wrong_rxns, unknown_rxns, new_rxns = [], [], []
     reaction_cnt = 0
+    unbalanced_cnt = 0
+    solved_cnt = 0
     for db, r in results.items():
         wrong_rxns.extend(r["wrong_rxns"])
         unknown_rxns.extend(r["unknown_rxns"])
         new_rxns.extend(r["new_rxns"])
         reaction_cnt += r["rxn_cnt"]
-    print("[INFO] Checked {} reactions.".format(reaction_cnt))
+        unbalanced_cnt += r["rxn_cnt"] - r["balanced_cnt"]
+        solved_cnt += r["rb_suc_cnt"] + r["mcs_suc_cnt"]
+
+    print(
+        "[INFO] Checked {} reactions. {} ({:.2%}) of them were unbalanced.".format(
+            reaction_cnt,
+            unbalanced_cnt,
+            unbalanced_cnt / reaction_cnt if reaction_cnt > 0 else 0,
+        )
+    )
+    print(
+        "[INFO] SynRBL balanced {} reaction. Overall success rate: {:.2%}".format(
+            solved_cnt, solved_cnt / unbalanced_cnt
+        )
+    )
     if len(wrong_rxns) > 0:
         print(
             "[WARNING] {} reactions that were correct are now wrong!".format(
