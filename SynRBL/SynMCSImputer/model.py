@@ -71,7 +71,7 @@ def impute_reaction(reaction_dict):
         carbon_balance = reaction_dict["carbon_balance_check"]
         if carbon_balance == "reactants":
             # Imputing reactant side carbon imbalance is not (yet) supported
-            imputed_reaction = reaction_dict["old_reaction"]
+            raise ValueError("Skipped because of reactants imbalance.")
         elif carbon_balance in ["products", "balanced"]:
             imputed_reaction = "{}.{}".format(
                 reaction_dict["old_reaction"], result.smiles

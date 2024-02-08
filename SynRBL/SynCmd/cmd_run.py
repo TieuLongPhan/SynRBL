@@ -181,6 +181,11 @@ def load_reactions(file, reaction_col, n_jobs):
         reactions, rsmi_col=reaction_col, symbol=">>", atom_type="C", n_jobs=n_jobs
     )
     reactions = check.check_carbon_balance()
+    reactions = [
+        reactions[key]
+        for key, value in enumerate(reactions)
+        if value["carbon_balance_check"] == "balanced"
+    ]
 
     # 3. decompose into dict of symbols
     decompose = RSMIDecomposer(
@@ -408,13 +413,13 @@ def generate_output(reactions, reaction_col, cols=[]):
     mcs_based_result = reactions["mcs_based"] if "mcs_based" in reactions.keys() else []
 
     balanced_reactions = filter_data(
-            reactions["reactions"],
-            unbalance_values=["Balance"],
-            formula_key="Diff_formula",
-            element_key=None,
-            min_count=0,
-            max_count=0,
-        )
+        reactions["reactions"],
+        unbalance_values=["Balance"],
+        formula_key="Diff_formula",
+        element_key=None,
+        min_count=0,
+        max_count=0,
+    )
     result_map = {}
     for r in balanced_reactions:
         idx_id = r[_ID_COL]
@@ -488,9 +493,7 @@ def generate_output(reactions, reaction_col, cols=[]):
             else:
                 raise NotImplementedError()
         else:
-            output.append(
-                _row(reaction_col, initial_reaction, cols, values)
-            )
+            output.append(_row(reaction_col, initial_reaction, cols, values))
     reactions["output"] = output
     return reactions
 
@@ -606,14 +609,14 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         help="A list of columns from the input that should be added to the output.",
     )
     test_parser.add_argument(
-        "--rule-based",
-        action="store_true",
-        help="Run rule-based method.",
-    )
-    test_parser.add_argument(
         "--preprocess",
         action="store_true",
         help="(Re)run data preprocessing step.",
+    )
+    test_parser.add_argument(
+        "--rule-based",
+        action="store_true",
+        help="Run rule-based method.",
     )
     test_parser.add_argument(
         "--mcs",

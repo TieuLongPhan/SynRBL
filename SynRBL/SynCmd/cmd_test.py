@@ -4,6 +4,7 @@ import json
 import argparse
 import collections
 import pandas as pd
+import numpy as np
 from SynRBL.SynUtils.chem_utils import normalize_smiles
 from SynRBL.rsmi_utils import load_database
 import matplotlib.pyplot as plt
@@ -11,6 +12,15 @@ import rdkit.Chem as Chem
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import rdkit.Chem.rdChemReactions as rdChemReactions
 import PIL.Image as Image
+
+from SynRBL.SynProcessor import (
+    RSMIProcessing,
+    RSMIDecomposer,
+    RSMIComparator,
+    BothSideReact,
+    CheckCarbonBalance,
+)
+from SynRBL.rsmi_utils import filter_data
 
 from .cmd_run import impute
 
@@ -170,18 +180,116 @@ def set_reaction_correct(rid, save=False, override=None):
 
 
 def set_reaction_wrong(rid, save=False):
-    _, _, snapshot = load_data()
+    _, val_set, snapshot = load_data()
     item, val_item, _, _ = get_reaction(rid)
     wrong_reaction = item["new_reaction"]
-    if val_item["Result"] == True:
-        raise RuntimeError("Reaction '{}' has already a correct result.".format(rid))
-    snapshot[rid]["wrong_reactions"].insert(0, wrong_reaction)
+    if val_item is None:
+        val_set.loc[len(val_set)] = {
+            "R-id": rid,
+            "reactions": item[_REACTION_COL],
+            "Result": False,
+        }
+    else:
+        if val_item["Result"] == True:
+            raise RuntimeError(
+                "Reaction '{}' has already a correct result.".format(rid)
+            )
+    if wrong_reaction not in snapshot[rid]["wrong_reactions"]:
+        snapshot[rid]["wrong_reactions"].insert(0, wrong_reaction)  # type: ignore
+    snapshot[rid]["checked_reaction"] = wrong_reaction
     if save:
+        val_set.to_csv(_FINAL_VALIDATION_PATH)
         with open(_SNAPSHOT_PATH, "w") as f:
             json.dump(snapshot, f, indent=4)
 
 
-def verify_results(ignore_rib=False):
+def get_rule_based_rxn_cnts():
+    results, _, _ = load_data()
+
+    rxns = collections.defaultdict(lambda: [])
+    for item in results.to_dict("records"):
+        dataset = item["dataset"]
+        rxns[dataset].append(item)
+    for k, v in rxns.items():
+        rxns[k] = pd.DataFrame(v)
+
+    rxn_cnts = collections.defaultdict(lambda: {})
+    for dataset, reactions in rxns.items():
+        rxn_cnts[dataset]["in"] = len(reactions)
+        process = RSMIProcessing(
+            data=reactions,
+            rsmi_col=_REACTION_COL,
+            parallel=True,
+            n_jobs=-1,
+            data_name="",
+            index_col="__test",
+            drop_duplicates=False,
+            save_json=False,
+            save_path_name=None,  # type: ignore
+        )
+        reactions = process.data_splitter().to_dict("records")
+        rxn_cnts[dataset]["reactions"] = len(reactions)
+
+        # 2. check carbon balance
+        check = CheckCarbonBalance(
+            reactions, rsmi_col=_REACTION_COL, symbol=">>", atom_type="C", n_jobs=-1
+        )
+        reactions = check.check_carbon_balance()
+        reactions = [
+            reactions[key]
+            for key, value in enumerate(reactions)
+            if value["carbon_balance_check"] == "balanced"
+        ]
+        rxn_cnts[dataset]["cbalanced"] = len(reactions)
+
+        # 3. decompose into dict of symbols
+        decompose = RSMIDecomposer(
+            smiles=None,  # type: ignore
+            data=reactions,  # type: ignore
+            reactant_col="reactants",
+            product_col="products",
+            parallel=True,
+            n_jobs=-1,
+            verbose=1,
+        )
+        react_dict, product_dict = decompose.data_decomposer()
+        rxn_cnts[dataset]["react_dict"] = len(react_dict)
+
+        # 4. compare dict and check balance
+        comp = RSMIComparator(reactants=react_dict, products=product_dict, n_jobs=-1)  # type: ignore
+        unbalance, diff_formula = comp.run_parallel(
+            reactants=react_dict, products=product_dict
+        )
+
+        # 5. solve the both side reaction
+        both_side = BothSideReact(react_dict, product_dict, unbalance, diff_formula)
+        diff_formula, unbalance = both_side.fit(n_jobs=-1)
+
+        reactions_clean = pd.concat(
+            [
+                pd.DataFrame(reactions),
+                pd.DataFrame([unbalance]).T.rename(columns={0: "Unbalance"}),
+                pd.DataFrame([diff_formula]).T.rename(columns={0: "Diff_formula"}),
+            ],
+            axis=1,
+        ).to_dict(orient="records")
+        rxn_cnts[dataset]["reactions_clean"] = len(reactions_clean)
+
+        # 6. Filter data based on specified criteria
+        unbalance_reactions = filter_data(
+            reactions_clean,
+            unbalance_values=["Reactants", "Products"],
+            formula_key="Diff_formula",
+            element_key=None,
+            min_count=0,
+            max_count=0,
+        )
+
+        rxn_cnts[dataset]["out"] = len(unbalance_reactions)
+    return rxn_cnts
+
+
+def verify_results(show_unsolved=False):
     def _fmt(rid, initial_r, result_r, correct_r=None, checked_r=None):
         return {
             "initial_reaction": initial_r,
@@ -197,12 +305,18 @@ def verify_results(ignore_rib=False):
             "unknown_rxns": [],
             "new_rxns": [],
             "rxn_cnt": 0,
+            "balanced_cnt": 0,
             "rb_cnt": 0,
+            "rb_suc_cnt": 0,
             "mcs_suc_cnt": 0,
             "mcs_correct_cnt": 0,
         }
     )
     results, val_set, snapshot = load_data()
+    x = get_rule_based_rxn_cnts()
+    for dataset, rb_cnt in x.items():
+        print(dataset, rb_cnt)
+        output[dataset]["rb_cnt"] = rb_cnt["cbalanced"]
 
     for _, item in results.iterrows():
         rid = item["R-id"]
@@ -210,16 +324,17 @@ def verify_results(ignore_rib=False):
         _o = output[dataset]
         _o["rxn_cnt"] += 1  # type: ignore
         solved = item["solved"]
-        if not solved:  # type: ignore
+        if not show_unsolved and not solved:  # type: ignore
             continue
         solved_by = item["solved_by"]
         initial_reaction = item[_REACTION_COL]
         if solved_by == "was-balanced":
-            pass
+            _o["balanced_cnt"] += 1  # type: ignore
         elif solved_by == "rule-based-method":
-            _o["rb_cnt"] += 1  # type: ignore
-        elif solved_by == "mcs-based-method":
-            _o["mcs_suc_cnt"] += 1  # type: ignore
+            _o["rb_suc_cnt"] += 1  # type: ignore
+        else:
+            if solved:  # type: ignore
+                _o["mcs_suc_cnt"] += 1  # type: ignore
             result_reaction = item["new_reaction"]
             val_index = get_val_index(val_set, rid)
             if val_index is None:
@@ -253,7 +368,7 @@ def verify_results(ignore_rib=False):
                     _o["mcs_correct_cnt"] += 1  # type: ignore
             else:
                 wrong_reactions = sn_item["wrong_reactions"]
-                wrong_reactions_n = [normalize_smiles(r) for r in wrong_reactions]
+                wrong_reactions_n = [normalize_smiles(r) for r in wrong_reactions]  # type: ignore
                 if result_reaction_n not in wrong_reactions_n:
                     wrong_reaction = None
                     if len(wrong_reactions_n) > 0:
@@ -266,19 +381,17 @@ def verify_results(ignore_rib=False):
                             checked_r=wrong_reaction,
                         )
                     )
-        else:
-            raise NotImplementedError()
     return output
 
 
 def print_result_table(results):
-    line_fmt = "{:<25} {:>12} {:>12} {:>12} {:>12}"
+    line_fmt = "{:<22} {:>14} {:>14} {:>14} {:>14}"
     cols = [
         "Dataset",
         "Reactions",
-        "Rule-based Suc.",
-        "MCS-based Suc.",
-        "MCS-based Acc.",
+        "Rule Suc.",
+        "MCS Suc.",
+        "MCS Acc.",
     ]
     head_line = line_fmt.format(*cols)
     print("=" * len(head_line))
@@ -286,18 +399,27 @@ def print_result_table(results):
     print("-" * len(head_line))
     for db, result in results.items():
         rxn_cnt = result["rxn_cnt"]
+        balanced_cnt = result["balanced_cnt"]
         rb_cnt = result["rb_cnt"]
-        mcs_cnt = rxn_cnt - rb_cnt
+        rb_suc_cnt = result["rb_suc_cnt"]
+        mcs_cnt = rxn_cnt - balanced_cnt - rb_suc_cnt
         mcs_suc_cnt = result["mcs_suc_cnt"]
         mcs_correct_cnt = result["mcs_correct_cnt"]
-        rb_suc_rate_str = "inf" if rb_cnt == 0 else "{:.2%}".format(rb_cnt / rxn_cnt)
+        rxn_cnt_str = "{:4d} ({:4d})".format(rxn_cnt, rxn_cnt - balanced_cnt)
+        rb_suc_rate_str = (
+            "-" if rb_cnt == 0 else "{} {:7.2%}".format(rb_suc_cnt, rb_suc_cnt / rb_cnt)
+        )
         mcs_suc_rate_str = (
-            "-" if mcs_cnt == 0 else "{:.2%}".format(mcs_suc_cnt / mcs_cnt)
+            "-"
+            if mcs_cnt == 0
+            else "{} {:7.2%}".format(mcs_suc_cnt, mcs_suc_cnt / mcs_cnt)
         )
         mcs_acc_rate_str = (
-            "-" if mcs_suc_cnt == 0 else "{:.2%}".format(mcs_correct_cnt / mcs_suc_cnt)
+            "-"
+            if mcs_suc_cnt == 0
+            else "{} {:7.2%}".format(mcs_correct_cnt, mcs_correct_cnt / mcs_suc_cnt)
         )
-        values = [db, rxn_cnt, rb_suc_rate_str, mcs_suc_rate_str, mcs_acc_rate_str]
+        values = [db, rxn_cnt_str, rb_suc_rate_str, mcs_suc_rate_str, mcs_acc_rate_str]
         print(line_fmt.format(*values))
     print("-" * len(head_line))
 
@@ -345,23 +467,31 @@ def export(results, path, exp_wrong=False, exp_unknown=False, exp_new=False, n=N
         wrong_rxns.extend(v["wrong_rxns"])
         unknown_rxns.extend(v["unknown_rxns"])
         new_rxns.extend(v["new_rxns"])
-    if n is not None:
-        n = int(n)
-        unknown_rxns = unknown_rxns[: n if exp_unknown else 0]
-        wrong_rxns = wrong_rxns[: n if exp_wrong else 0]
-        new_rxns = new_rxns[: n if exp_new else 0]
-    print("[INFO] Export {} unknown reactions to {}.".format(len(unknown_rxns), path))
-    for item in unknown_rxns:
-        plot_reaction(item, path=path)
-    print("[INFO] Export {} wrong reactions to {}.".format(len(wrong_rxns), path))
-    for item in wrong_rxns:
-        plot_reaction(item, path=path)
-    print("[INFO] Export {} new reactions to {}.".format(len(new_rxns), path))
-    for item in new_rxns:
-        plot_reaction(item, path=path)
+    n = (
+        int(n)
+        if n is not None
+        else np.max([len(wrong_rxns), len(unknown_rxns), len(new_rxns)])
+    )
+    unknown_rxns = unknown_rxns[: n if exp_unknown else 0]
+    wrong_rxns = wrong_rxns[: n if exp_wrong else 0]
+    new_rxns = new_rxns[: n if exp_new else 0]
+    if exp_unknown:
+        print(
+            "[INFO] Export {} unknown reactions to {}.".format(len(unknown_rxns), path)
+        )
+        for item in unknown_rxns:
+            plot_reaction(item, path=path)
+    if exp_wrong:
+        print("[INFO] Export {} wrong reactions to {}.".format(len(wrong_rxns), path))
+        for item in wrong_rxns:
+            plot_reaction(item, path=path)
+    if exp_new:
+        print("[INFO] Export {} new reactions to {}.".format(len(new_rxns), path))
+        for item in new_rxns:
+            plot_reaction(item, path=path)
 
 
-def run_impute(no_cache=False):
+def run_impute(no_cache=False, force_mcs_based=False):
     print("[INFO] Impute validation set.")
     src_file = get_validation_set_path()
     result_file = get_result_path()
@@ -371,6 +501,7 @@ def run_impute(no_cache=False):
         reaction_col=_REACTION_COL,
         cols=["R-id", "dataset"],
         no_cache=no_cache,
+        force_mcs_based=force_mcs_based,
     )
 
 
@@ -390,9 +521,9 @@ def run_test(args):
         return
 
     if args.impute:
-        run_impute(no_cache=args.no_cache)
+        run_impute(no_cache=args.no_cache, force_mcs_based=args.mcs_based)
 
-    results = verify_results(ignore_rib=args.ignore_rib)
+    results = verify_results(show_unsolved=args.show_unsolved)
     print_result_table(results)
     print_verification_result(results)
     f_exp = args.export
@@ -401,6 +532,7 @@ def run_test(args):
     f_exp_u = args.export_unknown or f_exp
     if any([f_exp_n, f_exp_w, f_exp_u]):
         export(results, args.o, exp_new=f_exp_n, exp_wrong=f_exp_w, exp_unknown=f_exp_u)
+
 
 def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser = argparser.add_parser(
@@ -457,14 +589,19 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "--override", action="store_true", help="Flag to override correct reactions."
     )
     test_parser.add_argument(
-        "--ignore-rib",
+        "--show-unsolved",
         action="store_true",
-        help="Flag to ignore reactant side imbalances.",
+        help="Flag to show changes in unsolved reactions.",
     )
     test_parser.add_argument(
         "--impute",
         action="store_true",
         help="Flag to (re)-impute test cases.",
+    )
+    test_parser.add_argument(
+        "--mcs-based",
+        action="store_true",
+        help="Run MCS-based method.",
     )
     test_parser.add_argument(
         "--no-cache",

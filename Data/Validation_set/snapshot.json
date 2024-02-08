@@ -9894,5 +9894,11 @@
     "USPTO_unbalance_class_238": {
         "checked_reaction": "CCCC[Sn](Cl)(CCCC)CCCC.CNC(=O)c1ccnc(I)c1>>CCCC[Sn](CCCC)(CCCC)c1cc(C(=O)NC)ccn1.Cl.I",
         "wrong_reactions": []
+    },
+    "golden_dataset_366": {
+        "checked_reaction": "[CH3:1][CH:2]([CH3:3])[CH:4]=[CH:5][CH:6]([CH3:8])[CH3:7].[O:9]=[O:10]>>",
+        "wrong_reactions": [
+            "[CH3:1][CH:2]([CH3:3])[CH:4]=[CH:5][CH:6]([CH3:8])[CH3:7].[O:9]=[O:10]>>"
+        ]
     }
 }

@@ -2295,3 +2295,4 @@
 2293,USPTO_unbalance_class_209,CCCCCc1nn(C(=O)OC(C)(C)C)c2ccc(Oc3c(C)cc([N+](=O)[O-])cc3C)cc12>>CCCCCc1nn(C(=O)OC(C)(C)C)c2ccc(Oc3c(C)cc(N)cc3C)cc12,,,,,,,True,,,,,,CCCCCc1nn(C(=O)OC(C)(C)C)c2ccc(Oc3c(C)cc([N+](=O)[O-])cc3C)cc12>>CCCCCc1nn(C(=O)OC(C)(C)C)c2ccc(Oc3c(C)cc(N)cc3C)cc12.O.[OH-]
 2294,USPTO_unbalance_class_223,CCCC[Sn](Cl)(CCCC)CCCC.Cc1cccc(Br)n1>>CCCC[Sn](CCCC)(CCCC)c1cccc(C)n1,,,,,,,True,,,,,,CCCC[Sn](Cl)(CCCC)CCCC.Cc1cccc(Br)n1>>CCCC[Sn](CCCC)(CCCC)c1cccc(C)n1.Br.Cl
 2295,USPTO_unbalance_class_238,CCCC[Sn](Cl)(CCCC)CCCC.CNC(=O)c1ccnc(I)c1>>CCCC[Sn](CCCC)(CCCC)c1cc(C(=O)NC)ccn1,,,,,,,True,,,,,,CCCC[Sn](Cl)(CCCC)CCCC.CNC(=O)c1ccnc(I)c1>>CCCC[Sn](CCCC)(CCCC)c1cc(C(=O)NC)ccn1.Cl.I
+2296,golden_dataset_366,[CH3:1][CH:2]([CH3:3])[CH:4]=[CH:5][CH:6]([CH3:8])[CH3:7].[O:9]=[O:10]>>,,,,,,,False,,,,,,

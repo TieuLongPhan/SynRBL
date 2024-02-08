@@ -6,7 +6,6 @@ import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw as Draw
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import matplotlib.pyplot as plt
-from SynRBL.SynCmd.cmd_test import _DATASETS
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
 import rdkit.Chem.MolStandardize.rdMolStandardize as rdMolStandardize
 from SynRBL.rsmi_utils import load_database, save_database
