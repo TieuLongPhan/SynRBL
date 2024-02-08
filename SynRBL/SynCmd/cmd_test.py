@@ -22,7 +22,7 @@ from SynRBL.SynProcessor import (
 )
 from SynRBL.rsmi_utils import filter_data
 
-from .cmd_run import impute
+from .cmd_run import impute, Range
 
 _PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../..")
 _FINAL_VALIDATION_PATH = os.path.join(
@@ -288,16 +288,17 @@ def get_rule_based_rxn_cnts():
     return rxn_cnts
 
 
-def verify_results(show_unsolved=False):
-    def _fmt(rid, initial_r, result_r, correct_r=None, checked_r=None):
-        return {
-            "initial_reaction": initial_r,
-            "result_reaction": result_r,
-            "correct_reaction": correct_r,
-            "checked_reaction": checked_r,
-            "R-id": rid,
-        }
+def _get_plt_fmt(rid, initial_r, result_r, correct_r=None, checked_r=None):
+    return {
+        "initial_reaction": initial_r,
+        "result_reaction": result_r,
+        "correct_reaction": correct_r,
+        "checked_reaction": checked_r,
+        "R-id": rid,
+    }
 
+
+def verify_results(show_unsolved=False):
     output = collections.defaultdict(
         lambda: {
             "wrong_rxns": [],
@@ -341,7 +342,7 @@ def verify_results(show_unsolved=False):
                     )
                 )
                 _o["new_rxns"].append(  # type: ignore
-                    _fmt(rid, initial_reaction, result_reaction)
+                    _get_plt_fmt(rid, initial_reaction, result_reaction)
                 )
                 continue
             val_item = val_set.iloc[val_index]
@@ -354,7 +355,7 @@ def verify_results(show_unsolved=False):
                 correct_reaction = val_item["correct_reaction"]
                 if result_reaction_n != normalize_smiles(correct_reaction):
                     _o["wrong_rxns"].append(  # type: ignore
-                        _fmt(
+                        _get_plt_fmt(
                             rid,
                             initial_reaction,
                             result_reaction,
@@ -371,7 +372,7 @@ def verify_results(show_unsolved=False):
                     if len(wrong_reactions_n) > 0:
                         wrong_reaction = wrong_reactions_n[0]
                     _o["unknown_rxns"].append(  # type: ignore
-                        _fmt(
+                        _get_plt_fmt(
                             rid,
                             initial_reaction,
                             result_reaction,
@@ -504,7 +505,20 @@ def export(results, path, exp_wrong=False, exp_unknown=False, exp_new=False, n=N
             plot_reaction(item, path=path)
 
 
-def run_impute(no_cache=False, force_mcs_based=False):
+def export_ids(path, ids):
+    for rid in ids:
+        print("[INFO] Export reaction '{}'.".format(rid))
+        item, val_item, s_item, ids = get_reaction(rid)
+        correct_rxn = None
+        if val_item is not None and val_item["Result"]:
+            correct_rxn = val_item["correct_reaction"]
+        item = _get_plt_fmt(
+            rid, item[_REACTION_COL], item["new_reaction"], correct_r=correct_rxn
+        )
+        plot_reaction(item, path)
+
+
+def run_impute(no_cache=False, force_mcs_based=False, min_confidence=0):
     print("[INFO] Impute validation set.")
     src_file = get_validation_set_path()
     result_file = get_result_path()
@@ -515,6 +529,7 @@ def run_impute(no_cache=False, force_mcs_based=False):
         cols=["R-id", "dataset"],
         no_cache=no_cache,
         force_mcs_based=force_mcs_based,
+        min_confidence=min_confidence,
     )
 
 
@@ -534,7 +549,11 @@ def run_test(args):
         return
 
     if args.impute:
-        run_impute(no_cache=args.no_cache, force_mcs_based=args.mcs_based)
+        run_impute(
+            no_cache=args.no_cache,
+            force_mcs_based=args.mcs_based,
+            min_confidence=args.min_confidence,
+        )
 
     results = verify_results(show_unsolved=args.show_unsolved)
     print_result_table(results)
@@ -545,6 +564,8 @@ def run_test(args):
     f_exp_u = args.export_unknown or f_exp
     if any([f_exp_n, f_exp_w, f_exp_u]):
         export(results, args.o, exp_new=f_exp_n, exp_wrong=f_exp_w, exp_unknown=f_exp_u)
+    if len(args.export_ids) > 0:
+        export_ids(args.o, args.export_ids)
 
 
 def configure_argparser(argparser: argparse._SubParsersAction):
@@ -560,6 +581,14 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "--export",
         action="store_true",
         help="Export unknown, wrong and new reactions as image. "
+        + "Use -o to specify the output directory.",
+    )
+    test_parser.add_argument(
+        "--export-ids",
+        nargs="+",
+        metavar="id",
+        default=[],
+        help="Export reactions by id as image. "
         + "Use -o to specify the output directory.",
     )
     test_parser.add_argument(
@@ -620,6 +649,13 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "--no-cache",
         action="store_true",
         help="Disable caching of intermediate results.",
+    )
+    test_parser.add_argument(
+        "--min-confidence",
+        type=float,
+        default=0,
+        choices=[Range(0.0, 1.0)],
+        help="Set a confidence threshold for the results from the MCS-based method.",
     )
 
     test_parser.set_defaults(func=run_test)

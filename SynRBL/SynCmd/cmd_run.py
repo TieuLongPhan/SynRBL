@@ -1,10 +1,14 @@
 import os
 import json
 import copy
+import pickle
 import argparse
 import hashlib
 import pandas as pd
+import numpy as np
 import rdkit
+
+from typing import List, Union
 
 from SynRBL.SynRuleImputer import SyntheticRuleImputer
 from SynRBL.SynRuleImputer.synthetic_rule_constraint import RuleConstraint
@@ -26,9 +30,14 @@ from SynRBL.SynUtils.data_utils import load_database, save_database
 from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
 from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
 from SynRBL.SynMCSImputer.model import MCSImputer
+from SynRBL.SynAnalysis.analysis_utils import (
+    calculate_chemical_properties,
+    count_boundary_atoms_products_and_calculate_changes,
+)
 
 _PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../..")
 _TMP_DIR = os.path.join(_PATH, "tmp")
+_CONFIDENCE_MODEL_PATH = os.path.join(_PATH, "Data/scoring_function.pkl")
 _SRC_FILE = None
 _HASH_KEY = None
 _CACHE_ENA = True
@@ -42,6 +51,7 @@ _CACHE_KEYS = [
     "rule_based_unsolved",
     "mcs",
     "mcs_based",
+    "confidence",
     "output",
 ]
 
@@ -384,7 +394,75 @@ def mcs_based_method(data):
     return data
 
 
-def generate_output(reactions, reaction_col, cols=[]):
+def compoute_confidence(data, col, scoring_function_path: str):
+    # Load and process merge data
+    merge_data = copy.deepcopy(data["mcs_based"])
+    merge_data = count_boundary_atoms_products_and_calculate_changes(merge_data)
+
+    # Load and process MCS data
+    mcs_data = copy.deepcopy(data["rule_based_unsolved"])
+    id = [value[_ID_COL] for value in merge_data]
+    mcs_data = [value for value in mcs_data if value[_ID_COL] in id]
+    mcs_data = calculate_chemical_properties(mcs_data)
+
+    # Combine data and filter if necessary
+    combined_data = pd.concat(
+        [
+            pd.DataFrame(mcs_data)[
+                [
+                    _ID_COL,
+                    col,
+                    "carbon_difference",
+                    "fragment_count",
+                    "total_carbons",
+                    "total_bonds",
+                    "total_rings",
+                ]
+            ],
+            pd.DataFrame(merge_data)[
+                [
+                    "mcs_carbon_balanced",
+                    "num_boundary",
+                    "ring_change_merge",
+                    "bond_change_merge",
+                    "new_reaction",
+                ]
+            ],
+        ],
+        axis=1,
+    )
+
+    combined_data = combined_data.reset_index(drop=True)
+    unnamed_columns = [col for col in combined_data.columns if "Unnamed" in col]
+    combined_data = combined_data.drop(unnamed_columns, axis=1)
+
+    # Prepare data for prediction
+    X_pred = combined_data[
+        [
+            "carbon_difference",
+            "fragment_count",
+            "total_carbons",
+            "total_bonds",
+            "total_rings",
+            "num_boundary",
+            "ring_change_merge",
+            "bond_change_merge",
+        ]
+    ]
+
+    # Load model and predict confidence
+    with open(scoring_function_path, "rb") as file:
+        loaded_model = pickle.load(file)
+
+    confidence = np.round(loaded_model.predict_proba(X_pred)[:, 1], 3)
+    combined_data["confidence"] = confidence
+    data["confidence"] = combined_data.to_dict("records")
+    return data
+
+
+def generate_output(
+        reactions, reaction_col, cols=[], min_confidence: float = 0
+):
     def _row(
         reaction_col,
         initial_reaction,
@@ -416,6 +494,9 @@ def generate_output(reactions, reaction_col, cols=[]):
         reactions["rule_based"] if "rule_based" in reactions.keys() else []
     )
     mcs_based_result = reactions["mcs_based"] if "mcs_based" in reactions.keys() else []
+    confidence_result = (
+        reactions["confidence"] if "confidence" in reactions.keys() else []
+    )
 
     balanced_reactions = filter_data(
         reactions["reactions"],
@@ -434,10 +515,29 @@ def generate_output(reactions, reaction_col, cols=[]):
         idx_id = r[_ID_COL]
         assert idx_id not in result_map.keys()
         result_map[idx_id] = {"solved_by": "rule-based-method", "result": r}
+
+    feature_lookup = {}
+    for r in confidence_result:
+        idx_id = r[_ID_COL]
+        assert idx_id not in feature_lookup.keys()
+        feature_lookup[idx_id] = r
+
     for r in mcs_based_result:
         idx_id = r[_ID_COL]
         assert idx_id not in result_map.keys()
-        result_map[idx_id] = {"solved_by": "mcs-based-method", "result": r}
+        confidence_item = feature_lookup.get(idx_id, None)
+        confidence = ""
+        is_solved = True
+        if confidence_item is not None and r["solved"]:
+            v = confidence_item["confidence"]
+            confidence = "{:.2%}".format(v)
+            is_solved = v >= min_confidence
+        if is_solved:
+            result_map[idx_id] = {
+                "solved_by": "mcs-based-method",
+                "result": r,
+                "confidence": confidence,
+            }
 
     output = []
     assert len(reactions["raw"]) == len(reactions["reactions"])
@@ -493,6 +593,7 @@ def generate_output(reactions, reaction_col, cols=[]):
                         applied_rules=result["rules"],
                         issue=issue,
                         solved=solved,
+                        confidence=map_item["confidence"],
                     )
                 )
             else:
@@ -521,6 +622,7 @@ def impute(
     tmp_dir="./tmp",
     no_cache=False,
     cols=[],
+    min_confidence=0
 ):
     global _TMP_DIR, _SRC_FILE, _HASH_KEY, _CACHE_ENA
     _SRC_FILE = src_file
@@ -561,7 +663,11 @@ def impute(
     else:
         reactions = read_cache("mcs_based")
 
-    reactions = generate_output(reactions, reaction_col, cols=cols)
+    reactions = compoute_confidence(reactions, reaction_col, _CONFIDENCE_MODEL_PATH)
+    write_cache(reactions)
+    reactions = generate_output(
+        reactions, reaction_col, cols=cols, min_confidence=min_confidence
+    )
     write_cache(reactions)
     print_dataset_stats(reactions)
     export(reactions, output_file)
@@ -579,8 +685,15 @@ def run(args):
         force_mcs_based=args.mcs_based,
         tmp_dir=args.tmp_dir,
         no_cache=args.no_cache,
+        min_confidence=args.min_confidence
     )
 
+class Range(object):
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+    def __eq__(self, other):
+        return self.start <= other <= self.end
 
 def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser = argparser.add_parser(
@@ -637,6 +750,13 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "--no-cache",
         action="store_true",
         help="Disable caching of intermediate results.",
+    )
+    test_parser.add_argument(
+        "--min-confidence",
+        type=float,
+        default=0,
+        choices=[Range(0.0, 1.0)],
+        help="Set a confidence threshold for the results from the MCS-based method.",
     )
 
     test_parser.set_defaults(func=run)
