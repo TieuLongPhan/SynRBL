@@ -181,11 +181,6 @@ def load_reactions(file, reaction_col, n_jobs):
         reactions, rsmi_col=reaction_col, symbol=">>", atom_type="C", n_jobs=n_jobs
     )
     reactions = check.check_carbon_balance()
-    reactions = [
-        reactions[key]
-        for key, value in enumerate(reactions)
-        if value["carbon_balance_check"] == "balanced"
-    ]
 
     # 3. decompose into dict of symbols
     decompose = RSMIDecomposer(
@@ -222,9 +217,19 @@ def load_reactions(file, reaction_col, n_jobs):
 
 def rule_based_method(data, n_jobs):
     reactions = data["reactions"]
+    cbalanced_reactions = [
+        reactions[key]
+        for key, value in enumerate(reactions)
+        if value["carbon_balance_check"] == "balanced"
+    ]
+    cunbalanced_reactions = [
+        reactions[key]
+        for key, value in enumerate(reactions)
+        if value["carbon_balance_check"] != "balanced"
+    ]
     print("[INFO] Run rule-based method on {} reactions.".format(len(reactions)))
-    unbalance_reactions = filter_data(
-        reactions,
+    rule_based_reactions = filter_data(
+        cbalanced_reactions,
         unbalance_values=["Reactants", "Products"],
         formula_key="Diff_formula",
         element_key=None,
@@ -232,8 +237,8 @@ def rule_based_method(data, n_jobs):
         max_count=0,
     )
 
-    both_side_reactions = filter_data(
-        reactions,
+    both_side_cbalanced_reactions = filter_data(
+        cbalanced_reactions,
         unbalance_values=["Both"],
         formula_key="Diff_formula",
         element_key=None,
@@ -244,11 +249,11 @@ def rule_based_method(data, n_jobs):
     # Initialize SyntheticRuleImputer and perform parallel imputation
     rules = load_database(os.path.join(_PATH, "Data/Rules/rules_manager.json.gz"))
     imp = SyntheticRuleImputer(rule_dict=rules, select="all", ranking="ion_priority")
-    expected_result = imp.parallel_impute(unbalance_reactions, n_jobs=n_jobs)
+    expected_result = imp.parallel_impute(rule_based_reactions, n_jobs=n_jobs)
 
     solve, unsolve = extract_results_by_key(expected_result)
 
-    unsolve = both_side_reactions + unsolve
+    unsolve = cunbalanced_reactions + both_side_cbalanced_reactions + unsolve
 
     # 8. Handle uncertainty in imputation
     constrain = RuleConstraint(
@@ -266,12 +271,12 @@ def rule_based_method(data, n_jobs):
 
     print(
         "[INFO] Rule-based method solved {} of {} reactions.".format(
-            len(certain_reactions), len(unbalance_reactions)
+            len(certain_reactions), len(rule_based_reactions)
         )
     )
 
     data["rule_based"] = certain_reactions
-    data["rule_based_input"] = unbalance_reactions
+    data["rule_based_input"] = rule_based_reactions
     data["rule_based_unsolved"] = unsolve
     return data
 

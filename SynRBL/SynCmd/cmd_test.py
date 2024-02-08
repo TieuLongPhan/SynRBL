@@ -265,7 +265,7 @@ def get_rule_based_rxn_cnts():
         both_side = BothSideReact(react_dict, product_dict, unbalance, diff_formula)
         diff_formula, unbalance = both_side.fit(n_jobs=-1)
 
-        reactions_clean = pd.concat(
+        reactions = pd.concat(
             [
                 pd.DataFrame(reactions),
                 pd.DataFrame([unbalance]).T.rename(columns={0: "Unbalance"}),
@@ -273,11 +273,15 @@ def get_rule_based_rxn_cnts():
             ],
             axis=1,
         ).to_dict(orient="records")
-        rxn_cnts[dataset]["reactions_clean"] = len(reactions_clean)
+        rxn_cnts[dataset]["reactions_clean"] = len(reactions)
 
-        # 6. Filter data based on specified criteria
-        unbalance_reactions = filter_data(
-            reactions_clean,
+        cbalanced_reactions = [
+            reactions[key]
+            for key, value in enumerate(reactions)
+            if value["carbon_balance_check"] == "balanced"
+        ]
+        rule_based_reactions = filter_data(
+            cbalanced_reactions,
             unbalance_values=["Reactants", "Products"],
             formula_key="Diff_formula",
             element_key=None,
@@ -285,7 +289,7 @@ def get_rule_based_rxn_cnts():
             max_count=0,
         )
 
-        rxn_cnts[dataset]["out"] = len(unbalance_reactions)
+        rxn_cnts[dataset]["out"] = len(rule_based_reactions)
     return rxn_cnts
 
 
@@ -316,7 +320,7 @@ def verify_results(show_unsolved=False):
     x = get_rule_based_rxn_cnts()
     for dataset, rb_cnt in x.items():
         print(dataset, rb_cnt)
-        output[dataset]["rb_cnt"] = rb_cnt["cbalanced"]
+        output[dataset]["rb_cnt"] = rb_cnt["out"]
 
     for _, item in results.iterrows():
         rid = item["R-id"]
