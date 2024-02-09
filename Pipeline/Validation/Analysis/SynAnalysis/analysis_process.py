@@ -54,10 +54,10 @@ class AnalysisProcess:
 
     def standardize_columns(self, data):
         data.loc[data['carbon_difference']>10, 'carbon_difference'] = '> 10'
-        data.loc[data['fragment_count']>8, 'fragment_count'] = '> 8'
+        data.loc[data['fragment_count']>=7, 'fragment_count'] = '>6'
         data.loc[data['Bond Changes']>5, 'Bond Changes'] = '> 5'
         data.loc[data['bond_change_merge']>3, 'bond_change_merge'] = '> 3'
-        data.loc[data['num_boundary']>4, 'num_boundary'] = 5
+        data.loc[data['num_boundary']>=4, 'num_boundary'] = '>3'
         data['reactions'] = data['reactions'].apply(lambda x: remove_atom_mapping_from_reaction_smiles(x))
         data = data.drop_duplicates(subset=['reactions'])
         data['Result'] = data['Result'].astype('bool')
