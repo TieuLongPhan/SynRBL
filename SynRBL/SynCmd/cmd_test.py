@@ -29,6 +29,7 @@ _FINAL_VALIDATION_PATH = os.path.join(
     _PATH, "Pipeline/Validation/Analysis/final_validation.csv"
 )
 _VALSET_PATH = os.path.join(_PATH, "Data/Validation_set/validation_set.csv")
+_TEST_SET_IDS_PATH = os.path.join(_PATH, "Data/Validation_set/test_set_ids.json")
 _RESULT_PATH = os.path.join(_PATH, "Data/Validation_set/validation_set_result.csv")
 _SNAPSHOT_PATH = os.path.join(_PATH, "Data/Validation_set/snapshot.json")
 _REACTION_COL = "reaction"
@@ -40,6 +41,12 @@ def get_result_path():
 
 def get_validation_set_path():
     return os.path.join(_PATH, _VALSET_PATH)
+
+
+def get_test_set_ids() -> list[str]:
+    with open(_TEST_SET_IDS_PATH, "r") as f:
+        data = json.load(f)
+    return data["ids"]
 
 
 def get_reaction_img(smiles):
@@ -298,7 +305,7 @@ def _get_plt_fmt(rid, initial_r, result_r, correct_r=None, checked_r=None):
     }
 
 
-def verify_results(show_unsolved=False):
+def verify_results(show_unsolved=False, min_confidence=0.5):
     output = collections.defaultdict(
         lambda: {
             "wrong_rxns": [],
@@ -310,17 +317,26 @@ def verify_results(show_unsolved=False):
             "rb_suc_cnt": 0,
             "mcs_suc_cnt": 0,
             "mcs_correct_cnt": 0,
+            "test_set_cnt": 0,
+            "mcs_suc_cnt2": 0,
+            "mcs_correct_cnt2": 0,
         }
     )
     results, val_set, snapshot = load_data()
     for dataset, rb_cnt in get_rule_based_rxn_cnts().items():
         output[dataset]["rb_cnt"] = rb_cnt
 
+    test_set_ids = get_test_set_ids()
+
     for _, item in results.iterrows():
         rid = item["R-id"]
+        is_in_test_set = rid in test_set_ids
         dataset = item["dataset"]
+        confidence = item["confidence"]
         _o = output[dataset]
         _o["rxn_cnt"] += 1  # type: ignore
+        if is_in_test_set:
+            _o["test_set_cnt"] += 1  # type: ignore
         solved = item["solved"]
         if not show_unsolved and not solved:  # type: ignore
             continue
@@ -333,6 +349,9 @@ def verify_results(show_unsolved=False):
         else:
             if solved:  # type: ignore
                 _o["mcs_suc_cnt"] += 1  # type: ignore
+                confidence = float(confidence.replace("%", "")) / 100  # type: ignore
+                if is_in_test_set and confidence > min_confidence:
+                    _o["mcs_suc_cnt2"] += 1  # type: ignore
             result_reaction = item["new_reaction"]
             val_index = get_val_index(val_set, rid)
             if val_index is None:
@@ -364,6 +383,8 @@ def verify_results(show_unsolved=False):
                     )
                 else:
                     _o["mcs_correct_cnt"] += 1  # type: ignore
+                    if is_in_test_set and confidence > min_confidence:
+                        _o["mcs_correct_cnt2"] += 1  # type: ignore
             else:
                 wrong_reactions = sn_item["wrong_reactions"]
                 wrong_reactions_n = [normalize_smiles(r) for r in wrong_reactions]  # type: ignore
@@ -383,13 +404,15 @@ def verify_results(show_unsolved=False):
 
 
 def print_result_table(results):
-    line_fmt = "{:<22} {:>14} {:>14} {:>14} {:>14}"
+    line_fmt = "{:<22} {:>14} {:>14} {:>14} {:>14} {:>16} {:>16}"
     cols = [
         "Dataset",
         "Reactions",
         "Rule Suc.",
         "MCS Suc.",
         "MCS Acc.",
+        "MCS Suc. >50%",
+        "MCS Acc. >50%",
     ]
     head_line = line_fmt.format(*cols)
     print("=" * len(head_line))
@@ -403,6 +426,9 @@ def print_result_table(results):
         mcs_cnt = rxn_cnt - balanced_cnt - rb_suc_cnt
         mcs_suc_cnt = result["mcs_suc_cnt"]
         mcs_correct_cnt = result["mcs_correct_cnt"]
+        test_set_cnt = result["test_set_cnt"]
+        mcs_suc_cnt2 = result["mcs_suc_cnt2"]
+        mcs_correct_cnt2 = result["mcs_correct_cnt2"]
         rxn_cnt_str = "{:4d} ({:4d})".format(rxn_cnt, rxn_cnt - balanced_cnt)
         rb_suc_rate_str = (
             "-" if rb_cnt == 0 else "{} {:7.2%}".format(rb_suc_cnt, rb_suc_cnt / rb_cnt)
@@ -417,7 +443,25 @@ def print_result_table(results):
             if mcs_suc_cnt == 0
             else "{} {:7.2%}".format(mcs_correct_cnt, mcs_correct_cnt / mcs_suc_cnt)
         )
-        values = [db, rxn_cnt_str, rb_suc_rate_str, mcs_suc_rate_str, mcs_acc_rate_str]
+        mcs_suc_rate2_str = (
+            "-"
+            if test_set_cnt == 0
+            else "{} {:7.2%}".format(test_set_cnt, mcs_suc_cnt2 / test_set_cnt)
+        )
+        mcs_acc_rate2_str = (
+            "-"
+            if mcs_suc_cnt2 == 0
+            else "{} {:7.2%}".format(mcs_correct_cnt2, mcs_correct_cnt2 / mcs_suc_cnt2)
+        )
+        values = [
+            db,
+            rxn_cnt_str,
+            rb_suc_rate_str,
+            mcs_suc_rate_str,
+            mcs_acc_rate_str,
+            mcs_suc_rate2_str,
+            mcs_acc_rate2_str,
+        ]
         print(line_fmt.format(*values))
     print("-" * len(head_line))
 
@@ -518,7 +562,7 @@ def export_ids(path, ids):
         plot_reaction(item, path)
 
 
-def run_impute(no_cache=False, force_mcs_based=False, min_confidence=0):
+def run_impute(no_cache=False, force_mcs_based=False):
     print("[INFO] Impute validation set.")
     src_file = get_validation_set_path()
     result_file = get_result_path()
@@ -529,7 +573,7 @@ def run_impute(no_cache=False, force_mcs_based=False, min_confidence=0):
         cols=["R-id", "dataset"],
         no_cache=no_cache,
         force_mcs_based=force_mcs_based,
-        min_confidence=min_confidence,
+        min_confidence=0,
     )
 
 
@@ -552,7 +596,6 @@ def run_test(args):
         run_impute(
             no_cache=args.no_cache,
             force_mcs_based=args.mcs_based,
-            min_confidence=args.min_confidence,
         )
 
     results = verify_results(show_unsolved=args.show_unsolved)
@@ -574,9 +617,6 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     )
 
     test_parser.add_argument("-o", default="./out", help="Path where output is saved.")
-    test_parser.add_argument(
-        "--dataset", default=None, help="Use a specific dataset for testing."
-    )
     test_parser.add_argument(
         "--export",
         action="store_true",
@@ -612,20 +652,20 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--export-count",
         default=None,
-        help="Set the number of reactions to export.",
+        help="Set the maximum number of reactions to export.",
     )
 
     test_parser.add_argument(
         "--set-correct",
         nargs="+",
         metavar="id",
-        help="The reaction ids that are now correct.",
+        help="If a reaction is now correct use this to create the corresponding file entries.",
     )
     test_parser.add_argument(
         "--set-wrong",
         nargs="+",
         metavar="id",
-        help="The reaction ids that are now wrong.",
+        help="If a reaction is wrong use this to create the corresponding file entries.",
     )
     test_parser.add_argument(
         "--override", action="store_true", help="Flag to override correct reactions."
@@ -648,14 +688,7 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--no-cache",
         action="store_true",
-        help="Disable caching of intermediate results.",
-    )
-    test_parser.add_argument(
-        "--min-confidence",
-        type=float,
-        default=0,
-        choices=[Range(0.0, 1.0)],
-        help="Set a confidence threshold for the results from the MCS-based method.",
+        help="Disable caching of intermediate results when imputing (--impute).",
     )
 
     test_parser.set_defaults(func=run_test)

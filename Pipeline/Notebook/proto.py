@@ -283,12 +283,16 @@ mcs_data = [value for value in mcs_data if value[_ID_COL] in ids]
 assert len(merge_data) == len(mcs_data)
 merge_data_exp = []
 mcs_data_exp = []
+merge_data_test_exp = []
+mcs_data_test_exp = []
 test_set_ids = []
 id_map = {r[_ID_COL]: r['R-id'] for r in reactions}
 
 for i, (md, mcsd) in enumerate(zip(merge_data, mcs_data)):
     assert md[_ID_COL] == mcsd[_ID_COL]
     if i % 5 == 0:
+        merge_data_test_exp.append(md)
+        mcs_data_test_exp.append(mcsd)
         test_set_ids.append(id_map[md[_ID_COL]])
     else:
         merge_data_exp.append(md)
@@ -296,6 +300,8 @@ for i, (md, mcsd) in enumerate(zip(merge_data, mcs_data)):
 
 save_database(merge_data_exp, "Data/Validation_set/MCS_Impute_train.json.gz")
 save_database(mcs_data_exp, "Data/Validation_set/mcs_based_reactions_train.json.gz")
+save_database(merge_data_test_exp, "Data/Validation_set/MCS_Impute_test.json.gz")
+save_database(mcs_data_test_exp, "Data/Validation_set/mcs_based_reactions_test.json.gz")
 with open("Data/Validation_set/test_set_ids.json", "w") as f:
     json.dump({"ids": test_set_ids}, f, indent=4)
 
