@@ -446,7 +446,7 @@ def print_result_table(results):
         mcs_suc_rate2_str = (
             "-"
             if test_set_cnt == 0
-            else "{} {:7.2%}".format(test_set_cnt, mcs_suc_cnt2 / test_set_cnt)
+            else "{} {:7.2%}".format(mcs_suc_cnt2, mcs_suc_cnt2 / test_set_cnt)
         )
         mcs_acc_rate2_str = (
             "-"
