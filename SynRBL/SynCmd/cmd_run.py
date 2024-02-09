@@ -460,9 +460,7 @@ def compoute_confidence(data, col, scoring_function_path: str):
     return data
 
 
-def generate_output(
-        reactions, reaction_col, cols=[], min_confidence: float = 0
-):
+def generate_output(reactions, reaction_col, cols=[], min_confidence: float = 0):
     def _row(
         reaction_col,
         initial_reaction,
@@ -622,7 +620,7 @@ def impute(
     tmp_dir="./tmp",
     no_cache=False,
     cols=[],
-    min_confidence=0
+    min_confidence=0,
 ):
     global _TMP_DIR, _SRC_FILE, _HASH_KEY, _CACHE_ENA
     _SRC_FILE = src_file
@@ -685,15 +683,21 @@ def run(args):
         force_mcs_based=args.mcs_based,
         tmp_dir=args.tmp_dir,
         no_cache=args.no_cache,
-        min_confidence=args.min_confidence
+        min_confidence=args.min_confidence,
     )
+
 
 class Range(object):
     def __init__(self, start, end):
         self.start = start
         self.end = end
+
     def __eq__(self, other):
         return self.start <= other <= self.end
+
+    def __str__(self):
+        return "[{}, {}]".format(self.start, self.end)
+
 
 def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser = argparser.add_parser(
@@ -708,7 +712,7 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "-o", default="SynRBL_results.csv", help="Path to results file."
     )
     test_parser.add_argument(
-        "-p", default=-1, help="Number of processes used for imputation."
+        "-p", default=-1, help="Number of processes used for imputation. (Default: -1)"
     )
 
     test_parser.add_argument(
@@ -719,7 +723,7 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--col",
         default="reaction",
-        help="The column name for reactions in the input .csv file.",
+        help="The reactions column name for in the input .csv file. (Default: 'reaction')",
     )
     test_parser.add_argument(
         "--columns",
@@ -734,17 +738,17 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--rule-based",
         action="store_true",
-        help="Run rule-based method.",
+        help="(Re)run rule-based method.",
     )
     test_parser.add_argument(
         "--mcs",
         action="store_true",
-        help="Find maximum-common-substractures.",
+        help="(Re)run find maximum-common-substractures.",
     )
     test_parser.add_argument(
         "--mcs-based",
         action="store_true",
-        help="Run MCS-based method.",
+        help="(Re)run MCS-based method.",
     )
     test_parser.add_argument(
         "--no-cache",
@@ -754,9 +758,9 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--min-confidence",
         type=float,
-        default=0,
+        default=0.5,
         choices=[Range(0.0, 1.0)],
-        help="Set a confidence threshold for the results from the MCS-based method.",
+        help="Set a confidence threshold for the results from the MCS-based method. (Default: 0.5)",
     )
 
     test_parser.set_defaults(func=run)
