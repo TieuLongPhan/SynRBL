@@ -401,8 +401,8 @@ def compoute_confidence(data, col, scoring_function_path: str):
 
     # Load and process MCS data
     mcs_data = copy.deepcopy(data["rule_based_unsolved"])
-    id = [value[_ID_COL] for value in merge_data]
-    mcs_data = [value for value in mcs_data if value[_ID_COL] in id]
+    ids = [value[_ID_COL] for value in merge_data]
+    mcs_data = [value for value in mcs_data if value[_ID_COL] in ids]
     mcs_data = calculate_chemical_properties(mcs_data)
 
     # Combine data and filter if necessary

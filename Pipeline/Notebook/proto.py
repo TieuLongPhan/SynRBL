@@ -182,49 +182,7 @@ vis.plot_reactions(
     new_reaction_col="n",
     compare=True,
 )
-# |%%--%%| <0ppeA6PwQO|dK58cHCURm>
-from SynRBL.SynCmd.cmd_test import _DATASETS
-
-for dataset in _DATASETS:
-    path = "./Data/Validation_set/{}/MCS/{}.json.gz".format(dataset, "Final_Graph")
-    results = load_database(path)
-
-    val_data = []
-    for r in results:
-        val_data.append({"val-id": r["R-id"], "reaction": r["old_reaction"]})
-    df = pd.DataFrame(val_data)
-    print("Create val set:", dataset)
-    df.to_csv("./Data/Validation_set/{}_val.csv".format(dataset))
-
-# |%%--%%| <dK58cHCURm|PFfLfKJ9Bi>
-
-
-path = "./Pipeline/Validation/Analysis/final_validation.csv"
-df = pd.read_csv(path)
-df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-df.to_csv(path)
-print(df)
-
-# |%%--%%| <PFfLfKJ9Bi|45VJHrRjLA>
-
-dataset = "USPTO_random_class"
-path = "./Data/Validation_set/{}/MCS/{}.json.gz".format(dataset, "Final_Graph")
-results = load_database(path)
-
-val_data = []
-for i, r in enumerate(results):
-    # val_data.append({"id": r["id"], "val-id": r["R-id"], "reaction": r["reactions"]})
-    val_data.append(
-        {
-            "val-id": r["R-id"],
-            "reaction": r["old_reaction"],
-        }
-    )
-df = pd.DataFrame(val_data)
-print("Create val set:", dataset)
-# df.to_csv("./Data/Validation_set/{}_val.csv".format(dataset))
-# |%%--%%| <45VJHrRjLA|Ffoj2H07hg>
-from SynRBL.SynCmd.cmd_test import _DATASETS
+# |%%--%%| <0ppeA6PwQO|Ffoj2H07hg>
 import collections
 
 
@@ -307,3 +265,39 @@ print(
     "Validation set was built successfully containing {} reactions.".format(len(val_df))
 )
 val_df.to_csv("./Data/Validation_set/validation_set.csv")
+#|%%--%%| <Ffoj2H07hg|QOuhqrXaXd>
+import json
+import copy
+from SynRBL.SynCmd.cmd_run import _ID_COL
+from SynRBL.rsmi_utils import load_database, save_database
+
+path = "./tmp/91cc3931677445d798e53218a8329aa6244631a5.cache"
+with open(path, "r") as f:
+    data = json.load(f)
+
+reactions = copy.deepcopy(data["reactions"])
+merge_data = copy.deepcopy(data["mcs_based"])
+mcs_data = copy.deepcopy(data["rule_based_unsolved"])
+ids = [value[_ID_COL] for value in merge_data]
+mcs_data = [value for value in mcs_data if value[_ID_COL] in ids]
+assert len(merge_data) == len(mcs_data)
+merge_data_exp = []
+mcs_data_exp = []
+test_set_ids = []
+id_map = {r[_ID_COL]: r['R-id'] for r in reactions}
+
+for i, (md, mcsd) in enumerate(zip(merge_data, mcs_data)):
+    assert md[_ID_COL] == mcsd[_ID_COL]
+    if i % 5 == 0:
+        test_set_ids.append(id_map[md[_ID_COL]])
+    else:
+        merge_data_exp.append(md)
+        mcs_data_exp.append(mcsd)
+
+save_database(merge_data_exp, "Data/Validation_set/MCS_Impute_train.json.gz")
+save_database(mcs_data_exp, "Data/Validation_set/mcs_based_reactions_train.json.gz")
+with open("Data/Validation_set/test_set_ids.json", "w") as f:
+    json.dump({"ids": test_set_ids}, f, indent=4)
+
+print("Train set:", len(merge_data_exp))
+print("Test set:", len(test_set_ids))
