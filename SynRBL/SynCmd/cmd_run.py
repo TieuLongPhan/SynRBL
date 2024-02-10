@@ -69,6 +69,8 @@ def get_hash(file):
 
 def get_cache_file():
     file_name = "{}.cache".format(_HASH_KEY)
+    if not os.path.exists(_TMP_DIR):
+        os.makedirs(_TMP_DIR)
     return os.path.join(_TMP_DIR, file_name)
 
 
@@ -80,7 +82,7 @@ def write_cache(data):
     for k, v in data.items():
         assert k in _CACHE_KEYS, "'{}' is not a valid cache key.".format(k)
         _data[k] = v
-    with open(file, "w") as f:
+    with open(file, "w+") as f:
         json.dump(data, f)
 
 
@@ -136,7 +138,7 @@ def print_dataset_stats(data):
         elif solved_by == "mcs-based-method":
             mcs_suc_c += 1
     r_suc = 0
-    if "rule_based_input" in data.keys():
+    if "rule_based_input" in data.keys() and len(data["rule_based_input"]) > 0:
         r_suc = r_suc_c / len(data["rule_based_input"])
     print(
         "[INFO] Rule-based method solved {} reactions. (Success rate: {:.2%})".format(
@@ -144,7 +146,7 @@ def print_dataset_stats(data):
         )
     )
     mcs_suc = 0
-    if "mcs" in data.keys():
+    if "mcs" in data.keys() and len(data["mcs"]) > 0:
         mcs_suc = mcs_suc_c / len(data["mcs"])
     print(
         "[INFO] MCS-based method solved {} reactions. (Success rate: {:.2%})".format(
@@ -542,6 +544,10 @@ def generate_output(reactions, reaction_col, cols=[], min_confidence: float = 0)
     for src_item, item in zip(reactions["raw"], reactions["reactions"]):
         values = []
         for c in cols:
+            if c not in src_item.keys():
+                raise ValueError(
+                    "No column named '{}' found in the input file.".format(c)
+                )
             values.append(src_item[c])
         synrbl_id = item[_ID_COL]
         initial_reaction = src_item[reaction_col]
@@ -672,11 +678,13 @@ def impute(
 
 
 def run(args):
+    columns = args.columns if isinstance(args.columns, list) else [args.columns]
+
     impute(
         args.filename,
         args.o,
         reaction_col=args.col,
-        cols=args.columns,
+        cols=columns,
         n_jobs=args.p,
         force_rule_based=args.rule_based,
         force_mcs=args.mcs,

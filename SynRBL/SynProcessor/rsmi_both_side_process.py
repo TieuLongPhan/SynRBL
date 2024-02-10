@@ -116,7 +116,9 @@ class BothSideReact:
 
         # Post-process to determine the new balance status
         results = [self.reverse_values_if_negative_except_Q(item) for item in diff_dict]
-        diff_dict_both, unbalance_both = zip(*results)
+        diff_dict_both, unbalance_both = [], []
+        if len(results) == 2:
+            diff_dict_both, unbalance_both = zip(*results)
 
         # Update diff_formula and unbalance lists
         for index, diff_new, unbalance_new in zip(both_index, diff_dict_both, unbalance_both):
