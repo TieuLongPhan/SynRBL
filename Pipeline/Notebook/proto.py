@@ -139,7 +139,7 @@ clear_atom_nums(results)
 print_error_summary(results)
 i, rx = get_reaction_by_id(results, "golden_dataset_196")
 # print(i)
-#rx = results[204]
+# rx = results[204]
 
 plot_reaction(rx, show_atom_numbers=False)
 
@@ -265,7 +265,7 @@ print(
     "Validation set was built successfully containing {} reactions.".format(len(val_df))
 )
 val_df.to_csv("./Data/Validation_set/validation_set.csv")
-#|%%--%%| <Ffoj2H07hg|QOuhqrXaXd>
+# |%%--%%| <Ffoj2H07hg|QOuhqrXaXd>
 import json
 import copy
 from SynRBL.SynCmd.cmd_run import _ID_COL
@@ -286,7 +286,7 @@ mcs_data_exp = []
 merge_data_test_exp = []
 mcs_data_test_exp = []
 test_set_ids = []
-id_map = {r[_ID_COL]: r['R-id'] for r in reactions}
+id_map = {r[_ID_COL]: r["R-id"] for r in reactions}
 
 for i, (md, mcsd) in enumerate(zip(merge_data, mcs_data)):
     assert md[_ID_COL] == mcsd[_ID_COL]
@@ -307,3 +307,42 @@ with open("Data/Validation_set/test_set_ids.json", "w") as f:
 
 print("Train set:", len(merge_data_exp))
 print("Test set:", len(test_set_ids))
+
+
+# |%%--%%| <QOuhqrXaXd|jtFveX8CQz>
+import json
+import copy
+import collections 
+from SynRBL.SynCmd.cmd_run import _ID_COL
+from SynRBL.rsmi_utils import load_database, save_database
+
+path = "./tmp/91cc3931677445d798e53218a8329aa6244631a5.cache"
+with open(path, "r") as f:
+    data = json.load(f)
+
+d = collections.defaultdict(lambda: {"balanced": 0, "c-unbalanced": 0, "unbalanced": 0})
+for r in data["reactions"]:
+    dataset = r["dataset"]
+    c = r["carbon_balance_check"]
+    u = r["Unbalance"]
+    if c != "balanced":
+        d[dataset]["c-unbalanced"] += 1
+    else:
+        if u != "Balance":
+            d[dataset]["unbalanced"] += 1
+        else:
+            d[dataset]["balanced"] += 1
+
+data_sum = collections.defaultdict(lambda: 0)
+for ds, data in d.items():
+    print(ds)
+    s = 0
+    for k, v in data.items():
+        s += v
+        data_sum[k] += v
+        print("  {:<15}: {:>4}".format(k, v))
+    print("  {:<15}: {:>4}".format("SUM", s))
+    data_sum["sum"] += s
+print("--- OVERALL ---")
+for k, v in data_sum.items():
+    print("  {:<15}: {:>4}".format(k, v))
