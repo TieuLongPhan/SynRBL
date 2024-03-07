@@ -35,6 +35,7 @@ import seaborn as sns
 from statsmodels.stats.proportion import proportion_confint
 import numpy as np
 import matplotlib.colors as mcolors
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from typing import List, Optional
 
 class EDAVisualizer:
@@ -161,7 +162,7 @@ class EDAVisualizer:
         else:
             nrows, ncols = (n_metrics + 2) // 3, 3
 
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(15*ncols, 8*nrows), squeeze=False)
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(4.5*ncols, 2.7*nrows), squeeze=False)
         cmap = plt.get_cmap('flare', 256)
         labels = ['A', 'B', 'C', 'D', 'E', 'F']
         for i, (column, title) in enumerate(zip(self.columns, self.titles)):
@@ -173,12 +174,11 @@ class EDAVisualizer:
             colors = [mcolors.to_rgba(cmap(norm(s))) for s in data['size']]
 
             if chart_type == 'line':
-                sns.lineplot(data=data, x=column, y='Accuracy', marker='o', ax=ax, palette=colors)
+                sns.lineplot(data=data, x=column, y='Accuracy', marker='o', ax=ax, palette=colors, color='black', zorder=3)
                 if error_bar:
                     ax.errorbar(data[column], data['Accuracy'], yerr=[data['lower'], data['upper']], fmt='o', capsize=5, ecolor=error_bar_color)
             elif chart_type == 'bar':
-                sns.barplot(data=data, x=column, y='Accuracy', palette=colors, ax=ax)
-                ax.set_ylim(0, 1)
+                sns.barplot(data=data, x=column, y='Accuracy', palette=colors, ax=ax, zorder=2)
                 if error_bar:
                     x_positions = np.arange(len(data[column]))
                     ax.errorbar(x=x_positions, y=data['Accuracy'], yerr=[data['lower'].values, data['upper'].values], fmt='none', capsize=5, ecolor=error_bar_color)
@@ -189,19 +189,30 @@ class EDAVisualizer:
                                     ha='center', va='bottom', 
                                     xytext=(0, 5), textcoords='offset points')
 
-            ax.set_xlabel(title, weight='bold', labelpad=20)
-            ax.set_ylabel('Accuracy')
+            ax.set_xlabel(title, labelpad=4, color='black')
 
             # Bring x-axis ticks and labels to the top
             ax.xaxis.tick_top()
             ax.xaxis.set_label_position('bottom')  # Set the x-axis label position to top
 
             # Adjust tick parameters for better visibility
-            ax.tick_params(axis='x', which='major', direction='out', length=6, width=2, pad=5)
-            ax.tick_params(axis='y', which='major', direction='out', length=6, width=2)
-            ax.text(-0.05, 1.05, labels[i], transform=ax.transAxes, weight='bold')
+            ax.tick_params(axis='x', which='major', direction='out', pad=2, colors='black')
+            ax.tick_params(axis='y', which='major', direction='out', colors='black')
+            ax.text(-0.02, 1.05,  labels[i], transform=ax.transAxes, weight='bold', fontsize=12)
 
-            plt.colorbar(sm, ax=ax, label='Number of Samples', pad=0.05, aspect=10).ax.set_ylabel('Number of Samples')
+            cbar_ax = plt.colorbar(sm, ax=ax, pad=0.05, aspect=10)
+            cbar_ax.ax.tick_params(colors='black')
+            if i % 2 ==  0:
+                ax.set_ylabel('Accuracy', color='black')
+            else:
+                ax.set_ylabel('')
+                cbar_ax.ax.set_ylabel('Number of Samples', color='black')
+
+            ax.set_ylim(0, 1)
+            ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.grid(axis='y', which='major', linewidth=0.5, alpha=0.3)
+            ax.grid(axis='y', which='minor', linewidth=0.1, alpha=0.3)
+
 
         plt.tight_layout()
         if save_path:
