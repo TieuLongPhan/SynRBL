@@ -134,7 +134,7 @@ def mcs_comparsion(
 
             if mol is not None:
                 img = Draw.MolToImage(mol)
-                ax.imshow(np.array(img))  # Show image
+                ax.imshow(np.flip(np.array(img), axis=0))  # Show image
                 title = 'Reference' if i == 0 else f'Config {i}'
                 ax.set_title(title, color='black')
                 ax.set_ylim([80, 220])
