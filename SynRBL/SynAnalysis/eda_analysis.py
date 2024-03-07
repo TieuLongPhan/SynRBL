@@ -145,12 +145,12 @@ class EDAVisualizer:
             if chart_type == 'line':
                 sns.lineplot(data=data, x=column, y='Accuracy', marker='o', ax=ax, palette=colors, color='black', zorder=3)
                 if error_bar:
-                    ax.errorbar(data[column], data['Accuracy'], yerr=[data['lower'], data['upper']], fmt='o', capsize=5, ecolor=error_bar_color)
+                    ax.errorbar(data[column], data['Accuracy'], yerr=[data['lower'], data['upper']], fmt='o', capsize=5, ecolor='black', elinewidth=1)
             elif chart_type == 'bar':
                 sns.barplot(data=data, x=column, y='Accuracy', palette=colors, ax=ax, zorder=2)
                 if error_bar:
                     x_positions = np.arange(len(data[column]))
-                    ax.errorbar(x=x_positions, y=data['Accuracy'], yerr=[data['lower'].values, data['upper'].values], fmt='none', capsize=5, ecolor=error_bar_color)
+                    ax.errorbar(x=x_positions, y=data['Accuracy'], yerr=[data['lower'].values, data['upper'].values], fmt='none', ecolor='black', elinewidth=1)
                 if show_values:
                     for bar in ax.patches:
                         ax.annotate(format(bar.get_height(), '.2f'), 

@@ -94,7 +94,8 @@ def mcs_comparsion(
     list_of_dicts: List[dict], 
     df: pd.DataFrame, 
     index: int, 
-    save_path: Optional[str] = None
+    save_path: Optional[str] = None,
+    show_labels = False
 ) -> None:
     """
     Visualizes combined asymmetric data with compounds and MCS comparison.
@@ -108,8 +109,8 @@ def mcs_comparsion(
     Returns:
     None
     """
-    fig = plt.figure(figsize=(14, 14))
-    gs = GridSpec(3, 3, figure=fig)
+    fig = plt.figure(figsize=(7, 6))
+    gs = GridSpec(4, 3, figure=fig)
 
     # Define labels for the subplots
     subplot_labels = ['A', 'B', 'C', 'D', 'E', 'F']
@@ -118,10 +119,9 @@ def mcs_comparsion(
     # Visualization of compounds in the first 2x3 grid
     for i in range(6):
         ax = fig.add_subplot(gs[i // 3, i % 3])
-        ax.axis('off')  # Initially turn off all axes
 
         # Label the subplots A-F
-        ax.text(-0.1, 1.1, subplot_labels[i], transform=ax.transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
+        ax.text(-0.02, 1.05, subplot_labels[i], transform=ax.transAxes, fontsize=12, fontweight='bold')
 
         if i < len(list_of_dicts):
             if i == 0 and 'sorted_reactants' in list_of_dicts[0][index]:
@@ -135,14 +135,15 @@ def mcs_comparsion(
             if mol is not None:
                 img = Draw.MolToImage(mol)
                 ax.imshow(np.array(img))  # Show image
-                title = 'Reference' if i == 0 else f'Configuration {i}'
-                ax.set_title(title, fontsize=18, weight='bold')
-                ax.axis('on')  # Only turn on axes for plots with images
+                title = 'Reference' if i == 0 else f'Config {i}'
+                ax.set_title(title, color='black')
+                ax.set_ylim([80, 220])
+                ax.axis('off')  # Only turn on axes for plots with images
 
     # Last row (1x3) for MCS comparison
-    ax_mcs = fig.add_subplot(gs[2, :])  # Span the last row
+    ax_mcs = fig.add_subplot(gs[2:, :])  # Span the last row
     # Label the final subplot G
-    ax_mcs.text(-0.02, 1.01, final_subplot_label, transform=ax_mcs.transAxes, fontsize=16, fontweight='bold', va='top', ha='right')
+    ax_mcs.text(-0.02, 1.05, final_subplot_label, transform=ax_mcs.transAxes, fontsize=12, fontweight='bold')
 
     # Custom color palette with 'flare'
     cmap = plt.get_cmap('flare')
@@ -156,20 +157,21 @@ def mcs_comparsion(
 
     # Background color and bars
     ax_mcs.set_facecolor('#f0f0f0')
-    bars = ax_mcs.bar(sum_data.index, sum_data, yerr=std_data, capsize=5, color=palette)
+    bars = ax_mcs.bar(sum_data.index, sum_data, yerr=std_data, color=palette, error_kw={'ecolor':'black', 'elinewidth':1}, zorder=2)
 
     # Customizing the MCS comparison plot
-    ax_mcs.set_title('Comparison of Configurations in MCS', fontsize=18, weight='bold')
-    ax_mcs.set_ylabel('Uncertainty Data', fontsize=16, weight='bold')
-    ax_mcs.tick_params(axis='x', rotation=45)
-    ax_mcs.grid(axis='y', linestyle='--', alpha=0.7, color='gray')  # Gray grid lines for contrast
+    ax_mcs.set_ylabel('Uncertainty Data', color='black')
+    ax_mcs.tick_params(axis='x', rotation=45, colors='black')
+    ax_mcs.tick_params(axis='y', colors='black')
+    ax_mcs.grid(axis='y', alpha=0.3, color='black', linewidth=0.5)  # Gray grid lines for contrast
 
     # Annotate bars with values
-    for bar in bars:
-        height = bar.get_height()
-        ax_mcs.annotate(f'{height:.0f}', xy=(bar.get_x() + bar.get_width() / 2, height),
-                        xytext=(0, 3), textcoords="offset points",
-                        ha='center', va='bottom', fontsize=14)
+    if show_labels:
+        for bar in bars:
+            height = bar.get_height()
+            ax_mcs.annotate(f'{height:.0f}', xy=(bar.get_x() + bar.get_width() / 2, height),
+                            xytext=(0, 3), textcoords="offset points",
+                            ha='center', va='bottom')
 
     plt.tight_layout()
     
@@ -281,7 +283,6 @@ def barplot_accuracy_comparison_2x2(
         confint_accuracy = proportion_confint(accuracies, successes, method='wilson')
         
         error_success = np.maximum(success_rate - confint_success[0], confint_success[1] - success_rate)
-        print(error_success)
         error_accuracy = np.maximum(accuracy - confint_accuracy[0], confint_accuracy[1] - accuracy)
         
         cmap = plt.get_cmap('flare')

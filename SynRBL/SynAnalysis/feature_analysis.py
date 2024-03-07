@@ -37,6 +37,13 @@ class FeatureAnalysis:
         """
         X = self.data.drop(self.target_col, axis=1)
         y = self.data[self.target_col]
+        ax.tick_params(axis='x', colors='black')
+        ax.tick_params(axis='y', colors='black')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color('grey')
+        ax.spines['bottom'].set_color('grey')
+        ax.xaxis.grid(True, which='major', alpha=.3)
 
         clf = xgb.XGBClassifier(random_state=42)
         clf.fit(X, y)
@@ -47,12 +54,12 @@ class FeatureAnalysis:
 
         cmap = plt.get_cmap('flare')
         colors = [cmap(i / len(importance_df)) for i in range(len(importance_df))]
-        bars = ax.barh(importance_df['Feature'], importance_df['Importance'], color=colors)
+        bars = ax.barh(importance_df['Feature'], importance_df['Importance'], color=colors, zorder=2)
 
-        for bar, val in zip(bars, importance_df['Importance']):
-            ax.text(val + 0.002, bar.get_y() + bar.get_height() / 2, f'{val:.3f}', va='center', fontsize=10, color='black')
+        #for bar, val in zip(bars, importance_df['Importance']):
+            #ax.text(val + 0.002, bar.get_y() + bar.get_height() / 2, f'{val:.3f}', va='center', color='black')
 
-        ax.set_xlabel('Importance', fontsize=20)
+        ax.set_xlabel('Importance', color='black')
         ax.invert_yaxis()
 
     def contour_plot(self, features: List[str], ax: plt.Axes) -> None:
@@ -102,29 +109,14 @@ class FeatureAnalysis:
         Returns:
         None
         """
-        fig = plt.figure(figsize=self.figsize)
-        gs = gridspec.GridSpec(3, 3, figure=fig)
+        fig, ax = plt.subplots(1, 1, figsize=self.figsize)
         
         # Feature importance plot (A)
-        ax_feature_importance = fig.add_subplot(gs[:, :2])
-        self.feature_importance(ax_feature_importance)
-
-        # Label for feature importance plot (A)
-        labels_A = ['A'] 
-        for ax, label in zip([ax_feature_importance], labels_A):
-            ax.text(-0.1, 1.01, label, transform=ax.transAxes, size=20, weight='bold', va='top', ha='right')
-
-        labels_BCD = ['B', 'C', 'D']  # Labels for contour plots (B, C, D)
-
-        # Assign labels to contour plots (B, C, D)
-        for k, cols in enumerate(self.cols_for_contour):
-            ax = fig.add_subplot(gs[k, 2])
-            self.contour_plot(cols, ax)
-            ax.text(-0.1, 1.04, labels_BCD[k], transform=ax.transAxes, size=24, weight='bold', va='top', ha='right')
+        self.feature_importance(ax)
 
         plt.tight_layout()
         
         if save_path:
-            plt.savefig(save_path, dpi=600, transparent=True, bbox_inches='tight')
+            plt.savefig(save_path, transparent=True, bbox_inches='tight')
         
         plt.show()

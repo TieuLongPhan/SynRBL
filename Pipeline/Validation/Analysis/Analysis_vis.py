@@ -162,11 +162,11 @@ from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
 from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
 from SynRBL.SynMCSImputer.MissingGraph.refinement_uncertainty import RefinementUncertainty
 
-mcs1 = load_database('../../../Data/Validation_set/golden_dataset/MCS/Condition_1.json.gz')
-mcs2 = load_database('../../../Data/Validation_set/golden_dataset/MCS/Condition_2.json.gz')
-mcs3 = load_database('../../../Data/Validation_set/golden_dataset/MCS/Condition_3.json.gz')
-mcs4 = load_database('../../../Data/Validation_set/golden_dataset/MCS/Condition_4.json.gz')
-mcs5 = load_database('../../../Data/Validation_set/golden_dataset/MCS/Condition_5.json.gz')
+mcs1 = load_database('./Data/Validation_set/golden_dataset/MCS/Condition_1.json.gz')
+mcs2 = load_database('./Data/Validation_set/golden_dataset/MCS/Condition_2.json.gz')
+mcs3 = load_database('./Data/Validation_set/golden_dataset/MCS/Condition_3.json.gz')
+mcs4 = load_database('./Data/Validation_set/golden_dataset/MCS/Condition_4.json.gz')
+mcs5 = load_database('./Data/Validation_set/golden_dataset/MCS/Condition_5.json.gz')
 datasets = ["Configuration 1", "Configuration 2", "Configuration 3", "Configuration 4", "Configuration 5", 'Ensemble']
 golden = [256, 279, 211, 269, 398, 195]
 jaworski = [26, 30, 22, 33, 46, 21]
@@ -180,7 +180,7 @@ import pandas as pd
 
 # Data
 data = {
-    "Configuration": ["Configuration 1", "Configuration 2", "Configuration 3", "Configuration 4", "Configuration 5", 'Ensemble'] * 5,
+    "Configuration": ["Config 1", "Config 2", "Config 3", "Config 4", "Config 5", 'Ensemble'] * 5,
     "Dataset": ["Golden dataset"] * 6 + ["Jaworski"] * 6 + ["$\mathcal{U}_{\mathrm{Random}}$"] * 6 + ["$\mathcal{U}_{\mathrm{Diff}}$"] * 6 + ["$\mathcal{U}_{\mathrm{Unbalance}}$"] * 6,
     "Value": [256, 279, 211, 269, 398, 195, 26, 30, 22, 33, 46, 21, 66, 80, 60, 75, 203, 60, 44, 50, 42, 45, 128, 40, 37, 37, 33, 35, 130, 33]
 }
@@ -190,13 +190,13 @@ df = pd.DataFrame(data)
 
 # |%%--%%| <NkNJDXM9mb|8PzCXwqBYH>
 
-from SynAnalysis.visualizer import mcs_comparsion
+from SynRBL.SynAnalysis.visualizer import mcs_comparsion
 mcs_comparsion([mcs1, mcs1, mcs2, mcs3, mcs4, mcs5], df, 67, save_path='./comparison_mcs.png')
 
 # |%%--%%| <8PzCXwqBYH|NY1SC5wKzV>
 
-from SynAnalysis.visualizer import mcs_comparsion
-mcs_comparsion([mcs1, mcs1, mcs2, mcs3, mcs4, mcs5], df, 67, save_path='./comparison_mcs.png')
+from SynRBL.SynAnalysis.visualizer import mcs_comparsion
+mcs_comparsion([mcs1, mcs1, mcs2, mcs3, mcs4, mcs5], df, 67, save_path='./comparison_mcs.pdf')
 
 # |%%--%%| <NY1SC5wKzV|hxiAii5Srs>
 r"""°°°
@@ -204,10 +204,8 @@ r"""°°°
 °°°"""
 # |%%--%%| <hxiAii5Srs|ntQ7ASaK7q>
 
-from SynAnalysis.analysis_process import AnalysisProcess
+from SynRBL.SynAnalysis.analysis_process import AnalysisProcess
 list_data = ['golden_dataset', 'Jaworski', 'USPTO_random_class', 'USPTO_diff', 'USPTO_unbalance_class']
-pipeline_path = '../../../Pipeline'
-data_path = '../../../Data'
 process = AnalysisProcess(list_data, pipeline_path, data_path)
 
 data_check = process.process_and_combine_datasets(remove_undetected=False).drop(['R-id', 'reactions','Index', 'mcs_carbon_balanced'], axis =1)
@@ -216,11 +214,12 @@ data_check = process.process_and_combine_datasets(remove_undetected=False).drop(
 
 # |%%--%%| <ntQ7ASaK7q|6NDb4Zfl7S>
 
-from SynAnalysis.feature_analysis import FeatureAnalysis
+from SynRBL.SynAnalysis.feature_analysis import FeatureAnalysis
+
 vis = FeatureAnalysis(data_check, 'Result', [('ring_change_merge','num_boundary'),
                                            ('fragment_count','num_boundary'), 
-                                           ('ring_change_merge','fragment_count')])
-vis.visualize(save_path='./fearure_importance.pdf')
+                                           ('ring_change_merge','fragment_count')], figsize=(8, 4))
+vis.visualize(save_path='./feature_importance.pdf')
 
 # |%%--%%| <6NDb4Zfl7S|RH3ld5By35>
 r"""°°°
