@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 sys.path.append('../../../')
 from SynRBL.rsmi_utils import load_database
-from SynAnalysis.analysis_utils import remove_atom_mapping_from_reaction_smiles,calculate_chemical_properties, count_boundary_atoms_products_and_calculate_changes
+from SynRBL.SynAnalysis.analysis_utils import remove_atom_mapping_from_reaction_smiles,calculate_chemical_properties, count_boundary_atoms_products_and_calculate_changes
 from IPython.display import clear_output
 
 class AnalysisProcess:
@@ -57,7 +57,7 @@ class AnalysisProcess:
         data.loc[data['fragment_count']>8, 'fragment_count'] = '> 8'
         data.loc[data['Bond Changes']>5, 'Bond Changes'] = '> 5'
         data.loc[data['bond_change_merge']>3, 'bond_change_merge'] = '> 3'
-        data.loc[data['num_boundary']>4, 'num_boundary'] = 5
+        data.loc[data['num_boundary']>3, 'num_boundary'] = '> 3' 
         data['reactions'] = data['reactions'].apply(lambda x: remove_atom_mapping_from_reaction_smiles(x))
         data = data.drop_duplicates(subset=['reactions'])
         data['Result'] = data['Result'].astype('bool')
