@@ -53,7 +53,7 @@ class FeatureAnalysis:
         importance_df = importance_df.sort_values(by='Importance', ascending=False)
 
         cmap = plt.get_cmap('flare')
-        colors = [cmap(i / len(importance_df)) for i in range(len(importance_df))]
+        colors = ['gray' for i in range(len(importance_df))]
         bars = ax.barh(importance_df['Feature'], importance_df['Importance'], color=colors, zorder=2)
 
         #for bar, val in zip(bars, importance_df['Importance']):

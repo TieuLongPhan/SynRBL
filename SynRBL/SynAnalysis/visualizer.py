@@ -148,9 +148,9 @@ def mcs_comparsion(
     # Custom color palette with 'flare'
     cmap = plt.get_cmap('flare')
     num_configs = len(df['Configuration'].unique())
-    palette = [cmap(i/num_configs) for i in range(num_configs)]
-    ensemble_color = "#e377c2"  # Distinct color for Ensemble
-    palette[-1] = ensemble_color  # Assign distinct color to Ensemble
+    palette = ['gray' for i in range(num_configs)]
+    #ensemble_color = "#e377c2"  # Distinct color for Ensemble
+    #palette[-1] = ensemble_color  # Assign distinct color to Ensemble
 
     sum_data = df.groupby('Configuration')['Value'].sum()
     std_data = df.groupby('Configuration')['Value'].std()

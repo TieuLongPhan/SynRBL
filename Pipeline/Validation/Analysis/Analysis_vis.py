@@ -59,7 +59,7 @@ r"""°°°
 
 import numpy as np
 data = {
-    "Dataset": ["J", "Gd", "$U_{U}$", "$U_{R}$", "$U_{D}$"],
+    "Dataset": ["Jaworski", "Golden", "$U_{unb}$", "$U_{rnd}$", "$U_{diff}$"],
 
     "Reactions": [637, 1851, 540, 803, 1589],
     "Unbalance": [335, 1642, 540, 803, 1589],
@@ -188,12 +188,7 @@ data = {
 df = pd.DataFrame(data)
 
 
-# |%%--%%| <NkNJDXM9mb|8PzCXwqBYH>
-
-from SynRBL.SynAnalysis.visualizer import mcs_comparsion
-mcs_comparsion([mcs1, mcs1, mcs2, mcs3, mcs4, mcs5], df, 67, save_path='./comparison_mcs.png')
-
-# |%%--%%| <8PzCXwqBYH|NY1SC5wKzV>
+# |%%--%%| <NkNJDXM9mb|NY1SC5wKzV>
 
 from SynRBL.SynAnalysis.visualizer import mcs_comparsion
 mcs_comparsion([mcs1, mcs1, mcs2, mcs3, mcs4, mcs5], df, 67, save_path='./comparison_mcs.pdf')
