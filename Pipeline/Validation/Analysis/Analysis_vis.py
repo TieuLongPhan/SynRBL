@@ -827,3 +827,105 @@ pipeline.fit(X_train, y_train)
 X_pred = combined_data[['carbon_difference', 'fragment_count', 'total_carbons', 'total_bonds',
        'total_rings', 'num_boundary', 'ring_change_merge',
        'bond_change_merge']]
+
+# |%%--%%| <cfxUo3ue2R|EmcuHXShec>
+# Contour plot
+
+from SynRBL.SynAnalysis.analysis_process import AnalysisProcess
+list_data = ['golden_dataset', 'Jaworski', 'USPTO_random_class', 'USPTO_diff', 'USPTO_unbalance_class']
+pipeline_path = './Pipeline'
+data_path = './Data'
+process = AnalysisProcess(list_data, pipeline_path, data_path)
+
+data_check = process.process_and_combine_datasets(remove_undetected=False).drop(['R-id', 'reactions','Index', 'mcs_carbon_balanced'], axis =1)
+
+# |%%--%%| <EmcuHXShec|etVlmzqJIx>
+
+data_check_2 = data_check[['bond_change_merge', 'num_boundary', 'fragment_count', 'ring_change_merge', 'Result']]
+
+# |%%--%%| <etVlmzqJIx|1gQmvI8bgi>
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from copy import deepcopy
+from sklearn.preprocessing import LabelEncoder
+from xgboost import XGBClassifier
+import numpy as np
+from itertools import combinations
+from typing import List, Optional
+
+class Contourplot:
+    def __init__(self, data, target_col, figsize=(10, 6)):
+        self.data = data
+        self.target_col = target_col
+        self.figsize = figsize
+        features = [col for col in data.columns if col != target_col]
+        self.cols_for_contour = [list(pair) for pair in combinations(features, 2)]
+
+    def contour_plot(self, features: List[str], ax: plt.Axes, plot_acc=True) -> None:
+        df = deepcopy(self.data)
+        le = LabelEncoder()
+        df['Outcome'] = le.fit_transform(df[self.target_col])
+
+        X = df[features]
+        y = df['Outcome']
+
+        model = XGBClassifier(random_state=42)
+        model.fit(X, y)
+
+        x_min, x_max = X[features[0]].min() - 1, X[features[0]].max() + 1
+        y_min, y_max = X[features[1]].min() - 1, X[features[1]].max() + 1
+        xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100))
+
+        Z = model.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
+        Z = Z.reshape(xx.shape)
+
+        contour = ax.contourf(xx, yy, Z, alpha=0.8, levels=np.linspace(0, 1, 11), cmap=plt.cm.coolwarm)
+        ax.set_xlabel(features[0])
+        ax.set_ylabel(features[1])
+        if plot_acc:
+            cbar = plt.colorbar(contour, ax=ax, orientation='vertical', label='Accuracy')
+
+    def visualize(self, save_path: Optional[str] = None) -> None:
+        buf_textcolor = mpl.rcParams['text.color']
+        buf_labelcolor = mpl.rcParams['axes.labelcolor']
+        buf_xtickcolor = mpl.rcParams['xtick.color']
+        buf_ytickcolor = mpl.rcParams['ytick.color']
+        mpl.rcParams['text.color'] = 'black'
+        mpl.rcParams['axes.labelcolor'] = 'black'    
+        mpl.rcParams['xtick.color'] = 'black'        
+        mpl.rcParams['ytick.color'] = 'black'     
+
+        fig = plt.figure(figsize=self.figsize)
+        gs = gridspec.GridSpec(2, 3, figure=fig)
+       
+        for k, cols in enumerate(self.cols_for_contour[:6]):
+            row_idx = k // 3
+            col_idx = k % 3
+            ax = fig.add_subplot(gs[row_idx, col_idx])
+
+            plot_acc = False
+            if col_idx == 2:
+                plot_acc = True
+            if row_idx == 0:
+                ax.set_xlim([0, 5])
+                ax.set_xticks([0, 1, 2, 3, 4, 5])
+
+            self.contour_plot(cols, ax, plot_acc=plot_acc)
+
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=400, transparent=True, bbox_inches='tight')
+        
+        plt.show()
+
+        mpl.rcParams['text.color'] = buf_textcolor
+        mpl.rcParams['axes.labelcolor'] = buf_labelcolor
+        mpl.rcParams['xtick.color'] = buf_xtickcolor
+        mpl.rcParams['ytick.color'] = buf_ytickcolor
+
+test = Contourplot(data_check_2, 'Result')
+test.visualize(save_path='cooccurance.pdf')
+
