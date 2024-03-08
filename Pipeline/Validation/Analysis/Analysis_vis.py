@@ -222,8 +222,7 @@ r"""°°°
 °°°"""
 # |%%--%%| <RH3ld5By35|ghVyhp1xUw>
 
-train = load_database('../../../Data/Validation_set/mcs_based_reactions_train.json.gz')
-train
+train = load_database('./Data/Validation_set/mcs_based_reactions_train.json.gz')
 
 # |%%--%%| <ghVyhp1xUw|LVVk0pITGc>
 
@@ -274,9 +273,9 @@ from SynRBL.rsmi_utils import load_database, save_database
 
 # |%%--%%| <SlDpxusKA7|nO0K1NaehA>
 
-train_mcs = load_database('../../../Data/Validation_set/mcs_based_reactions_train.json.gz')
-train_merge = load_database('../../../Data/Validation_set/MCS_Impute_train.json.gz')
-data_all = pd.read_csv('../../../Pipeline/Validation/Analysis/final_validation.csv')
+train_mcs = load_database('./Data/Validation_set/mcs_based_reactions_train.json.gz')
+train_merge = load_database('./Data/Validation_set/MCS_Impute_train.json.gz')
+data_all = pd.read_csv('./Pipeline/Validation/Analysis/final_validation.csv')
 data_all['Result']=data_all['correct_reaction'].notnull()
 data_all = data_all[['R-id', 'Result']]
 data_all = data_all.to_dict('records')
@@ -292,9 +291,9 @@ train_mcs_df = train_mcs_df.to_dict('records')
 
 # |%%--%%| <nO0K1NaehA|F0vQwLPBNC>
 
-test_mcs = load_database('../../../Data/Validation_set/mcs_based_reactions_test.json.gz')
-test_merge = load_database('../../../Data/Validation_set/MCS_Impute_test.json.gz')
-data_all = pd.read_csv('../../../Pipeline/Validation/Analysis/final_validation.csv')
+test_mcs = load_database('./Data/Validation_set/mcs_based_reactions_test.json.gz')
+test_merge = load_database('./Data/Validation_set/MCS_Impute_test.json.gz')
+data_all = pd.read_csv('./Pipeline/Validation/Analysis/final_validation.csv')
 data_all['Result']=data_all['correct_reaction'].notnull()
 data_all = data_all[['R-id', 'Result']]
 data_all = data_all.to_dict('records')
@@ -309,7 +308,7 @@ test_mcs_df = test_mcs_df.to_dict('records')
 
 # |%%--%%| <F0vQwLPBNC|YUREGSIj1b>
 
-from SynAnalysis.analysis_utils import remove_atom_mapping_from_reaction_smiles,calculate_chemical_properties, count_boundary_atoms_products_and_calculate_changes
+from SynRBL.SynAnalysis.analysis_utils import remove_atom_mapping_from_reaction_smiles,calculate_chemical_properties, count_boundary_atoms_products_and_calculate_changes
 from IPython.display import clear_output
 def process_data(merge_data, mcs_data, remove_undetected=False):
     merge_data = count_boundary_atoms_products_and_calculate_changes(merge_data)
@@ -343,7 +342,7 @@ from xgboost import XGBClassifier
 from sklearn.metrics import classification_report
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.pipeline import Pipeline as Pipeline
-from SynAnalysis.analysis_process import AnalysisProcess
+from SynRBL.SynAnalysis.analysis_process import AnalysisProcess
 import pickle
 le = LabelEncoder()
 y_train = le.fit_transform(y_train)
@@ -359,7 +358,7 @@ print(classification_report(y_test, y_pred))
 with open('scoring_function.pkl', 'wb') as file:
     pickle.dump(pipeline, file)
 
-# |%%--%%| <Dp9qWSML72|kyeJx4itSN>
+# |%%--%%| <Dp9qWSML72|W9w3ojrfZY>
 
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, average_precision_score
 import numpy as np
@@ -372,6 +371,7 @@ import matplotlib.colors as mcolors
 from typing import List, Optional
 from rdkit import Chem
 from rdkit.Chem import Draw
+import matplotlib as mpl
 from matplotlib.gridspec import GridSpec
 import re
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, average_precision_score
@@ -390,37 +390,47 @@ def classification_visualization(y_true: np.ndarray, y_pred: np.ndarray, y_proba
     Returns:
     None
     """
+    buf_textcolor = mpl.rcParams['text.color']
+    buf_labelcolor = mpl.rcParams['axes.labelcolor']
+    buf_xtickcolor = mpl.rcParams['xtick.color']
+    buf_ytickcolor = mpl.rcParams['ytick.color']
+    mpl.rcParams['text.color'] = 'black'
+    mpl.rcParams['axes.labelcolor'] = 'black'    
+    mpl.rcParams['xtick.color'] = 'black'        
+    mpl.rcParams['ytick.color'] = 'black'     
+
     # Setup the matplotlib figure and axes, 2x2 layout
     fig, axes = plt.subplots(2, 2, figsize=figsize)
     #fig.suptitle('Advanced Classification Metrics Visualization', fontsize=16)
 
     labels = ['A', 'B', 'C', 'D']  # Labels for each subplot
     for ax, label in zip(axes.flat, labels):
-        ax.text(-0.1, 1.1, label, transform=ax.transAxes, size=20, weight='bold', va='top', ha='right')
+        ax.text(-0.02, 1.05, label, transform=ax.transAxes, size=12, weight='bold')
 
     # Subfig 1: Confusion Matrix
     ax = axes[0, 0]
     cm = confusion_matrix(y_true, y_pred)
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax, annot_kws={"size": 14})
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax, annot_kws={"color": 'black'})
     ax.set(xlabel='Predicted labels', ylabel='True labels')
-    ax.set_title('Confusion Matrix', fontsize=18, weight='bold', pad=20)
+    #ax.set_title('Confusion Matrix', color='black')
 
     # Subfig 2: Classification Report
     ax = axes[0, 1]
     report = classification_report(y_true, y_pred, output_dict=True)
     report_df = pd.DataFrame(report).transpose()
-    sns.heatmap(report_df.iloc[:-1, :].astype(float), annot=True, cmap='Spectral', cbar=True, fmt=".2f", ax=ax, annot_kws={"size": 14})
-    ax.set_title('Classification Report', fontsize=18, weight='bold', pad=20)
+    data = report_df.iloc[:-1, :3].astype(float)
+    sns.heatmap(data, annot=True, cmap='Blues', cbar=True, fmt=".2f", ax=ax, annot_kws={"color": 'black'})
+    #ax.set_title('Classification Report', color='black')
 
     # Enhance ROC Curve visual
     ax = axes[1, 0]
     fpr, tpr, thresholds = roc_curve(y_true, y_proba[:, 0], pos_label=0)
     roc_auc = auc(fpr, tpr)
-    ax.plot(fpr, tpr, label='ROC curve (AUC = %0.2f)' % roc_auc, color='darkorange', lw=2)
-    ax.fill_between(fpr, tpr, color='darkorange', alpha=0.3)
-    ax.plot([0, 1], [0, 1], linestyle='--', lw=2, color='navy')
+    ax.plot(fpr, tpr, label='ROC curve (AUC = %0.2f)' % roc_auc, color='gray', lw=1.5)
+    ax.fill_between(fpr, tpr, color='lightgray', alpha=0.5)
+    ax.plot([0, 1], [0, 1], linestyle='--', lw=1, color='gray')
     ax.set(xlim=[0.0, 1.0], ylim=[0.0, 1.05], xlabel='False Positive Rate', ylabel='True Positive Rate')
-    ax.set_title('ROC Curve', fontsize=18, weight='bold', pad=20)
+    #ax.set_title('ROC Curve', color='black')
 
     ax.legend(loc="lower right")
 
@@ -428,26 +438,29 @@ def classification_visualization(y_true: np.ndarray, y_pred: np.ndarray, y_proba
     ax = axes[1, 1]
     precision, recall, _ = precision_recall_curve(y_true, y_proba[:,0], pos_label=0)
     average_precision = average_precision_score(y_true, y_proba[:,0], pos_label=0)
-    ax.plot(recall, precision, label='Precision-Recall curve (AP = %0.2f)' % average_precision, color='blue', lw=2)
-    ax.fill_between(recall, precision, color='blue', alpha=0.3)
+    ax.plot(recall, precision, label='Precision-Recall curve (AP = %0.2f)' % average_precision, color='gray', lw=1.5)
+    ax.fill_between(recall, precision, color='lightgray', alpha=0.5)
     ax.set(xlim=[0.0, 1.0], ylim=[0.0, 1.05], xlabel='Recall', ylabel='Precision')
-    ax.set_title('Precision-Recall Curve', fontsize=18, weight='bold', pad=20)
+    #ax.set_title('Precision-Recall Curve', color='black')
 
     ax.legend(loc="lower left")
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.tight_layout()
     if save_path:
-        plt.savefig(save_path, dpi=600, transparent=True, bbox_inches='tight')
+        plt.savefig(save_path, dpi=400, transparent=True, bbox_inches='tight')
     plt.show()
 
-# |%%--%%| <kyeJx4itSN|spNz7KGBBh>
+    mpl.rcParams['text.color'] = buf_textcolor
+    mpl.rcParams['axes.labelcolor'] = buf_labelcolor
+    mpl.rcParams['xtick.color'] = buf_xtickcolor
+    mpl.rcParams['ytick.color'] = buf_ytickcolor
 
-#from SynAnalysis.visualizer import classification_visualization
+#|%%--%%| <W9w3ojrfZY|Q0Um8sNBRz>
 
 classification_visualization(y_test, y_pred, pipeline.predict_proba(X_test),
-                             save_path = 'model_performance.png', figsize = (14, 14))
+                             save_path = 'model_performance.pdf', figsize = (9, 9))
 
-# |%%--%%| <spNz7KGBBh|wQyC2OBnzN>
+# |%%--%%| <Q0Um8sNBRz|wQyC2OBnzN>
 r"""°°°
 ## 6. Confidence level
 °°°"""
@@ -544,15 +557,7 @@ for data_name in list_data_all:
 data_all['reactions'] = data_all['reactions'].apply(lambda x: remove_atom_mapping_from_reaction_smiles(x))
 data_all = data_all.reset_index(drop=True)
 
-# |%%--%%| <LTCsEX7wB5|yLj3PYVTUp>
-
-
-
-# |%%--%%| <yLj3PYVTUp|NwCDGkeSvF>
-
-data_all
-
-# |%%--%%| <NwCDGkeSvF|nGqu6OTkym>
+# |%%--%%| <LTCsEX7wB5|nGqu6OTkym>
 
 df = data_all[['Success','Result','confidence']]
 
@@ -664,11 +669,7 @@ plot_success_vs_accuracy(success_rates, accuracy_rates, unique_confidences)
 
 np.argmax(unique_confidences)
 
-# |%%--%%| <cIAdljHgz3|4UUyacuXiO>
-
-df_sorted
-
-# |%%--%%| <4UUyacuXiO|lsvmUlXmwv>
+# |%%--%%| <cIAdljHgz3|lsvmUlXmwv>
 
 def accuracy_rate(data):
     rate = []
@@ -685,15 +686,7 @@ def accuracy_rate(data):
 success_rate = sucess_rate(df)
 accuracy_rate = accuracy_rate(df)
 
-# |%%--%%| <hoBilOjUcx|0aw4328iH1>
-
-success_rate[0]
-
-# |%%--%%| <0aw4328iH1|JTTi7HhKwE>
-
-accuracy_rate[0]
-
-# |%%--%%| <JTTi7HhKwE|DzDgQAdoK8>
+# |%%--%%| <hoBilOjUcx|DzDgQAdoK8>
 
 # Initialize lists to store success rate and accuracy rate
 success_rate = []
@@ -790,11 +783,7 @@ data_pred = confidence_level(merge_data_path= '../../../Data/Validation_set/USPT
                               mcs_data_path = '../../../Data/Validation_set/USPTO_diff/mcs_based_reactions.json.gz', 
                               scoring_function_path='./scoring_function.pkl', remove_undetected=True)
 
-# |%%--%%| <Pzr5HXA1KA|sBNZ1CwKQn>
-
-data_pred
-
-# |%%--%%| <sBNZ1CwKQn|m6PrJ89Ge6>
+# |%%--%%| <Pzr5HXA1KA|m6PrJ89Ge6>
 
 from SynRBL
 import pickle
@@ -813,7 +802,6 @@ with open('scoring_function.pkl', 'rb') as file:
     loaded_model = pickle.load(file)
 
 confidence = loaded_model.predict_proba(X_pred)[:,1]
-confidence
 
 # |%%--%%| <m6PrJ89Ge6|yWkCcMn4G5>
 
