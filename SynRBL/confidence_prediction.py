@@ -1,4 +1,4 @@
-import pickle
+import joblib
 import pandas as pd
 import numpy as np
 
@@ -11,7 +11,7 @@ from SynRBL.SynUtils.common import update_reactants_and_products
 class ConfidencePredictor:
     def __init__(
         self,
-        model_path="Data/scoring_function.pkl",
+        model_path="Data/scoring_function.dump",
         reaction_col="reaction",
         input_reaction_col="input_reaction",
         confidence_col="confidence",
@@ -19,8 +19,7 @@ class ConfidencePredictor:
         solved_by_method="mcs-based",
         mcs_col="mcs"
     ):
-        with open(model_path, "rb") as file:
-            self.model = pickle.load(file)
+        self.model = joblib.load(model_path)
         self.reaction_col = reaction_col
         self.input_reaction_col = input_reaction_col
         self.confidence_col = confidence_col
