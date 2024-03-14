@@ -3,7 +3,7 @@ import pandas as pd
 from SynRBL.SynProcessor import  RSMIProcessing
 
 def preprocess(reactions, reaction_col, index_col, solved_col, n_jobs=1):
-    df = pd.DataFrame({reaction_col: reactions})
+    df = pd.DataFrame(reactions)
     df[solved_col] = False
 
     if "Unnamed: 0" in df.columns:
@@ -27,11 +27,3 @@ def preprocess(reactions, reaction_col, index_col, solved_col, n_jobs=1):
     return reactions.to_dict("records")
 
 
-#ch = logging.StreamHandler()
-#ch.setLevel(logging.INFO)
-#formatter = logging.Formatter(
-#    "[%(asctime)s %(levelname)s] %(message)s", datefmt="%y-%m-%d %H:%M:%S"
-#)
-#ch.setFormatter(formatter)
-#logger.setLevel(logging.INFO)
-#logger.addHandler(ch)

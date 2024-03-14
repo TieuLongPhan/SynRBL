@@ -1,11 +1,13 @@
 import copy
 import logging
+import pandas as pd
 
 from SynRBL.preprocess import preprocess
 from SynRBL.postprocess import Validator
 from SynRBL.rule_based import RuleBasedMethod
 from SynRBL.mcs import MCS
 from SynRBL.SynMCSImputer.model import MCSBasedMethod
+from SynRBL.confidence_prediction import ConfidencePredictor
 
 logger = logging.getLogger("SynRBL")
 
@@ -16,7 +18,14 @@ class SynRBL:
         self.id_col = id_col
         self.solved_col = "solved"
         self.mcs_data_col = "mcs"
-        self.columns = ["input_reaction", "reaction", "solved", "solved_by", "rules"]
+        self.columns = [
+            "input_reaction",
+            "reaction",
+            "solved",
+            "solved_by",
+            "confidence",
+            "rules",
+        ]
 
     def __run_pipeline(self, reactions):
         r_col = self.reaction_col
@@ -49,6 +58,9 @@ class SynRBL:
         rb_method.run(reactions)
         mcs_validator.check(reactions)
 
+        conf_predictor = ConfidencePredictor()
+        conf_predictor.predict(reactions)
+
         assert l == len(reactions)
 
         logger.info("DONE")
@@ -60,6 +72,8 @@ class SynRBL:
             raise ValueError("Expected a list of reactions.")
         if len(reactions) == 0:
             return []
+        if isinstance(reactions[0], str):
+            reactions = pd.DataFrame({self.reaction_col: reactions})
         result = self.__run_pipeline(copy.deepcopy(reactions))
 
         if output_dict:

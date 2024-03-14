@@ -7,34 +7,13 @@ import hashlib
 import logging
 import pandas as pd
 import numpy as np
-import rdkit
 
-from typing import List, Union
-
-from SynRBL.SynRuleImputer import SyntheticRuleImputer
-from SynRBL.SynRuleImputer.synthetic_rule_constraint import RuleConstraint
-from SynRBL.SynProcessor import (
-    RSMIProcessing,
-    RSMIDecomposer,
-    RSMIComparator,
-    BothSideReact,
-    CheckCarbonBalance,
-)
-from SynRBL.rsmi_utils import (
-    save_database,
-    load_database,
-    filter_data,
-    extract_results_by_key,
-)
-from SynRBL.SynMCSImputer.SubStructure.mcs_process import ensemble_mcs
-from SynRBL.SynUtils.data_utils import load_database, save_database
-from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
-from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
-from SynRBL.SynMCSImputer.model import MCSImputer
 from SynRBL.SynAnalysis.analysis_utils import (
     calculate_chemical_properties,
     count_boundary_atoms_products_and_calculate_changes,
 )
+
+from SynRBL import SynRBL
 
 _PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../..")
 _TMP_DIR = os.path.join(_PATH, "tmp")
@@ -57,6 +36,7 @@ _CACHE_KEYS = [
 ]
 
 logger = logging.getLogger(__name__)
+
 
 def get_hash(file):
     sha1 = hashlib.sha1()
@@ -375,71 +355,28 @@ def generate_output(reactions, reaction_col, cols=[], min_confidence: float = 0)
     return reactions
 
 
-def export(reactions, file):
-    output = reactions["output"]
-    df = pd.DataFrame(output)
-    df.to_csv(file)
-
-
 def impute(
     src_file,
     output_file,
-    reaction_col="reaction",
-    force_preprocess=False,
-    force_rule_based=False,
-    force_mcs=False,
-    force_mcs_based=False,
-    tmp_dir="./tmp",
-    no_cache=False,
-    cols=[],
-    min_confidence=0,
+    reaction_col,
+    tmp_dir,
+    passthrough_cols,
+    min_confidence,
 ):
-    global _TMP_DIR, _SRC_FILE, _HASH_KEY, _CACHE_ENA
-    _HASH_KEY = get_hash(_SRC_FILE)
-    if no_cache:
-        _CACHE_ENA = False
-        print("[INFO] Caching is disabled.")
     if tmp_dir is not None:
-        _TMP_DIR = os.path.abspath(tmp_dir)
-    lg = rdkit.RDLogger.logger()  # type: ignore
-    lg.setLevel(rdkit.RDLogger.ERROR)  # type: ignore
-    rdkit.RDLogger.DisableLog("rdApp.info")  # type: ignore
-    rdkit.RDLogger.DisableLog("rdApp.*")  # type: ignore
+        tmp_dir = os.path.abspath(tmp_dir)
 
-    if force_preprocess or not is_cached("reactions"):
-        logger.info("Preprocess reactions.")
-        reactions = load_reactions(src_file, reaction_col, _ID_COL, n_jobs)
-        write_cache(reactions)
-    else:
-        logger.info("Load preprocessed reactions from cache.")
-        reactions = read_cache()
+    input_reactions = pd.read_csv(src_file).to_dict('records')
+    
+    synrbl = SynRBL(reaction_col=reaction_col)
+    rbl_reactions = synrbl.rebalance(input_reactions, output_dict=True)
+    
+    for in_r, out_r in zip(input_reactions, rbl_reactions):
+        for c in passthrough_cols:
+            out_r[c] = in_r[c]
 
-    if force_rule_based or not is_cached("rule_based"):
-        reactions = rule_based_method(reactions, n_jobs)
-        write_cache(reactions)
-    else:
-        reactions = read_cache("rule_based")
-
-    if force_mcs or not is_cached("mcs"):
-        reactions = find_mcs(reactions, reaction_col)
-        write_cache(reactions)
-    else:
-        reactions = read_cache("mcs")
-
-    if force_mcs_based or not is_cached("mcs_based"):
-        reactions = mcs_based_method(reactions)
-        write_cache(reactions)
-    else:
-        reactions = read_cache("mcs_based")
-
-    reactions = compoute_confidence(reactions, reaction_col, _CONFIDENCE_MODEL_PATH)
-    write_cache(reactions)
-    reactions = generate_output(
-        reactions, reaction_col, cols=cols, min_confidence=min_confidence
-    )
-    write_cache(reactions)
-    print_dataset_stats(reactions)
-    export(reactions, output_file)
+    df = pd.DataFrame(rbl_reactions)
+    df.to_csv(output_file)
 
 
 def run(args):
@@ -449,13 +386,8 @@ def run(args):
         args.filename,
         args.o,
         reaction_col=args.col,
-        cols=columns,
-        n_jobs=args.p,
-        force_rule_based=args.rule_based,
-        force_mcs=args.mcs,
-        force_mcs_based=args.mcs_based,
+        passthrough_cols=columns,
         tmp_dir=args.tmp_dir,
-        no_cache=args.no_cache,
         min_confidence=args.min_confidence,
     )
 
@@ -484,13 +416,10 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "-o", default="SynRBL_results.csv", help="Path to results file."
     )
-    test_parser.add_argument(
-        "-p", default=-1, help="Number of processes used for imputation. (Default: -1)"
-    )
 
     test_parser.add_argument(
         "--tmp-dir",
-        default=None,
+        default="./tmp",
         help="Path where SynRBL stores intermediate results.",
     )
     test_parser.add_argument(
@@ -504,36 +433,14 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         help="A list of columns from the input that should be added to the output.",
     )
     test_parser.add_argument(
-        "--preprocess",
-        action="store_true",
-        help="(Re)run data preprocessing step.",
-    )
-    test_parser.add_argument(
-        "--rule-based",
-        action="store_true",
-        help="(Re)run rule-based method.",
-    )
-    test_parser.add_argument(
-        "--mcs",
-        action="store_true",
-        help="(Re)run find maximum-common-substractures.",
-    )
-    test_parser.add_argument(
-        "--mcs-based",
-        action="store_true",
-        help="(Re)run MCS-based method.",
-    )
-    test_parser.add_argument(
-        "--no-cache",
-        action="store_true",
-        help="Disable caching of intermediate results.",
-    )
-    test_parser.add_argument(
         "--min-confidence",
         type=float,
-        default=0.5,
+        default=0,
         choices=[Range(0.0, 1.0)],
-        help="Set a confidence threshold for the results from the MCS-based method. (Default: 0.5)",
+        help=(
+            "Set a confidence threshold for the results "
+            + "from the MCS-based method. (Default: 0.5)"
+        ),
     )
 
     test_parser.set_defaults(func=run)
