@@ -1,1 +1,1 @@
-import pandas as pd
+from .main import SynRBL
