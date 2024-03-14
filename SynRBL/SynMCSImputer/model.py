@@ -1,3 +1,5 @@
+import traceback
+
 from SynRBL.SynMCSImputer.structure import Compound, CompoundSet
 from SynRBL.SynMCSImputer.utils import is_carbon_balanced
 from SynRBL.SynMCSImputer.merge import merge
@@ -54,54 +56,71 @@ def build_compounds(data_dict) -> CompoundSet:
     return cset
 
 
-def impute_reaction(reaction_dict):
-    reaction_dict["rules"] = []
-    new_reaction = reaction_dict["old_reaction"]
-    reaction_dict["mcs_carbon_balanced"] = reaction_dict["carbon_balance_check"] == 'balanced'
-    reaction_dict["solved"] = False
-    try:
-        if reaction_dict["issue"] != "":
-            raise ValueError(
-                "Skip reaction because of previous issue.\n" + reaction_dict["issue"]
+def impute_reaction(reaction_dict, reaction_col, issue_col, carbon_balance_col, mcs_data_col):
+    issue = reaction_dict[issue_col] if issue_col in reaction_dict.keys() else ""
+    if issue != "":
+        raise ValueError("Skip reaction because of previous issue.\n" + issue)
+    compound_set = build_compounds(reaction_dict[mcs_data_col])
+    if len(compound_set) == 0:
+        raise ValueError("Empty compound set.")
+    merge_result = merge(compound_set)
+    carbon_balance = reaction_dict[carbon_balance_col]
+    if carbon_balance == "reactants":
+        # Imputing reactant side carbon imbalance is not (yet) supported
+        raise ValueError("Skipped because of reactants imbalance.")
+    elif carbon_balance in ["products", "balanced"]:
+        imputed_reaction = "{}.{}".format(
+            reaction_dict[reaction_col], merge_result.smiles
+        )
+    else:
+        raise ValueError(
+            "Invalid value '{}' for carbon balance.".format(carbon_balance)
+        )
+    rules = [r.name for r in merge_result.rules]
+    is_balanced = is_carbon_balanced(imputed_reaction)
+    if not is_balanced:
+        raise RuntimeError(
+            (
+                "Failed to impute the correct structure. "
+                + "Carbon atom count in reactants and products does not match. "
             )
-        compound_set = build_compounds(reaction_dict)
-        if len(compound_set) == 0:
-            return
-        result = merge(compound_set)
-        carbon_balance = reaction_dict["carbon_balance_check"]
-        if carbon_balance == "reactants":
-            # Imputing reactant side carbon imbalance is not (yet) supported
-            raise ValueError("Skipped because of reactants imbalance.")
-        elif carbon_balance in ["products", "balanced"]:
-            imputed_reaction = "{}.{}".format(
-                reaction_dict["old_reaction"], result.smiles
-            )
-        else:
-            raise ValueError(
-                "Invalid value '{}' for carbon balance.".format(carbon_balance)
-            )
-        rules = [r.name for r in result.rules]
-        is_balanced = is_carbon_balanced(imputed_reaction)
-        reaction_dict["mcs_carbon_balanced"] = is_balanced
-        if not is_balanced:
-            raise RuntimeError(
-                (
-                    "Failed to impute the correct structure. "
-                    + "Carbon atom count in reactants and products does not match. "
+        )
+    return imputed_reaction, rules
+
+
+class MCSBasedMethod:
+    def __init__(
+        self,
+        reaction_col,
+        output_col,
+        mcs_data_col="mcs",
+        issue_col="issue",
+        rules_col="rules",
+        carbon_balance_col="carbon_balance_check",
+    ):
+        self.reaction_col = reaction_col
+        self.output_col = output_col
+        self.mcs_data_col = mcs_data_col
+        self.issue_col = issue_col
+        self.rules_col = rules_col
+        self.carbon_balance_col = carbon_balance_col
+
+    def run(self, reactions: list[dict]):
+        for reaction in reactions:
+            if self.mcs_data_col not in reaction.keys():
+                continue
+            try:
+                result, rules = impute_reaction(
+                    reaction,
+                    mcs_data_col=self.mcs_data_col,
+                    reaction_col=self.reaction_col,
+                    issue_col=self.issue_col,
+                    carbon_balance_col=self.carbon_balance_col,
                 )
-            )
-        new_reaction = imputed_reaction
-        reaction_dict["rules"] = rules
-        reaction_dict["solved"] = True
-    except Exception as e:
-        reaction_dict["issue"] = str(e)
-    finally:
-        reaction_dict["new_reaction"] = new_reaction
+                reaction[self.output_col] = result
+                reaction[self.rules_col] = rules
+            except Exception as e:
+                traceback.print_exc()
+                reaction[self.issue_col] = str(e)
 
-
-class MCSImputer:
-    def __init__(self):
-        pass
-
-    def impute_reaction(self, reaction_dict):
-        impute_reaction(reaction_dict)
+        return reactions

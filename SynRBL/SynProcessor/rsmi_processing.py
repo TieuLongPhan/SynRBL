@@ -146,7 +146,9 @@ class RSMIProcessing:
         if self.drop_duplicates:
             self.data.drop_duplicates(subset=self.rsmi_col, inplace=True)
         self.data.reset_index(drop=True, inplace=True)
-        self.data[self.index_col] = [self.data_name + '_' + str(i) for i in self.data.index]
+        self.data[self.index_col] = [self.data_name + '_' 
+                                     if self.data_name is not None 
+                                     else "" + str(i) for i in self.data.index]
         # Check if there's a need to save the processed data to a JSON file
         if self.save_json:
             data=self.data.to_dict(orient=self.orient)

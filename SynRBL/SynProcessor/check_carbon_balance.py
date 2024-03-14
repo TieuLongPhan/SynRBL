@@ -1,4 +1,5 @@
 import logging
+from rdkit.rdBase import BlockLogs
 from typing import List, Dict
 from rdkit import Chem
 from joblib import Parallel, delayed
@@ -55,6 +56,7 @@ class CheckCarbonBalance:
 
     @staticmethod
     def process_reaction(reaction: Dict[str, str], rsmi_col: str, symbol: str, atom_type: str, smiles_cache: Dict[str, int]) -> Dict[str, str]:
+        block = BlockLogs()
         new_reaction = reaction.copy()
         try:
             reactants_smiles, products_smiles = new_reaction[rsmi_col].split(symbol)
@@ -77,13 +79,14 @@ class CheckCarbonBalance:
             logging.error(f"Value error in parsing SMILES: {e}")
             new_reaction['carbon_balance_check'] = 'error'
 
+        del block
         return new_reaction
 
     def check_carbon_balance(self) -> List[Dict[str, str]]:
         if not all(isinstance(reaction, dict) for reaction in self.reactions_data):
             raise ValueError("Each item in reactions_data should be a dictionary.")
 
-        parallel_results = Parallel(n_jobs=self.n_jobs, verbose=1)(
+        parallel_results = Parallel(n_jobs=self.n_jobs, verbose=0)(
             delayed(self.process_reaction)(reaction, self.rsmi_col, self.symbol, self.atom_type, self.smiles_cache) 
             for reaction in self.reactions_data
         )

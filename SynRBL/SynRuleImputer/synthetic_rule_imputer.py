@@ -6,6 +6,7 @@ from rdkit import Chem
 from joblib import Parallel, delayed
 from typing import List, Dict, Any, Union, Optional
 from rdkit import RDLogger
+from rdkit.rdBase import BlockLogs
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.ERROR)
 RDLogger.DisableLog('rdApp.info')  
@@ -92,7 +93,7 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
         Returns:
             A list of dictionaries with imputed data.
         """
-        dict_impute = Parallel(n_jobs=n_jobs, verbose=1)(
+        dict_impute = Parallel(n_jobs=n_jobs, verbose=0)(
             delayed(self.single_impute)(item, self.rule_dict, self.select, self.ranking) for item in missing_dict
         )
         return dict_impute

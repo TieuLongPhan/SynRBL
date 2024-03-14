@@ -4,6 +4,7 @@ import copy
 import pickle
 import argparse
 import hashlib
+import logging
 import pandas as pd
 import numpy as np
 import rdkit
@@ -55,6 +56,7 @@ _CACHE_KEYS = [
     "output",
 ]
 
+logger = logging.getLogger(__name__)
 
 def get_hash(file):
     sha1 = hashlib.sha1()
@@ -161,40 +163,38 @@ def print_dataset_stats(data):
     )
 
 
-def load_reactions(file, reaction_col, n_jobs):
-    print("[INFO] Load reactions from file.")
+def load_reactions(file, reaction_col, index_col, n_jobs):
+    logger.info("Load reactions from file: {}", file)
     df = pd.read_csv(file)
     if reaction_col not in df.columns:
-        raise RuntimeError(
-            (
-                "No '{}' column found in input file. "
-                + "Use --col to specify the name of the smiles reaction column."
-            ).format(reaction_col)
-        )
+        raise KeyError("No column named '{}' found in input file. ")
+
     if "Unnamed: 0" in df.columns:
         df = df.drop("Unnamed: 0", axis=1)
 
-    # 1. process data
     process = RSMIProcessing(
         data=df,
         rsmi_col=reaction_col,
         parallel=True,
         n_jobs=n_jobs,
         data_name="",
-        index_col=_ID_COL,
+        index_col=index_col,
         drop_duplicates=False,
         save_json=False,
         save_path_name=None,  # type: ignore
+        verbose=0
     )
     reactions = process.data_splitter().to_dict("records")
 
-    # 2. check carbon balance
     check = CheckCarbonBalance(
         reactions, rsmi_col=reaction_col, symbol=">>", atom_type="C", n_jobs=n_jobs
     )
     reactions = check.check_carbon_balance()
 
-    # 3. decompose into dict of symbols
+    return reactions
+
+
+def rule_based_method(reactions, n_jobs):
     decompose = RSMIDecomposer(
         smiles=None,  # type: ignore
         data=reactions,  # type: ignore
@@ -224,11 +224,8 @@ def load_reactions(file, reaction_col, n_jobs):
         ],
         axis=1,
     ).to_dict(orient="records")
-    return {"raw": df.to_dict("records"), "reactions": reactions_clean}
 
 
-def rule_based_method(data, n_jobs):
-    reactions = data["reactions"]
     cbalanced_reactions = [
         reactions[key]
         for key, value in enumerate(reactions)
@@ -642,11 +639,11 @@ def impute(
     rdkit.RDLogger.DisableLog("rdApp.*")  # type: ignore
 
     if force_preprocess or not is_cached("reactions"):
-        print("[INFO] Preprocess reactions.")
-        reactions = load_reactions(src_file, reaction_col, n_jobs)
+        logger.info("Preprocess reactions.")
+        reactions = load_reactions(src_file, reaction_col, _ID_COL, n_jobs)
         write_cache(reactions)
     else:
-        print("[INFO] Load preprocessed reactions from cache.")
+        logger.info("Load preprocessed reactions from cache.")
         reactions = read_cache()
 
     if force_rule_based or not is_cached("rule_based"):

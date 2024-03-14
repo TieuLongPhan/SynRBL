@@ -109,7 +109,7 @@ class BothSideReact:
         product_dict_both = self.filter_list_by_indices(self.product_dict, both_index)
 
         # Process reactions in parallel for efficiency
-        diff_dict = Parallel(n_jobs=n_jobs, verbose=1)(
+        diff_dict = Parallel(n_jobs=n_jobs, verbose=0)(
             delayed(self.enforce_product_side)(react, prod)
             for react, prod in zip(react_dict_both, product_dict_both)
         )

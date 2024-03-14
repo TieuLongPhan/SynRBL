@@ -49,7 +49,7 @@ class ExtractMCS:
         def calculate_atoms_for_dict(d):
             return sum(ExtractMCS.get_num_atoms(mcs) for mcs in d['mcs_results'])
 
-        total_number_atoms = Parallel(n_jobs=n_jobs)(delayed(calculate_atoms_for_dict)(d) for d in condition)
+        total_number_atoms = Parallel(n_jobs=n_jobs, verbose=0)(delayed(calculate_atoms_for_dict)(d) for d in condition)
         return total_number_atoms
     
     

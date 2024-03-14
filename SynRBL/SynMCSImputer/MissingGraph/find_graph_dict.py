@@ -1,4 +1,5 @@
 from rdkit import Chem
+from rdkit.rdBase import BlockLogs
 from joblib import Parallel, delayed
 from typing import List
 from SynRBL.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
@@ -59,7 +60,9 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-
     """
     def process_single_pair(reactant_mol, mcs_mol):
         try:
+            block = BlockLogs()
             mols, boundary_atoms_products, nearest_neighbor_products = FindMissingGraphs.find_missing_parts_pairs(reactant_mol, mcs_mol)
+            del block
             return {
                 'smiles': [Chem.MolToSmiles(mol) if mol is not None else None for mol in mols],
                 'boundary_atoms_products': boundary_atoms_products,
@@ -74,16 +77,13 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-
                 'issue': str(e)
             }
 
-    results = Parallel(n_jobs=n_jobs)(delayed(process_single_pair)(reactant_mol, mcs_mol) for reactant_mol, mcs_mol in zip(sorted_reactants_mol_list, mcs_mol_list))
+    results = Parallel(n_jobs=n_jobs, verbose=0)(delayed(process_single_pair)(reactant_mol, mcs_mol) for reactant_mol, mcs_mol in zip(sorted_reactants_mol_list, mcs_mol_list))
     return results
 
-def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
-                    n_jobs: int=4):
+def find_graph_dict(mcs_dict, n_jobs: int=4):
     """
     Function to find missing graphs for a given MCS dictionary.
     """
-    mcs_dict = load_database(msc_dict_path)
-
     msc_df = pd.DataFrame(mcs_dict)
 
     mcs_results = msc_df['mcs_results'].to_list()
@@ -93,12 +93,12 @@ def find_graph_dict(msc_dict_path: str,  save_path: str, save: bool =True,
     sorted_reactants_mol_list = smiles_to_mol_parallel(sorted_reactants, useSmiles=True)
 
     #find_graph = FindMissingGraphs()
+
     missing_results = find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=n_jobs)
+
     missing_results = GraphMissingUncertainty(missing_results, threshold=2).fit()
     uncertainty_data = len(pd.DataFrame(missing_results)) - pd.DataFrame(missing_results)['Certainty'].sum()
-    print('Uncertainty Data:', uncertainty_data)
-    if save:
-        save_database(missing_results, save_path)
+    #print('Uncertainty Data:', uncertainty_data)
     
     return missing_results
 
