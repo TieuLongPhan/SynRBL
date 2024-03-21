@@ -9,7 +9,6 @@ SynRBL is a toolkit tailored for computational chemistry, aimed at correcting im
 - [Repository Structure](#repository-structure)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Features](#features)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
@@ -80,15 +79,7 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   conda activate synrbl-env
   ```
 
-
-3. **Installing Required Packages:**
-  Install the necessary packages using pip. RDKit might require additional steps to install, which you can find in the RDKit documentation.
-
-  ```bash
-  pip install rdkit networkx pysmiles tmap map4
-  ```
-
-4. **Cloning and Installing SynRBL:**
+3. **Cloning and Installing SynRBL:**
   Clone the SynRBL repository from GitHub and install it:
 
   ```bash
@@ -97,16 +88,16 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   pip install .
   ```
 
-5. **Verify Installation:**
+4. **Verify Installation:**
   After installation, you can verify that SynRBL is correctly installed by running a simple test or checking the package version.
 
   ```python
   python -c "import SynRBL; print(SynRBL.__version__)"
   ```
 
-
 ## Usage
 
+TODO
 
 ## Contributing
 - [Tieu-Long Phan](https://tieulongphan.github.io/)
