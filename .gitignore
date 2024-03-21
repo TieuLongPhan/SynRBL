@@ -6,7 +6,6 @@
 .jukit/
 
 
-*.png
 venv/
 *.pdf
 .coverage
