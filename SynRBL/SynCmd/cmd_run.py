@@ -8,6 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 def print_result(stats, min_confidence=0):
+    def _sr(v, c):
+        return "{:.2%}".format(v / c) if c > 0 else "-"
+
     l = stats["reaction_cnt"]
     in_blcd = stats["balanced_cnt"]
     rb_s = stats["rb_solved"]
@@ -20,13 +23,13 @@ def print_result(stats, min_confidence=0):
         "Input data contained {} balanced reactions.".format(stats["balanced_cnt"])
     )
     logger.info(
-        "Rule-based method solved {} out of {} reactions (success rate: {:.2%}).".format(
-            rb_s, rb_a, rb_s / rb_a
+        "Rule-based method solved {} out of {} reactions (success rate: {}).".format(
+            rb_s, rb_a, _sr(rb_s, rb_a)
         )
     )
     logger.info(
-        "MCS-based method solved {} out of {} reactions (success rate: {:.2%}).".format(
-            mcs_s, mcs_a, mcs_s / mcs_a
+        "MCS-based method solved {} out of {} reactions (success rate: {}).".format(
+            mcs_s, mcs_a, _sr(mcs_s, mcs_a)
         )
     )
     below_th = mcs_s - mcs_cth
@@ -39,12 +42,12 @@ def print_result(stats, min_confidence=0):
         logger.info(
             (
                 "MCS-based method solved {} out of {} reactions above the "
-                + "confidence threshold (success rate: {:.2%})."
-            ).format(mcs_cth, mcs_a, mcs_cth / mcs_a)
+                + "confidence threshold (success rate: {})."
+            ).format(mcs_cth, mcs_a, _sr(mcs_cth, mcs_a))
         )
     logger.info(
-        "SynRBL solved {} out of {} reactions (success rate: {:.2%}).".format(
-            rb_s + mcs_cth, l - in_blcd, (rb_s + mcs_cth) / (l - in_blcd)
+        "SynRBL solved {} out of {} reactions (success rate: {}).".format(
+            rb_s + mcs_cth, l - in_blcd, _sr(rb_s + mcs_cth, l - in_blcd)
         )
     )
 
