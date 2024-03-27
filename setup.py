@@ -4,8 +4,8 @@ setup(
     name='SynRBL',
     version='0.1.1',
     description='Synthesis Rebalancing Framework for Computational Chemistry',
-    author='TieuLongPhan',
-    author_email='your.email@example.com',
+    author='TieuLongPhan - Klaus Weinbauer',
+    author_email='long.tieu_phan@uni-leipzig.de - klaus@bioinf.uni-leipzig.de',
     url='https://github.com/TieuLongPhan/SynRBL',
     packages=find_packages(),
     install_requires=[
@@ -19,7 +19,6 @@ setup(
  
     ],
     python_requires='>=3.11',
-    # Additional metadata like classifiers, keywords, etc.
 )
 
 
