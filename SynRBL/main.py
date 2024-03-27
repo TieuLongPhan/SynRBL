@@ -1,5 +1,7 @@
+import os
 import copy
 import logging
+import importlib.resources
 import pandas as pd
 
 from SynRBL.preprocess import preprocess
@@ -12,7 +14,7 @@ from SynRBL.confidence_prediction import ConfidencePredictor
 logger = logging.getLogger("SynRBL")
 
 
-class SynRBL:
+class Balancer:
     def __init__(self, id_col="id", reaction_col="reaction", confidence_threshold=0):
         self.__reaction_col = reaction_col
         self.__id_col = id_col
@@ -32,9 +34,7 @@ class SynRBL:
             reaction_col, "rule-based", check_carbon_balance=False
         )
         self.mcs_validator = Validator(reaction_col, "mcs-based")
-        self.rb_method = RuleBasedMethod(
-            id_col, reaction_col, reaction_col, "./Data/Rules/rules_manager.json.gz"
-        )
+        self.rb_method = RuleBasedMethod(id_col, reaction_col, reaction_col)
         self.mcs = MCS(id_col, mcs_data_col=self.mcs_data_col)
         self.mcs_method = MCSBasedMethod(
             reaction_col, reaction_col, mcs_data_col=self.mcs_data_col
@@ -53,7 +53,6 @@ class SynRBL:
         self.rb_method.run(reactions, stats=stats)
         self.rb_validator.check(reactions)
 
-        logger.info("Find maximum common substructure.")
         self.mcs.find(reactions)
 
         logger.info("Impute missing compounds from MCS.")
@@ -66,7 +65,9 @@ class SynRBL:
         self.mcs_validator.check(reactions)
 
         conf_predictor = ConfidencePredictor()
-        conf_predictor.predict(reactions, stats=stats, threshold=self.confidence_threshold)
+        conf_predictor.predict(
+            reactions, stats=stats, threshold=self.confidence_threshold
+        )
 
         assert l == len(reactions)
 

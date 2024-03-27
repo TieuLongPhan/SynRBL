@@ -1,7 +1,10 @@
+import json
 import logging
 import pandas as pd
+import importlib.resources
 
 
+import SynRBL.SynRuleImputer
 from SynRBL.SynRuleImputer import SyntheticRuleImputer
 from SynRBL.SynRuleImputer.synthetic_rule_constraint import RuleConstraint
 from SynRBL.SynProcessor import (
@@ -21,10 +24,16 @@ logger = logging.getLogger(__name__)
 
 
 class RuleBasedMethod:
-    def __init__(self, id_col, reaction_col, output_col, rules_path, n_jobs=1):
+    def __init__(self, id_col, reaction_col, output_col, rules_path=None, n_jobs=1):
         self.id_col = id_col
         self.reaction_col = reaction_col
-        self.rules = load_database(rules_path)
+        if rules_path is None:
+            with importlib.resources.files(SynRBL.SynRuleImputer).joinpath(
+                "rules_manager.json.gz"
+                ).open('r') as f:
+                self.rules = json.load(f)
+        else:
+            self.rules = load_database(rules_path)
         self.n_jobs = n_jobs
         self.output_col = output_col
 

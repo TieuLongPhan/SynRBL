@@ -1,1 +1,1 @@
-from .main import SynRBL
+from .main import Balancer

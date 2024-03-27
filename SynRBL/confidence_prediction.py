@@ -1,6 +1,8 @@
 import joblib
 import pandas as pd
 import numpy as np
+import importlib.resources
+import SynRBL.SynAnalysis
 
 from SynRBL.SynAnalysis.analysis_utils import (
     calculate_chemical_properties,
@@ -8,18 +10,22 @@ from SynRBL.SynAnalysis.analysis_utils import (
 )
 from SynRBL.SynUtils.common import update_reactants_and_products
 
+
 class ConfidencePredictor:
     def __init__(
         self,
-        model_path="Data/scoring_function.dump",
         reaction_col="reaction",
         input_reaction_col="input_reaction",
         confidence_col="confidence",
         solved_by_col="solved_by",
         solved_by_method="mcs-based",
-        mcs_col="mcs"
+        mcs_col="mcs",
     ):
-        self.model = joblib.load(model_path)
+        self.model = joblib.load(
+            importlib.resources.files(SynRBL.SynAnalysis)
+            .joinpath("scoring_function.dump")
+            .open("rb")
+        )
         self.reaction_col = reaction_col
         self.input_reaction_col = input_reaction_col
         self.confidence_col = confidence_col
@@ -37,7 +43,7 @@ class ConfidencePredictor:
         _reactions = count_boundary_atoms_products_and_calculate_changes(
             reactions, self.reaction_col, self.mcs_col
         )
-        update_reactants_and_products(_reactions, self.input_reaction_col) 
+        update_reactants_and_products(_reactions, self.input_reaction_col)
         _reactions = calculate_chemical_properties(_reactions)
 
         df = pd.DataFrame(_reactions)

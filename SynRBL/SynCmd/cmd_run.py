@@ -2,7 +2,7 @@ import argparse
 import logging
 import pandas as pd
 
-from SynRBL import SynRBL
+from SynRBL import Balancer
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ def impute(
 ):
     input_reactions = pd.read_csv(src_file).to_dict("records")
 
-    synrbl = SynRBL(reaction_col=reaction_col, confidence_threshold=min_confidence)
+    synrbl = Balancer(reaction_col=reaction_col, confidence_threshold=min_confidence)
     stats = {}
     rbl_reactions = synrbl.rebalance(input_reactions, output_dict=True, stats=stats)
 
