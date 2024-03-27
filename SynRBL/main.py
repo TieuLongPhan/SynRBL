@@ -13,9 +13,9 @@ logger = logging.getLogger("SynRBL")
 
 
 class SynRBL:
-    def __init__(self, id_col="id", reaction_col="reaction"):
-        self.reaction_col = reaction_col
-        self.id_col = id_col
+    def __init__(self, id_col="id", reaction_col="reaction", confidence_threshold=0):
+        self.__reaction_col = reaction_col
+        self.__id_col = id_col
         self.solved_col = "solved"
         self.mcs_data_col = "mcs"
         self.columns = [
@@ -26,40 +26,47 @@ class SynRBL:
             "confidence",
             "rules",
         ]
+        self.confidence_threshold = confidence_threshold
+        self.input_validator = Validator(reaction_col, "input-balanced")
+        self.rb_validator = Validator(
+            reaction_col, "rule-based", check_carbon_balance=False
+        )
+        self.mcs_validator = Validator(reaction_col, "mcs-based")
+        self.rb_method = RuleBasedMethod(
+            id_col, reaction_col, reaction_col, "./Data/Rules/rules_manager.json.gz"
+        )
+        self.mcs = MCS(id_col, mcs_data_col=self.mcs_data_col)
+        self.mcs_method = MCSBasedMethod(
+            reaction_col, reaction_col, mcs_data_col=self.mcs_data_col
+        )
 
-    def __run_pipeline(self, reactions):
-        r_col = self.reaction_col
-        input_validator = Validator(r_col, "input-balanced")
-        rb_validator = Validator(r_col, "rule-based", check_carbon_balance=False)
-        mcs_validator = Validator(r_col, "mcs-based")
-
-        reactions = preprocess(reactions, r_col, self.id_col, self.solved_col)
+    def __run_pipeline(self, reactions, stats=None):
+        if stats is not None:
+            stats["reaction_cnt"] = len(reactions)
+        reactions = preprocess(
+            reactions, self.__reaction_col, self.__id_col, self.solved_col
+        )
         l = len(reactions)
-        input_validator.check(reactions)
+        self.input_validator.check(reactions)
 
         logger.info("Run rule-based method.")
-        rb_method = RuleBasedMethod(
-            self.id_col, r_col, r_col, "./Data/Rules/rules_manager.json.gz"
-        )
-        rb_method.run(reactions)
-        rb_validator.check(reactions)
+        self.rb_method.run(reactions, stats=stats)
+        self.rb_validator.check(reactions)
 
         logger.info("Find maximum common substructure.")
-        mcs = MCS(self.id_col, mcs_data_col=self.mcs_data_col)
-        mcs.find(reactions)
+        self.mcs.find(reactions)
 
         logger.info("Impute missing compounds from MCS.")
-        mcs_method = MCSBasedMethod(r_col, r_col, mcs_data_col=self.mcs_data_col)
-        mcs_method.run(reactions)
-        mcs_validator.check(reactions)  # update carbon balance
+        self.mcs_method.run(reactions, stats=stats)
+        self.mcs_validator.check(reactions)  # update carbon balance
         logger.info(
             "Run rule-based method again to fix remaining non-carbon imbalance."
         )
-        rb_method.run(reactions)
-        mcs_validator.check(reactions)
+        self.rb_method.run(reactions)
+        self.mcs_validator.check(reactions)
 
         conf_predictor = ConfidencePredictor()
-        conf_predictor.predict(reactions)
+        conf_predictor.predict(reactions, stats=stats, threshold=self.confidence_threshold)
 
         assert l == len(reactions)
 
@@ -67,14 +74,14 @@ class SynRBL:
 
         return reactions
 
-    def rebalance(self, reactions, output_dict=False):
+    def rebalance(self, reactions, output_dict=False, stats=None):
         if not isinstance(reactions, list):
             raise ValueError("Expected a list of reactions.")
         if len(reactions) == 0:
             return []
         if isinstance(reactions[0], str):
-            reactions = pd.DataFrame({self.reaction_col: reactions})
-        result = self.__run_pipeline(copy.deepcopy(reactions))
+            reactions = pd.DataFrame({self.__reaction_col: reactions})
+        result = self.__run_pipeline(copy.deepcopy(reactions), stats)
 
         if output_dict:
             output = []
@@ -82,4 +89,4 @@ class SynRBL:
                 output.append({k: v for k, v in r.items() if k in self.columns})
             return output
         else:
-            return [r[self.reaction_col] for r in result]
+            return [r[self.__reaction_col] for r in result]

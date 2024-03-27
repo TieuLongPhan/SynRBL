@@ -28,7 +28,7 @@ class RuleBasedMethod:
         self.n_jobs = n_jobs
         self.output_col = output_col
 
-    def run(self, reactions):
+    def run(self, reactions, stats=None):
         update_reactants_and_products(reactions, self.reaction_col)
         decompose = RSMIDecomposer(
             smiles=None,  # type: ignore
@@ -73,7 +73,6 @@ class RuleBasedMethod:
             for key, value in enumerate(_reactions)
             if value["carbon_balance_check"] != "balanced"
         ]
-        logger.info("Run rule-based method on {} reactions.".format(len(_reactions)))
         rule_based_reactions = filter_data(
             cbalanced_reactions,
             unbalance_values=["Reactants", "Products"],
@@ -95,6 +94,18 @@ class RuleBasedMethod:
         imp = SyntheticRuleImputer(
             rule_dict=self.rules, select="all", ranking="ion_priority"
         )
+        balanced_cnt = (
+            len(cbalanced_reactions)
+            - len(rule_based_reactions)
+            - len(both_side_cbalanced_reactions)
+        )
+        if stats is not None:
+            stats["balanced_cnt"] = balanced_cnt
+            stats["rb_applied"] = len(rule_based_reactions)
+        logger.info("Input data contains {} balanced reactions.".format(balanced_cnt))
+        logger.info(
+            "Run rule-based method on {} reactions.".format(len(rule_based_reactions))
+        )
         expected_result = imp.parallel_impute(rule_based_reactions, n_jobs=self.n_jobs)
 
         solve, unsolve = extract_results_by_key(expected_result)
@@ -114,6 +125,8 @@ class RuleBasedMethod:
             ],
         )
         certain_reactions, uncertain_reactions = constrain.fit()
+        if stats is not None:
+            stats["rb_solved"] = len(certain_reactions)
 
         for r in certain_reactions:
             _id = int(r[self.id_col])
