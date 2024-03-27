@@ -39,6 +39,7 @@ class Balancer:
         self.mcs_method = MCSBasedMethod(
             reaction_col, reaction_col, mcs_data_col=self.mcs_data_col
         )
+        self.conf_predictor = ConfidencePredictor(reaction_col=reaction_col)
 
     def __run_pipeline(self, reactions, stats=None):
         if stats is not None:
@@ -64,8 +65,7 @@ class Balancer:
         self.rb_method.run(reactions)
         self.mcs_validator.check(reactions)
 
-        conf_predictor = ConfidencePredictor()
-        conf_predictor.predict(
+        self.conf_predictor.predict(
             reactions, stats=stats, threshold=self.confidence_threshold
         )
 
