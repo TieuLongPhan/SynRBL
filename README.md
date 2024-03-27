@@ -2,7 +2,7 @@
 
 SynRBL (Synthesis Rebalancing Framework) is a specialized toolkit designed for computational chemistry. Its primary focus is on rebalancing incomplete chemical reactions and providing rule-based methodologies for data standardization and analysis.
 
-![screenshot](./Image/test.png)
+![screenshot](./docs/Image/test.png)
 
 
 ## Table of Contents
