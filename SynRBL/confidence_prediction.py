@@ -27,7 +27,7 @@ class ConfidencePredictor:
         self.solved_by_method = solved_by_method
         self.mcs_col = mcs_col
 
-    def predict(self, reactions):
+    def predict(self, reactions, stats=None, threshold=0):
         reactions = [
             r
             for r in reactions
@@ -57,6 +57,11 @@ class ConfidencePredictor:
 
         confidence = np.round(self.model.predict_proba(X_pred)[:, 1], 3)
         assert len(reactions) == len(confidence)
+        conf_success = 0
         for r, c in zip(reactions, confidence):
             r[self.confidence_col] = c
+            if c >= threshold:
+                conf_success += 1
+        if stats is not None:
+            stats["confident_cnt"] = conf_success
         return reactions

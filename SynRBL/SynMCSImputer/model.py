@@ -105,10 +105,13 @@ class MCSBasedMethod:
         self.rules_col = rules_col
         self.carbon_balance_col = carbon_balance_col
 
-    def run(self, reactions: list[dict]):
+    def run(self, reactions: list[dict], stats=None):
+        mcs_applied = 0
+        mcs_solved = 0
         for reaction in reactions:
             if self.mcs_data_col not in reaction.keys():
                 continue
+            mcs_applied += 1
             try:
                 result, rules = impute_reaction(
                     reaction,
@@ -119,8 +122,12 @@ class MCSBasedMethod:
                 )
                 reaction[self.output_col] = result
                 reaction[self.rules_col] = rules
+                mcs_solved += 1
             except Exception as e:
                 traceback.print_exc()
                 reaction[self.issue_col] = str(e)
 
+        if stats is not None:
+            stats["mcs_applied"] = mcs_applied
+            stats["mcs_solved"] = mcs_solved
         return reactions
