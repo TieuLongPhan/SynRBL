@@ -55,6 +55,8 @@ class MCS:
                 and not value[self.solved_col]
             )
         ]
+        if len(mcs_reactions) == 0:
+            return reactions
         logger.info(
             "Find maximum-common-substructure for {} reactions.".format(
                 len(mcs_reactions)

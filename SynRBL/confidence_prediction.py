@@ -40,34 +40,35 @@ class ConfidencePredictor:
             if self.solved_by_col in r.keys()
             and r[self.solved_by_col] == self.solved_by_method
         ]
-        _reactions = count_boundary_atoms_products_and_calculate_changes(
-            reactions, self.reaction_col, self.mcs_col
-        )
-        update_reactants_and_products(_reactions, self.input_reaction_col)
-        _reactions = calculate_chemical_properties(_reactions)
-
-        df = pd.DataFrame(_reactions)
-
-        X_pred = df[
-            [
-                "carbon_difference",
-                "fragment_count",
-                "total_carbons",
-                "total_bonds",
-                "total_rings",
-                "num_boundary",
-                "ring_change_merge",
-                "bond_change_merge",
-            ]
-        ]
-
-        confidence = np.round(self.model.predict_proba(X_pred)[:, 1], 3)
-        assert len(reactions) == len(confidence)
         conf_success = 0
-        for r, c in zip(reactions, confidence):
-            r[self.confidence_col] = c
-            if c >= threshold:
-                conf_success += 1
+        if len(reactions) > 0:
+            _reactions = count_boundary_atoms_products_and_calculate_changes(
+                reactions, self.reaction_col, self.mcs_col
+            )
+            update_reactants_and_products(_reactions, self.input_reaction_col)
+            _reactions = calculate_chemical_properties(_reactions)
+
+            df = pd.DataFrame(_reactions)
+
+            X_pred = df[
+                [
+                    "carbon_difference",
+                    "fragment_count",
+                    "total_carbons",
+                    "total_bonds",
+                    "total_rings",
+                    "num_boundary",
+                    "ring_change_merge",
+                    "bond_change_merge",
+                ]
+            ]
+
+            confidence = np.round(self.model.predict_proba(X_pred)[:, 1], 3)
+            assert len(reactions) == len(confidence)
+            for r, c in zip(reactions, confidence):
+                r[self.confidence_col] = c
+                if c >= threshold:
+                    conf_success += 1
         if stats is not None:
             stats["confident_cnt"] = conf_success
         return reactions
