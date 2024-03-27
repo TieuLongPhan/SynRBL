@@ -15,4 +15,4 @@ out/
 
 Data/Validation_set/validation_set_result.csv
 R_test.py
-./Data/R
+./Data/R/
