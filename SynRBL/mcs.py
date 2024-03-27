@@ -75,6 +75,8 @@ class MCS:
             extraction_method="largest_mcs",
             using_threshold=True,
         )
+        if len(mcs_dict) == 0:
+            return reactions
 
         missing_results_largest = find_graph_dict(mcs_dict)
 

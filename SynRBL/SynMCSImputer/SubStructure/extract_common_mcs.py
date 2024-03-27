@@ -136,6 +136,7 @@ class ExtractMCS:
         for idx in range(min_length):
             tied_conditions = []
             max_atoms = 0
+            max_condition = -1
 
             # First pass: Find conditions with the largest total atom counts
             for condition_idx, total in enumerate(total_atoms_conditions):
