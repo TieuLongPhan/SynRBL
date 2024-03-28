@@ -14,5 +14,6 @@ tmp/
 out/
 
 Data/Validation_set/validation_set_result.csv
-R_test.py
-./Data/R/
+synrbl_pilot.py
+Data/Run/
+
