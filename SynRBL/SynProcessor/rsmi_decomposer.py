@@ -141,9 +141,9 @@ class RSMIDecomposer:
         {'C': 2, 'O': 1, 'H': 6, 'Q': 0}
         """
         molecule = Chem.MolFromSmiles(smiles)
+        comp = defaultdict(int)
         if molecule:
             molecule_with_Hs = Chem.AddHs(molecule)
-            comp = defaultdict(int)
 
             for atom in molecule_with_Hs.GetAtoms():
                 atomic_symbol = RSMIDecomposer.atomic_symbols.get(atom.GetAtomicNum(), "Unknown")
@@ -153,6 +153,4 @@ class RSMIDecomposer:
             if charge != 0:
                 comp['Q'] = charge
 
-            return dict(comp)
-        else:
-            return None
+        return dict(comp)
