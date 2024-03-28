@@ -59,7 +59,7 @@ class RSMIProcessing:
         index_col: str = 'R-id',
         rsmi_col: str = None,
         symbol: str = '>>',
-        n_jobs: int = 10,
+        n_jobs: int = 4,
         drop_duplicates: bool = True,
         verbose: int = 1,
         parallel: bool = True,

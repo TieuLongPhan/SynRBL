@@ -96,7 +96,7 @@ class BothSideReact:
             # Return as is if conditions not met
             return diff_dict, 'Both'
 
-    def fit(self, n_jobs=-2):
+    def fit(self, n_jobs=4):
         """
         Processes the reactions by balancing reactants and products and updating the unbalance status.
 

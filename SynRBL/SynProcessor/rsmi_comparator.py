@@ -32,7 +32,7 @@ class RSMIComparator:
         self, 
         reactants: List[str], 
         products: List[str], 
-        n_jobs: int = 10, 
+        n_jobs: int = 4, 
         verbose: int = 1) -> None:
         """
         Initialize the RSMIComparator object.

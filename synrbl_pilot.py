@@ -57,3 +57,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.input_dir, args.output_dir, args.log)
+    #python synrbl_pilot.py --input_dir ./Data/Run/Input/batch_1 --output_dir ./Data/Run/Input/batch_1 --log ./Data/Run/log_batch_1.log 

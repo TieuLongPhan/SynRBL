@@ -67,7 +67,7 @@ def ensemble_mcs(data, conditions, batch_size=100, Timeout=60):
         # Process data in batches
         for start in range(0, len(data), batch_size):
             end = start + batch_size
-            batch_results = Parallel(n_jobs=-2, verbose=0)(
+            batch_results = Parallel(n_jobs=4, verbose=0)(
                 delayed(single_mcs)(data_dict, **condition, Timeout=Timeout)
                 for data_dict in data[start:end]
             )

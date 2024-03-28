@@ -47,7 +47,7 @@ class RSMIDecomposer:
         reactant_col: str = 'reactants', 
         product_col: str = 'products',
         parallel: bool = True, 
-        n_jobs: int = 10, 
+        n_jobs: int = 4, 
         verbose: int = 1
         ) -> None:
         """

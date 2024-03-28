@@ -40,7 +40,7 @@ def find_single_graph(mcs_mol_list, sorted_reactants_mol_list):
     return missing_results
 
 
-def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=-1):
+def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4):
     """
     Find missing parts, boundary atoms, and nearest neighbors for a list of reactant molecules
     using a corresponding list of MCS (Maximum Common Substructure) molecules in parallel.
