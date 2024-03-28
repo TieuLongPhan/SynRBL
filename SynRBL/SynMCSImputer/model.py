@@ -124,7 +124,7 @@ class MCSBasedMethod:
                 reaction[self.rules_col] = rules
                 mcs_solved += 1
             except Exception as e:
-                traceback.print_exc()
+                #traceback.print_exc()
                 reaction[self.issue_col] = str(e)
 
         if stats is not None:
