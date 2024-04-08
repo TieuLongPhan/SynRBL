@@ -68,6 +68,6 @@ for k, v in reaction_dict.items():
 with open("dataset.json", "w") as f:
     json.dump(reaction_list, f, indent=4)
 
-df = pd.DataFrame(reaction_list[0:100])
-df.to_csv("dataset_100.csv")
+df = pd.DataFrame(reaction_list)
+df.to_csv("dataset.csv")
 
