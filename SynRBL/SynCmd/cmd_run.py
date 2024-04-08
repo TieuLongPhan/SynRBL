@@ -101,6 +101,10 @@ class Range(object):
         return "[{}, {}]".format(self.start, self.end)
 
 
+def list_of_strings(arg):
+    return arg.split(",")
+
+
 def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser = argparser.add_parser(
         "run", description="Try to rebalance chemical reactions."
@@ -118,7 +122,9 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--columns",
         default=[],
-        help="A list of columns from the input that should be added to the output.",
+        type=list_of_strings,
+        help="A comma separated list of columns from the input that should "
+        + "be added to the output. (e.g.: col1,col2,col3)",
     )
     test_parser.add_argument(
         "--min-confidence",

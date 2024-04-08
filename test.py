@@ -17,13 +17,14 @@ def get_reaction_img(smiles):
     d.FinishDrawing()
     return Image.open(io.BytesIO(d.GetDrawingText()))
 
-rxn = "[C:5]([O:4][CH2:3][CH3:2])=[O:6].[OH2:1]>>[C:5]([OH:1])=[O:6]"
+rxn = "O=CC1=CC=CC=C1.C=CCBr>>O[C@@H](CC=C)C1=CC=CC=C1.[H]Br"
 
 plt.imshow(get_reaction_img(rxn))
 plt.show()
 
 balancer = Balancer()
 result = balancer.rebalance([rxn], output_dict=True)
+print(result)
 
 plt.imshow(get_reaction_img(result[0]["reaction"]))
 plt.show()

@@ -86,13 +86,14 @@ def count_boundary_atoms_products_and_calculate_changes(
         bond_change = 0
         ring_change = 0
 
-        for i in item[mcs_col]["boundary_atoms_products"]:
-            if isinstance(i, dict):
-                count += 1
-            elif isinstance(i, list):
-                for j in i:
-                    if isinstance(j, dict):
-                        count += 1
+        if mcs_col in item.keys():
+            for i in item[mcs_col]["boundary_atoms_products"]:
+                if isinstance(i, dict):
+                    count += 1
+                elif isinstance(i, list):
+                    for j in i:
+                        if isinstance(j, dict):
+                            count += 1
 
         reactant_product = item[reaction_col].split(">>")
         if len(reactant_product) == 2:
