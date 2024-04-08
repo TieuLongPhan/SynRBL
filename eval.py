@@ -69,13 +69,17 @@ for idx, row in df.iterrows():
     in_rxn = normalize_smiles(row["input_reaction"])
     act_rxn = normalize_smiles(row["reaction"])
     if exp_rxn != act_rxn and exp_rxn != None:
-        print(
-            "----- Unequal Reaction ({},{}) -----\n{}\n{}".format(
-                idx, row["solved_by"], exp_rxn, act_rxn
-            )
-        )
         d = len(exp_rxn) - len(act_rxn)
-        if "remove_water_catalyst" in row["rules"] and d == 2:
-            db.update(in_rxn, correct_reaction=act_rxn)
-            export_reaction(in_rxn, exp_rxn, act_rxn, "imgs/{}-{}.png".format(idx, d))
+        if d == -2: 
+            exp_rxn2 = exp_rxn.split(">>")
+            exp_rxn2[0] += ".O"
+            exp_rxn2 = ">>".join(exp_rxn2)
+            if exp_rxn2 == act_rxn:
+                print(
+                    "----- Unequal Reaction ({},{}) -----\n{}\n{}".format(
+                        idx, row["solved_by"], exp_rxn, act_rxn
+                    )
+                )
+                db.update(in_rxn, correct_reaction=row["reaction"])
+                #export_reaction(in_rxn, exp_rxn, act_rxn, "imgs/{}-{}.png".format(idx, d))
 

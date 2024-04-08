@@ -7,7 +7,7 @@ _FILE_NAME = "dataset"
 
 _reaction_dict = None 
 
-def _open():
+def _load():
     global _reaction_dict
     if _reaction_dict is None:
         with open("{}.json".format(_FILE_NAME), "r") as f:
@@ -16,7 +16,7 @@ def _open():
         for r in reaction_list:
             _reaction_dict[normalize_smiles(r["reaction"])] = r
 
-def _flush():
+def flush():
     global _reaction_dict
     assert _reaction_dict is not None
     reaction_list = list(_reaction_dict.values())
@@ -29,11 +29,9 @@ def _flush():
 
 def update(reaction, correct_reaction=None, wrong_reaction=None):
     global _reaction_dict
-    _open()
+    _load()
     assert _reaction_dict is not None
     if correct_reaction is not None:
         _reaction_dict[reaction]["correct_reaction"] = correct_reaction
     if wrong_reaction is not None:
         _reaction_dict[reaction]["wrong_reactions"].append(wrong_reaction)
-    _flush()
-
