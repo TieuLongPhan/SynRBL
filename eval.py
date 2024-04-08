@@ -9,6 +9,8 @@ import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 from PIL import Image
 from SynRBL.SynUtils.chem_utils import normalize_smiles, remove_atom_mapping
 
+import db_interface as db
+
 def get_reaction_img(smiles):
     rxn = rdChemReactions.ReactionFromSmarts(smiles, useSmiles=True)
     d = rdMolDraw2D.MolDraw2DCairo(2000, 500)
@@ -54,12 +56,10 @@ def export_reaction(in_r, exp, act, path):
     plt.close()
     
 
-# O=CC1=CC=CC=C1.C=CCBr.[H].[H].[O]>>O[C@@H](CC=C)C1=CC=CC=C1Br.O
 if not os.path.exists("imgs"):
     os.mkdir("imgs") 
 
-df = pd.read_csv("dataset_out_100.csv")
-print(df.columns)
+df = pd.read_csv("dataset_out.csv")
 for idx, row in df.iterrows():
     if row["solved_by"] != "mcs-based":
         continue
@@ -74,5 +74,8 @@ for idx, row in df.iterrows():
                 idx, row["solved_by"], exp_rxn, act_rxn
             )
         )
-        export_reaction(in_rxn, exp_rxn, act_rxn, "imgs/{}.png".format(idx))
+        d = len(exp_rxn) - len(act_rxn)
+        if "remove_water_catalyst" in row["rules"] and d == 2:
+            db.update(in_rxn, correct_reaction=act_rxn)
+            export_reaction(in_rxn, exp_rxn, act_rxn, "imgs/{}-{}.png".format(idx, d))
 
