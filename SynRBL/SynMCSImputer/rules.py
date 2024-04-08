@@ -13,6 +13,7 @@ import SynRBL.SynMCSImputer
 import SynRBL.SynUtils.functional_group_utils as fgutils
 import SynRBL.SynMCSImputer.utils as utils
 
+from SynRBL.SynUtils.chem_utils import remove_atom_mapping
 from .structure import Boundary, Compound
 
 
@@ -404,9 +405,11 @@ class SmilesCompoundProperty(CompoundProperty):
 
     def check(self, value: Compound, check_value) -> bool:
         if self.use_src_mol:
+            if value.src_smiles is not None:
+                return remove_atom_mapping(value.src_smiles) == check_value
             return value.src_smiles == check_value
         else:
-            return value.smiles == check_value
+            return remove_atom_mapping(value.smiles) == check_value
 
 
 class BoundaryCondition:

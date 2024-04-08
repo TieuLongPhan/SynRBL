@@ -285,6 +285,12 @@ class TestFunctionalGroupCompoundProperty(unittest.TestCase):
         self.assertTrue(prop1(comp))
         self.assertTrue(prop2(comp))
 
+class TestSmilesCompoundProperty(unittest.TestCase):
+    def test_atom_mapped_smiles(self):
+        prop = SmilesCompoundProperty("O")
+        comp = Compound("[OH2:1]")
+        self.assertTrue(prop(comp))
+
 class TestAddBoundaryAction(unittest.TestCase):
     def test_1(self):
         action = AddBoundaryAction("alcohol", "CO", "1")
