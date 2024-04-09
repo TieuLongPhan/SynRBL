@@ -85,24 +85,13 @@ if not os.path.exists("imgs"):
     os.mkdir("imgs") 
 
 df = pd.read_csv("dataset_out.csv")
-wrong_cnt = 0
+updated = 0
 for idx, row in df.iterrows():
-    if wrong_cnt == 10:
-        break
-    exp_rxn = None
-    if row["correct_reaction"] is not np.nan:
-        exp_rxn = normalize_smiles(row["correct_reaction"])
+    if row["solved_by"] != "input-balanced":
+        continue
+    updated += 1
     in_rxn = normalize_smiles(row["input_reaction"])
-    act_rxn = normalize_smiles(row["reaction"])
-    if exp_rxn == None:
-        wrong_cnt += 1
-        print(
-            "----- Unequal Reaction ({},{}) -----\n{}\n{}".format(
-                idx, row["solved_by"], exp_rxn, act_rxn
-            )
-        )
-        export_reaction(in_rxn, act_rxn, "imgs/{}.png".format(idx), exp=exp_rxn)
+    db.update(in_rxn, correct_reaction=row["reaction"])
 
-print("Wrong: {}".format(wrong_cnt))
-#db.flush()
-
+print("Updated: {}".format(updated))
+db.flush()
