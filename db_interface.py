@@ -13,13 +13,19 @@ def _load():
         with open("{}.json".format(_FILE_NAME), "r") as f:
             reaction_list = json.load(f)
         _reaction_dict = {}
-        for r in reaction_list:
-            _reaction_dict[normalize_smiles(r["reaction"])] = r
+        for rdata in reaction_list:
+            rdata["wrong_reactions"] = set([normalize_smiles(r) for r in rdata["wrong_reactions"]])
+            _reaction_dict[normalize_smiles(rdata["reaction"])] = rdata
 
 def flush():
     global _reaction_dict
-    assert _reaction_dict is not None
-    reaction_list = list(_reaction_dict.values())
+    if _reaction_dict is None:
+        return
+    reaction_list = []
+    for r in _reaction_dict.values():
+        _r = copy.deepcopy(r)
+        _r["wrong_reactions"] = list(r["wrong_reactions"])
+        reaction_list.append(_r)
 
     with open("{}.json".format(_FILE_NAME), "w") as f:
         json.dump(reaction_list, f, indent=4)
@@ -30,11 +36,12 @@ def flush():
 def update(reaction, correct_reaction=None, wrong_reaction=None):
     global _reaction_dict
     _load()
+    r_key = normalize_smiles(reaction)
     assert _reaction_dict is not None
     if correct_reaction is not None:
-        _reaction_dict[reaction]["correct_reaction"] = correct_reaction
+        _reaction_dict[r_key]["correct_reaction"] = correct_reaction
     if wrong_reaction is not None:
-        _reaction_dict[reaction]["wrong_reactions"].append(wrong_reaction)
+        _reaction_dict[r_key]["wrong_reactions"].update([normalize_smiles(wrong_reaction)])
 
 def get(reaction):
     global _reaction_dict
