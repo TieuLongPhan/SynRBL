@@ -39,7 +39,7 @@ def plot_reactions(smiles, titles=None, suptitle=None):
     plt.show()
 
 def export_reaction(in_r, exp, act, path):
-    fig, axs = plt.subplots(3, 1, figsize=(10,7))
+    fig, axs = plt.subplots(3, 1, dpi=400, figsize=(10,7))
     exp_img = get_reaction_img(exp)
     act_img = get_reaction_img(act)
     in_img = get_reaction_img(in_r)
@@ -60,6 +60,7 @@ if not os.path.exists("imgs"):
     os.mkdir("imgs") 
 
 df = pd.read_csv("dataset_out.csv")
+wrong_cnt = 0
 for idx, row in df.iterrows():
     if row["solved_by"] != "mcs-based":
         continue
@@ -69,19 +70,21 @@ for idx, row in df.iterrows():
     in_rxn = normalize_smiles(row["input_reaction"])
     act_rxn = normalize_smiles(row["reaction"])
     if exp_rxn != act_rxn and exp_rxn != None:
+        wrong_cnt += 1
         d = len(exp_rxn) - len(act_rxn)
         #if d == -2: 
         exp_rxn2 = exp_rxn.split(">>")
         exp_rxn2[0] += ".[I-].[H+]"
         exp_rxn2 = ">>".join(exp_rxn2)
-        if exp_rxn2 == act_rxn:
-            print(
-                "----- Unequal Reaction ({},{}) -----\n{}\n{}".format(
-                    idx, row["solved_by"], exp_rxn, act_rxn
-                )
+        #if exp_rxn2 == act_rxn:
+        print(
+            "----- Unequal Reaction ({},{}) -----\n{}\n{}".format(
+                idx, row["solved_by"], exp_rxn, act_rxn
             )
-            db.update(in_rxn, correct_reaction=row["reaction"])
-            #export_reaction(in_rxn, exp_rxn, act_rxn, "imgs/{}-{}.png".format(idx, d))
+        )
+        db.update(in_rxn, correct_reaction=row["reaction"])
+        #export_reaction(in_rxn, exp_rxn, act_rxn, "imgs/{}-{}.png".format(idx, d))
 
+print("Wrong: {}".format(wrong_cnt))
 db.flush()
 

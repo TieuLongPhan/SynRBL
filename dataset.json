@@ -466,14 +466,14 @@
     },
     {
         "R-ids": [
-            "golden_dataset_101"
+            "Jaworski_193"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[CH:13]=1[CH:12]=[C:11]2[CH2:10][CH2:9][C:8]([CH2:17][C:16]2=[CH:15][CH:14]=1)=[O:7].[CH3:1][O:2][C:3]([O:5][CH3:6])=[O:4]>>[C:11]12=[CH:12][CH:13]=[CH:14][CH:15]=[C:16]1[CH:17]([C:3]([O:2][CH3:1])=[O:4])[C:8](=[O:7])[CH2:9][CH2:10]2.[OH:5][CH3:6]",
+        "correct_reaction": "COC(=O)OC.O=C1CCc2ccccc2C1>>COC(=O)C1C(=O)CCc2ccccc12.CO",
         "wrong_reactions": [],
-        "reaction": "[CH:13]=1[CH:12]=[C:11]2[CH2:10][CH2:9][C:8]([CH2:17][C:16]2=[CH:15][CH:14]=1)=[O:7].[CH3:1][O:2][C:3]([O:5][CH3:6])=[O:4]>>[C:11]12=[CH:12][CH:13]=[CH:14][CH:15]=[C:16]1[CH:17]([C:3]([O:2][CH3:1])=[O:4])[C:8](=[O:7])[CH2:9][CH2:10]2"
+        "reaction": "COC(=O)OC.O=C1CCc2ccccc2C1>>COC(=O)C1C(=O)CCc2ccccc12"
     },
     {
         "R-ids": [
@@ -732,14 +732,14 @@
     },
     {
         "R-ids": [
-            "golden_dataset_169"
+            "Jaworski_326"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[CH:7]=1[C:8]([CH3:9])=[C:2]([F:1])[CH:3]=[C:4]([NH2:5])[CH:6]=1.[CH3:11][C:10]([CH3:12])([CH3:13])[O:14][C:15]([NH:16][CH2:17][CH:18]1[O:19][CH2:20]1)=[O:21].[CH3:25][N:24]([CH3:26])[CH:23]=[O:22].[O]>>[CH3:11][C:10]([CH3:12])([CH3:13])[O:14][C:15]([NH:16][CH2:17][CH:18]1[O:19][C:23](=[O:22])[N:5]([C:4]2=[CH:3][C:2](=[C:8]([CH3:9])[CH:7]=[CH:6]2)[F:1])[CH2:20]1)=[O:21].[NH:24]([CH3:25])[CH3:26].O",
+        "correct_reaction": "CC(C)(C)OC(=O)NCC1CO1.Cc1ccc(N)cc1F.CN(C)C=O.[O]>>Cc1ccc(cc1F)N1CC(CNC(=O)OC(C)(C)C)OC1=O.CNC.O",
         "wrong_reactions": [],
-        "reaction": "[CH:7]=1[C:8]([CH3:9])=[C:2]([F:1])[CH:3]=[C:4]([NH2:5])[CH:6]=1.[CH3:11][C:10]([CH3:12])([CH3:13])[O:14][C:15]([NH:16][CH2:17][CH:18]1[O:19][CH2:20]1)=[O:21].[CH3:25][N:24]([CH3:26])[CH:23]=[O:22]>>[CH3:11][C:10]([CH3:12])([CH3:13])[O:14][C:15]([NH:16][CH2:17][CH:18]1[O:19][C:23](=[O:22])[N:5]([C:4]2=[CH:3][C:2](=[C:8]([CH3:9])[CH:7]=[CH:6]2)[F:1])[CH2:20]1)=[O:21]"
+        "reaction": "CC(C)(C)OC(=O)NCC1CO1.Cc1ccc(N)cc1F.CN(C)C=O>>Cc1ccc(cc1F)N1CC(CNC(=O)OC(C)(C)C)OC1=O"
     },
     {
         "R-ids": [
@@ -1880,14 +1880,14 @@
     },
     {
         "R-ids": [
-            "golden_dataset_535"
+            "Jaworski_14"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[CH:13]=1[CH:14]=[CH:15][C:10](=[CH:11][CH:12]=1)[CH:9]=[O:8].[CH3:1][Si:2]([CH3:3])([CH3:4])[CH2:5][CH:6]=[CH2:7].O>>[CH:6]([CH2:7][CH:9]([OH:8])[C:10]=1[CH:15]=[CH:14][CH:13]=[CH:12][CH:11]=1)=[CH2:5].O[Si:2]([CH3:1])([CH3:3])[CH3:4]",
+        "correct_reaction": "O=Cc1ccccc1.C[Si](C)(C)CC=C.O>>OC(CC=C)c1ccccc1.C[Si](C)(C)O",
         "wrong_reactions": [],
-        "reaction": "[CH:13]=1[CH:14]=[CH:15][C:10](=[CH:11][CH:12]=1)[CH:9]=[O:8].[CH3:1][Si:2]([CH3:3])([CH3:4])[CH2:5][CH:6]=[CH2:7]>>[CH:6]([CH2:7][CH:9]([OH:8])[C:10]=1[CH:15]=[CH:14][CH:13]=[CH:12][CH:11]=1)=[CH2:5]"
+        "reaction": "O=Cc1ccccc1.C[Si](C)(C)CC=C>>OC(CC=C)c1ccccc1"
     },
     {
         "R-ids": [
@@ -3504,7 +3504,7 @@
         "datasets": [
             "Jaworski"
         ],
-        "correct_reaction": "[CH2:34]1[CH2:35][CH2:36][CH2:37][CH:33]1[N:32]2[C:24]([S:25][CH2:26][C:27]23[CH2:28][CH2:29][CH2:30][CH2:31]3)=[N:23][C:22]=4[C:15]([CH2:14][CH3:13])=[CH:16][C:17](=[CH:20][CH:21]=4)[CH:18]=[O:19].[CH3:1][CH2:2][O:3][P:4]([O:10][CH2:11][CH3:12])(=[O:5])[CH2:6][C:7](=[O:9])[CH3:8]>>[CH2:34]1[CH2:35][CH2:36][CH2:37][CH:33]1[N:32]2[C:24](=[N:23][C:22]3=[CH:21][CH:20]=[C:17]([CH:18]=[CH:6][C:7](=[O:9])[CH3:8])[CH:16]=[C:15]3[CH2:14][CH3:13])[S:25][CH2:26][C:27]24[CH2:28][CH2:29][CH2:30][CH2:31]4.[CH3:1][CH2:2][O:3][P:4]([O:5])([O:10][CH2:11][CH3:12])=[O:19].[H]",
+        "correct_reaction": "CCc1cc(C=O)ccc1N=C1SCC2(CCCC2)N1C1CCCC1.CCOP(=O)(CC(C)=O)OCC>>CCc1cc(C=CC(C)=O)ccc1N=C1SCC2(CCCC2)N1C1CCCC1.CCOP(=O)(O)OCC",
         "wrong_reactions": [],
         "reaction": "CCc1cc(C=O)ccc1N=C1SCC2(CCCC2)N1C1CCCC1.CCOP(=O)(CC(C)=O)OCC>>CCc1cc(C=CC(C)=O)ccc1N=C1SCC2(CCCC2)N1C1CCCC1"
     },
@@ -3560,25 +3560,25 @@
     },
     {
         "R-ids": [
-            "golden_dataset_1118"
+            "Jaworski_339"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[O:23]([CH2:24][CH3:25])[C:22]([O:26][CH2:27][CH3:28])=[CH:21][C:19](=[O:20])[O:18][CH2:17][CH3:16].[O:14]=[S:12](=[O:15])([C:11]1=[C:9]([NH2:10])[S:8][CH:7]=[C:6]1[CH2:5][O:4][CH2:3][O:2][CH3:1])[NH2:13]>>[O:14]=[S:12]1(=[O:15])[N:13]=[C:22]([CH2:21][C:19](=[O:20])[O:18][CH2:17][CH3:16])[NH:10][C:9]2=[C:11]1[C:6](=[CH:7][S:8]2)[CH2:5][O:4][CH2:3][O:2][CH3:1].[OH:23][CH2:24][CH3:25].[OH:26][CH2:27][CH3:28]",
+        "correct_reaction": "CCOC(=O)C=C(OCC)OCC.COCOCc1csc(N)c1S(N)(=O)=O>>CCOC(=O)CC1=NS(=O)(=O)c2c(COCOC)csc2N1.CCO.CCO",
         "wrong_reactions": [],
-        "reaction": "[O:23]([CH2:24][CH3:25])[C:22]([O:26][CH2:27][CH3:28])=[CH:21][C:19](=[O:20])[O:18][CH2:17][CH3:16].[O:14]=[S:12](=[O:15])([C:11]1=[C:9]([NH2:10])[S:8][CH:7]=[C:6]1[CH2:5][O:4][CH2:3][O:2][CH3:1])[NH2:13]>>[O:14]=[S:12]1(=[O:15])[N:13]=[C:22]([CH2:21][C:19](=[O:20])[O:18][CH2:17][CH3:16])[NH:10][C:9]2=[C:11]1[C:6](=[CH:7][S:8]2)[CH2:5][O:4][CH2:3][O:2][CH3:1]"
+        "reaction": "CCOC(=O)C=C(OCC)OCC.COCOCc1csc(N)c1S(N)(=O)=O>>CCOC(=O)CC1=NS(=O)(=O)c2c(COCOC)csc2N1"
     },
     {
         "R-ids": [
-            "golden_dataset_1122"
+            "Jaworski_346"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[Br:19][C:18]=1[CH:20]=[N:21][N:22]([CH3:23])[C:17]=1[C:16]2=[C:12]([CH2:11][CH3:10])[S:13][C:14]([C:24]([O:26][CH3:27])=[O:25])=[CH:15]2.[CH3:1][B:2]1[O:3][B:4]([CH3:5])[O:6][B:7]([CH3:8])[O:9]1>>[CH2:11]([C:12]1=[C:16]([C:17]2=[C:18]([CH:20]=[N:21][N:22]2[CH3:23])[CH3:8])[CH:15]=[C:14]([C:24]([O:26][CH3:27])=[O:25])[S:13]1)[CH3:10].[B:2]1([Br:19])[O:3][B:4]([CH3:5])[O:6][B:7]([CH3:8])[O:9]1",
+        "correct_reaction": "CCc1sc(cc1-c1c(Br)cnn1C)C(=O)OC.CB1OB(C)OB(C)O1>>CCc1sc(cc1-c1c(C)cnn1C)C(=O)OC.CB1OB(C)OB(Br)O1",
         "wrong_reactions": [],
-        "reaction": "[Br:19][C:18]=1[CH:20]=[N:21][N:22]([CH3:23])[C:17]=1[C:16]2=[C:12]([CH2:11][CH3:10])[S:13][C:14]([C:24]([O:26][CH3:27])=[O:25])=[CH:15]2.[CH3:1][B:2]1[O:3][B:4]([CH3:5])[O:6][B:7]([CH3:8])[O:9]1>>[CH2:11]([C:12]1=[C:16]([C:17]2=[C:18]([CH:20]=[N:21][N:22]2[CH3:23])[CH3:8])[CH:15]=[C:14]([C:24]([O:26][CH3:27])=[O:25])[S:13]1)[CH3:10]"
+        "reaction": "CCc1sc(cc1-c1c(Br)cnn1C)C(=O)OC.CB1OB(C)OB(C)O1>>CCc1sc(cc1-c1c(C)cnn1C)C(=O)OC"
     },
     {
         "R-ids": [
@@ -8794,25 +8794,25 @@
     },
     {
         "R-ids": [
-            "golden_dataset_1139"
+            "Jaworski_375"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[CH3:1][CH2:2][Mg:3][Cl:4].[N:13]#[C:12][C:11]1=[CH:10][CH:9]=[CH:8][CH:7]=[C:6]1[NH2:5].O>>[CH:8]1=[CH:7][C:6]([NH2:5])=[C:11]([C:12]([CH2:2][CH3:1])=[O:14])[CH:10]=[CH:9]1.[Mg:3]([Cl:4])[NH2:13]",
+        "correct_reaction": "Nc1ccccc1C#N.CC[Mg]Cl.O>>CCC(=O)c1ccccc1N.N[Mg]Cl",
         "wrong_reactions": [],
-        "reaction": "[CH3:1][CH2:2][Mg:3][Cl:4].[N:13]#[C:12][C:11]1=[CH:10][CH:9]=[CH:8][CH:7]=[C:6]1[NH2:5]>>[CH:8]1=[CH:7][C:6]([NH2:5])=[C:11]([C:12]([CH2:2][CH3:1])=[O:14])[CH:10]=[CH:9]1"
+        "reaction": "Nc1ccccc1C#N.CC[Mg]Cl>>CCC(=O)c1ccccc1N"
     },
     {
         "R-ids": [
-            "golden_dataset_1141"
+            "Jaworski_377"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[C:12](#[N:13])[C:9]1=[CH:8][CH:7]=[C:6]([Br:5])[CH:11]=[CH:10]1.[CH3:1][CH:2]([CH3:3])[Mg+:4].O>>[CH3:1][CH:2]([CH3:3])[C:12](=[O:14])[C:9]=1[CH:8]=[CH:7][C:6](=[CH:11][CH:10]=1)[Br:5].[Mg+:4][NH2:13]",
+        "correct_reaction": "Brc1ccc(cc1)C#N.CC(C)[Mg+].O>>CC(C)C(=O)c1ccc(Br)cc1.N[Mg+]",
         "wrong_reactions": [],
-        "reaction": "[C:12](#[N:13])[C:9]1=[CH:8][CH:7]=[C:6]([Br:5])[CH:11]=[CH:10]1.[CH3:1][CH:2]([CH3:3])[Mg+:4]>>[CH3:1][CH:2]([CH3:3])[C:12](=[O:14])[C:9]=1[CH:8]=[CH:7][C:6](=[CH:11][CH:10]=1)[Br:5]"
+        "reaction": "Brc1ccc(cc1)C#N.CC(C)[Mg+]>>CC(C)C(=O)c1ccc(Br)cc1"
     },
     {
         "R-ids": [
@@ -8827,14 +8827,14 @@
     },
     {
         "R-ids": [
-            "golden_dataset_1148"
+            "Jaworski_386"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[CH2:13]1[CH2:14][CH:12]1[C:11]#[N:10].[C:7]=1([C:2](=[CH:3][CH:4]=[CH:5][CH:6]=1)[Cl:1])[CH2:8][Br:9].O.[H].[H]>>[CH2:13]1[CH2:14][CH:12]1[C:11]([CH2:8][C:7]=2[C:2](=[CH:3][CH:4]=[CH:5][CH:6]=2)[Cl:1])=[O:15].[BrH:9].[NH3:10]",
+        "correct_reaction": "N#CC1CC1.Clc1ccccc1CBr.O.[H].[H]>>Clc1ccccc1CC(=O)C1CC1.Br.N",
         "wrong_reactions": [],
-        "reaction": "[CH2:13]1[CH2:14][CH:12]1[C:11]#[N:10].[C:7]=1([C:2](=[CH:3][CH:4]=[CH:5][CH:6]=1)[Cl:1])[CH2:8][Br:9]>>[CH2:13]1[CH2:14][CH:12]1[C:11]([CH2:8][C:7]=2[C:2](=[CH:3][CH:4]=[CH:5][CH:6]=2)[Cl:1])=[O:15]"
+        "reaction": "N#CC1CC1.Clc1ccccc1CBr>>Clc1ccccc1CC(=O)C1CC1"
     },
     {
         "R-ids": [
@@ -8860,14 +8860,14 @@
     },
     {
         "R-ids": [
-            "golden_dataset_1152"
+            "Jaworski_390"
         ],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "correct_reaction": "[C:18]1([C:15]=2[CH:16]=[CH:17][C:12]([Br:11])=[CH:13][CH:14]=2)=[CH:19][CH:20]=[CH:21][CH:22]=[CH:23]1.[CH2:7]1[CH2:6][N:5]2[CH2:10][CH2:9][CH:8]1[CH:3]([CH2:4]2)[C:2]#[N:1].O.[H].[H]>>[CH2:7]1[CH2:6][N:5]2[CH2:10][CH2:9][CH:8]1[CH:3]([C:2](=[O:24])[C:12]3=[CH:17][CH:16]=[C:15]([C:18]4=[CH:23][CH:22]=[CH:21][CH:20]=[CH:19]4)[CH:14]=[CH:13]3)[CH2:4]2.[BrH:11].[NH3:1]",
+        "correct_reaction": "Brc1ccc(cc1)-c1ccccc1.N#CC1CN2CCC1CC2.O.[H].[H]>>O=C(C1CN2CCC1CC2)c1ccc(cc1)-c1ccccc1.Br.N",
         "wrong_reactions": [],
-        "reaction": "[C:18]1([C:15]=2[CH:16]=[CH:17][C:12]([Br:11])=[CH:13][CH:14]=2)=[CH:19][CH:20]=[CH:21][CH:22]=[CH:23]1.[CH2:7]1[CH2:6][N:5]2[CH2:10][CH2:9][CH:8]1[CH:3]([CH2:4]2)[C:2]#[N:1]>>[CH2:7]1[CH2:6][N:5]2[CH2:10][CH2:9][CH:8]1[CH:3]([C:2](=[O:24])[C:12]3=[CH:17][CH:16]=[C:15]([C:18]4=[CH:23][CH:22]=[CH:21][CH:20]=[CH:19]4)[CH:14]=[CH:13]3)[CH2:4]2"
+        "reaction": "Brc1ccc(cc1)-c1ccccc1.N#CC1CN2CCC1CC2>>O=C(C1CN2CCC1CC2)c1ccc(cc1)-c1ccccc1"
     },
     {
         "R-ids": [
@@ -10316,17 +10316,6 @@
     },
     {
         "R-ids": [
-            "Jaworski_14"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "O=Cc1ccccc1.C[Si](C)(C)CC=C.O>>OC(CC=C)c1ccccc1.C[Si](C)(C)O",
-        "wrong_reactions": [],
-        "reaction": "O=Cc1ccccc1.C[Si](C)(C)CC=C>>OC(CC=C)c1ccccc1"
-    },
-    {
-        "R-ids": [
             "Jaworski_31"
         ],
         "datasets": [
@@ -10569,17 +10558,6 @@
     },
     {
         "R-ids": [
-            "Jaworski_193"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "COC(=O)OC.O=C1CCc2ccccc2C1>>COC(=O)C1C(=O)CCc2ccccc12.CO",
-        "wrong_reactions": [],
-        "reaction": "COC(=O)OC.O=C1CCc2ccccc2C1>>COC(=O)C1C(=O)CCc2ccccc12"
-    },
-    {
-        "R-ids": [
             "Jaworski_278"
         ],
         "datasets": [
@@ -10637,17 +10615,6 @@
     },
     {
         "R-ids": [
-            "Jaworski_326"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "CC(C)(C)OC(=O)NCC1CO1.Cc1ccc(N)cc1F.CN(C)C=O.[O]>>Cc1ccc(cc1F)N1CC(CNC(=O)OC(C)(C)C)OC1=O.CNC.O",
-        "wrong_reactions": [],
-        "reaction": "CC(C)(C)OC(=O)NCC1CO1.Cc1ccc(N)cc1F.CN(C)C=O>>Cc1ccc(cc1F)N1CC(CNC(=O)OC(C)(C)C)OC1=O"
-    },
-    {
-        "R-ids": [
             "Jaworski_330"
         ],
         "datasets": [
@@ -10656,28 +10623,6 @@
         "correct_reaction": "CCCC[Sn](CCCC)(CCCC)C=C.Fc1ccccc1S(=O)(=O)c1ccc(Cl)nc1>>Fc1ccccc1S(=O)(=O)c1ccc(C=C)nc1.CCCC[Sn](Cl)(CCCC)CCCC",
         "wrong_reactions": [],
         "reaction": "CCCC[Sn](CCCC)(CCCC)C=C.Fc1ccccc1S(=O)(=O)c1ccc(Cl)nc1>>Fc1ccccc1S(=O)(=O)c1ccc(C=C)nc1"
-    },
-    {
-        "R-ids": [
-            "Jaworski_339"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "CCOC(=O)C=C(OCC)OCC.COCOCc1csc(N)c1S(N)(=O)=O>>CCOC(=O)CC1=NS(=O)(=O)c2c(COCOC)csc2N1.CCO.CCO",
-        "wrong_reactions": [],
-        "reaction": "CCOC(=O)C=C(OCC)OCC.COCOCc1csc(N)c1S(N)(=O)=O>>CCOC(=O)CC1=NS(=O)(=O)c2c(COCOC)csc2N1"
-    },
-    {
-        "R-ids": [
-            "Jaworski_346"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "CCc1sc(cc1-c1c(Br)cnn1C)C(=O)OC.CB1OB(C)OB(C)O1>>CCc1sc(cc1-c1c(C)cnn1C)C(=O)OC.CB1OB(C)OB(Br)O1",
-        "wrong_reactions": [],
-        "reaction": "CCc1sc(cc1-c1c(Br)cnn1C)C(=O)OC.CB1OB(C)OB(C)O1>>CCc1sc(cc1-c1c(C)cnn1C)C(=O)OC"
     },
     {
         "R-ids": [
@@ -10759,50 +10704,6 @@
         "correct_reaction": "C[Mg+].O=C1CN(C1)C(c1ccccc1)c1ccccc1.O>>CC1(O)CN(C1)C(c1ccccc1)c1ccccc1.O[Mg+]",
         "wrong_reactions": [],
         "reaction": "C[Mg+].O=C1CN(C1)C(c1ccccc1)c1ccccc1>>CC1(O)CN(C1)C(c1ccccc1)c1ccccc1"
-    },
-    {
-        "R-ids": [
-            "Jaworski_375"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "Nc1ccccc1C#N.CC[Mg]Cl.O>>CCC(=O)c1ccccc1N.N[Mg]Cl",
-        "wrong_reactions": [],
-        "reaction": "Nc1ccccc1C#N.CC[Mg]Cl>>CCC(=O)c1ccccc1N"
-    },
-    {
-        "R-ids": [
-            "Jaworski_377"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "Brc1ccc(cc1)C#N.CC(C)[Mg+].O>>CC(C)C(=O)c1ccc(Br)cc1.N[Mg+]",
-        "wrong_reactions": [],
-        "reaction": "Brc1ccc(cc1)C#N.CC(C)[Mg+]>>CC(C)C(=O)c1ccc(Br)cc1"
-    },
-    {
-        "R-ids": [
-            "Jaworski_386"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "N#CC1CC1.Clc1ccccc1CBr.O.[H].[H]>>Clc1ccccc1CC(=O)C1CC1.Br.N",
-        "wrong_reactions": [],
-        "reaction": "N#CC1CC1.Clc1ccccc1CBr>>Clc1ccccc1CC(=O)C1CC1"
-    },
-    {
-        "R-ids": [
-            "Jaworski_390"
-        ],
-        "datasets": [
-            "Jaworski"
-        ],
-        "correct_reaction": "Brc1ccc(cc1)-c1ccccc1.N#CC1CN2CCC1CC2.O.[H].[H]>>O=C(C1CN2CCC1CC2)c1ccc(cc1)-c1ccccc1.Br.N",
-        "wrong_reactions": [],
-        "reaction": "Brc1ccc(cc1)-c1ccccc1.N#CC1CN2CCC1CC2>>O=C(C1CN2CCC1CC2)c1ccc(cc1)-c1ccccc1"
     },
     {
         "R-ids": [
@@ -39603,9 +39504,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[C:13]1(=[CH:12][S:11][C:10]=2[C:15]1=[N:16][C:6]([Cl:5])=[N:7][C:8]=2[Cl:9])[Br:14].[CH2:4]=[CH:3][CH2:2][NH2:1]>>[C:13]1(=[CH:12][S:11][C:10]2=[C:8]([N:7]=[C:6]([N:16]=[C:15]12)[Cl:5])[NH:1][CH2:2][CH:3]=[CH2:4])[Br:14]"
+        "reaction": "Clc1nc(Cl)c2scc(Br)c2n1.NCC=C>>Clc1nc(NCC=C)c2scc(Br)c2n1"
     },
     {
         "R-ids": [],
@@ -39702,9 +39603,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:7]1=[CH:8][C:3](=[CH:4][CH:5]=[N:6]1)[CH:2]=[O:1].[Cl:9][C:10]=1[CH:16]=[N:15][C:13]([Cl:14])=[CH:12][CH:11]=1>>[OH:1][CH:2]([C:16]=1[N:15]=[C:13]([CH:12]=[CH:11][C:10]=1[Cl:9])[Cl:14])[C:3]=2[CH:4]=[CH:5][N:6]=[CH:7][CH:8]=2"
+        "reaction": "Clc1ccc(Cl)nc1.O=Cc1ccncc1>>OC(c1ccncc1)c1nc(Cl)ccc1Cl"
     },
     {
         "R-ids": [],
@@ -39783,9 +39684,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[N:16]1([C:15]2=[CH:14][CH:13]=[CH:12][CH:11]=[C:10]2[CH:9]=[C:8]1[CH3:7])[CH3:17].[NH:3]1[CH2:4][CH2:5][NH:6][C:2]1=[S:1]>>[C:2]=1([NH:3][CH2:4][CH2:5][N:6]=1)[S:1][C:9]=2[C:10]3=[CH:11][CH:12]=[CH:13][CH:14]=[C:15]3[N:16]([CH3:17])[C:8]=2[CH3:7]"
+        "reaction": "Cc1cc2ccccc2n1C.S=C1NCCN1>>Cc1c(SC2=NCCN2)c2ccccc2n1C"
     },
     {
         "R-ids": [],
@@ -39810,9 +39711,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH2:6]1[CH2:5][N:4]([CH2:10][CH2:9][CH:7]1[NH2:8])[CH2:3][CH:2]([N:11]2[CH2:18][CH:16]([CH:14]([CH2:13][CH2:12]2)[OH:15])[CH3:17])[CH3:1].[O:26]([CH2:27][C:28]1=[CH:29][O:30][C:31]=2[CH:32]=[C:33]([CH:35]=[CH:36][C:37]1=2)[F:34])[C:25]3=[CH:38][CH:39]=[CH:40][C:41]=4[NH:42][C:22](=[CH:23][C:24]3=4)[C:20](=[O:21])[OH:19]>>[CH2:5]1[CH2:6][CH:7]([CH2:9][CH2:10][N:4]1[CH2:3][CH:2]([N:11]2[CH2:18][CH:16]([CH:14]([CH2:13][CH2:12]2)[OH:15])[CH3:17])[CH3:1])[NH:8][C:20]([C:22]3=[CH:23][C:24]4=[C:41]([CH:40]=[CH:39][CH:38]=[C:25]4[O:26][CH2:27][C:28]5=[CH:29][O:30][C:31]=6[CH:32]=[C:33]([F:34])[CH:35]=[CH:36][C:37]5=6)[NH:42]3)=[O:21]"
+        "reaction": "OC(=O)c1cc2c(OCc3coc4cc(F)ccc34)cccc2[nH]1.CC(CN1CCC(N)CC1)N1CCC(O)C(C)C1>>CC(CN1CCC(CC1)NC(=O)c1cc2c(OCc3coc4cc(F)ccc34)cccc2[nH]1)N1CCC(O)C(C)C1"
     },
     {
         "R-ids": [],
@@ -39837,18 +39738,18 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[C:8]1(=[CH:7][C:5](=[CH:4][CH:3]=[C:2]1[NH2:1])[I:6])[C:9]([NH:11][C:12]2=[CH:13][CH:14]=[C:15]([Cl:16])[CH:17]=[N:18]2)=[O:10].[CH3:19][C:20]([CH3:21])([CH3:22])[O:23][C:24](=[O:25])[N:26]1[CH2:27][CH2:28][CH:29]([CH2:30][CH2:31]1)[C:32](=[O:34])[OH:33]>>[CH3:19][C:20]([CH3:21])([CH3:22])[O:23][C:24](=[O:25])[N:26]1[CH2:27][CH2:28][CH:29]([CH2:30][CH2:31]1)[C:32]([NH:1][C:2]=2[C:8](=[CH:7][C:5]([I:6])=[CH:4][CH:3]=2)[C:9]([NH:11][C:12]=3[N:18]=[CH:17][C:15]([Cl:16])=[CH:14][CH:13]=3)=[O:10])=[O:34]"
+        "reaction": "CC(C)(C)OC(=O)N1CCC(CC1)C(O)=O.Nc1ccc(I)cc1C(=O)Nc1ccc(Cl)cn1>>CC(C)(C)OC(=O)N1CCC(CC1)C(=O)Nc1ccc(I)cc1C(=O)Nc1ccc(Cl)cn1"
     },
     {
         "R-ids": [],
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:4]12[CH2:3][CH:2]([CH2:8][CH:7]([CH2:6][CH2:5]1)[NH:9]2)[OH:1].[CH:23]=1[N:17]([CH2:18][CH2:19][N:20]=[N+:21]=[N-:22])[C:16]=2[C:25](=[CH:26][C:13](=[CH:14][CH:15]=2)[C:11](=[O:12])[OH:10])[N:24]=1>>[CH:4]12[CH2:3][CH:2]([CH2:8][CH:7]([CH2:6][CH2:5]1)[N:9]2[C:11](=[O:12])[C:13]3=[CH:14][CH:15]=[C:16]4[N:17]([CH2:18][CH2:19][N:20]=[N+:21]=[N-:22])[CH:23]=[N:24][C:25]4=[CH:26]3)[OH:1]"
+        "reaction": "OC1CC2CCC(C1)N2.OC(=O)c1ccc2n(CCN=[N+]=[N-])cnc2c1>>OC1CC2CCC(C1)N2C(=O)c1ccc2n(CCN=[N+]=[N-])cnc2c1"
     },
     {
         "R-ids": [],
@@ -39891,9 +39792,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH3:1][C:2]([CH3:3])([SH:4])[CH:5]([NH2:6])[C:7](=[O:9])[OH:8].[O:18]=[CH:17][C:16]1=[CH:15][CH:14]=[CH:13][CH:12]=[C:11]1[OH:10]>>[CH3:1][C:2]1([CH3:3])[CH:5]([C:7](=[O:9])[OH:8])[NH:6][CH:17]([S:4]1)[C:16]2=[C:11]([OH:10])[CH:12]=[CH:13][CH:14]=[CH:15]2"
+        "reaction": "Oc1ccccc1C=O.CC(C)(S)C(N)C(O)=O>>CC1(C)SC(NC1C(O)=O)c1ccccc1O"
     },
     {
         "R-ids": [],
@@ -39981,9 +39882,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH3:18][CH:19]([CH3:20])[C:21]=1[CH:22]=[C:23]([C:32]=2[C:37](=[CH:36][CH:35]=[CH:34][N:33]=2)[CH:38]=1)[C:24]=3[CH:31]=[C:28]([CH:29]=[CH2:30])[CH:27]=[CH:26][CH:25]=3.[Cl:1][C:2]=1[CH:7]=[CH:6][C:5](=[CH:4][CH:3]=1)[C:8]([C:11]2=[CH:12][CH:13]=[C:14]([Cl:15])[CH:16]=[CH:17]2)=[N+:9]=[N-:10]>>[CH3:18][CH:19]([CH3:20])[C:21]=1[CH:38]=[C:37]2[C:32]([N:33]=[CH:34][CH:35]=[CH:36]2)=[C:23]([C:24]3=[CH:25][CH:26]=[CH:27][C:28]([CH:29]4[C:8]([C:5]5=[CH:4][CH:3]=[C:2]([Cl:1])[CH:7]=[CH:6]5)([C:11]6=[CH:12][CH:13]=[C:14]([Cl:15])[CH:16]=[CH:17]6)[CH2:30]4)=[CH:31]3)[CH:22]=1"
+        "reaction": "CC(C)c1cc(-c2cccc(C=C)c2)c2ncccc2c1.Clc1ccc(cc1)C(=[N+]=[N-])c1ccc(Cl)cc1>>CC(C)c1cc(-c2cccc(c2)C2CC2(c2ccc(Cl)cc2)c2ccc(Cl)cc2)c2ncccc2c1"
     },
     {
         "R-ids": [],
@@ -40044,18 +39945,18 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[C:20]1=2[C:12](=[O:11])[O:13][CH2:14][C:15]1=[CH:16][CH:17]=[CH:18][CH:19]=2.[O:1]=[CH:2][C:3]1=[CH:4][CH:5]=[CH:6][C:7]([C:9]#[N:10])=[CH:8]1>>[O:11]=[C:12]1[C:20]=2[CH:19]=[CH:18][CH:17]=[CH:16][C:15]=2[C:14](=[O:13])[CH:2]1[C:3]3=[CH:4][CH:5]=[CH:6][C:7]([C:9]#[N:10])=[CH:8]3"
+        "reaction": "O=C1OCc2ccccc12.O=Cc1cccc(c1)C#N>>O=C1C(C(=O)c2ccccc12)c1cccc(c1)C#N"
     },
     {
         "R-ids": [],
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:16]1=[C:15]([C:23]2=[C:18]([CH:19]=[CH:20][CH:21]=[CH:22]2)[NH:17]1)[CH2:14][CH2:13][NH2:12].[O:1]=[C:2]1[C:11]=2[C:6](=[CH:7][CH:8]=[CH:9][CH:10]=2)[C:4](=[O:5])[O:3]1>>[CH:8]1=[CH:9][CH:10]=[C:11]2[C:6](=[CH:7]1)[C:4](=[O:5])[N:12]([C:2]2=[O:1])[CH2:13][CH2:14][C:15]=3[C:23]=4[CH:22]=[CH:21][CH:20]=[CH:19][C:18]=4[NH:17][CH:16]=3"
+        "reaction": "NCCc1c[nH]c2ccccc12.O=C1OC(=O)c2ccccc12>>O=C1N(CCc2c[nH]c3ccccc23)C(=O)c2ccccc12"
     },
     {
         "R-ids": [],
@@ -40134,9 +40035,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH2:12]([C:13](=[O:15])[Cl:14])[CH2:11][C:10](=[O:16])[O:9][CH3:8].[CH3:3][CH2:2][SiH:1]([CH2:4][CH3:5])[CH2:6][CH3:7]>>[CH2:2]([CH3:3])[Si:1]([CH2:4][CH3:5])([CH2:6][CH3:7])[Cl:14].[O:15]=[CH:13][CH2:12][CH2:11][C:10]([O:9][CH3:8])=[O:16]"
+        "reaction": "[H][Si](CC)(CC)CC.COC(CCC(Cl)=O)=O>>COC(CCC=O)=O.Cl[Si](CC)(CC)CC"
     },
     {
         "R-ids": [],
@@ -40548,9 +40449,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:6]=1[CH:7]=[CH:8][C:3](=[CH:4][CH:5]=1)[CH:2]=[O:1].[F:9][S:10]([F:18])([F:11])[C:12]=1[CH:17]=[CH:16][CH:15]=[CH:14][CH:13]=1>>[CH:17]1=[C:12]([S:10](=[O:1])[F:9])[CH:13]=[CH:14][CH:15]=[CH:16]1.[F:11][CH:2]([F:18])[C:3]1=[CH:4][CH:5]=[CH:6][CH:7]=[CH:8]1"
+        "reaction": "O=Cc1ccccc1.FS(F)(c2ccccc2)F>>FC(c3ccccc3)F.FS(c4ccccc4)=O"
     },
     {
         "R-ids": [],
@@ -40809,9 +40710,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH2:10]([C:9](=[O:12])[CH:8]=[CH2:7])[CH3:11].[CH3:4][Si:3]([CH3:5])([CH3:6])[C:2]#[CH:1]>>[CH3:4][Si:3]([CH3:5])([CH3:6])[C:2]#[C:1][CH2:7][CH2:8][C:9]([CH2:10][CH3:11])=[O:12]"
+        "reaction": "C#C[Si](C)(C)C.C=CC(CC)=O>>O=C(CC)CCC#C[Si](C)(C)C"
     },
     {
         "R-ids": [],
@@ -41358,9 +41259,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH3:10][C:11]([CH3:12])=[CH2:13].[O:3]=[C:2]([OH:1])[C:4]1=[CH:5][CH:6]=[CH:7][CH:8]=[CH:9]1>>[CH3:10][C:11]([CH3:12])([CH3:13])[O:1][C:2](=[O:3])[C:4]1=[CH:9][CH:8]=[CH:7][CH:6]=[CH:5]1"
+        "reaction": "OC(=O)c1ccccc1.CC(C)=C>>CC(C)(C)OC(=O)c1ccccc1"
     },
     {
         "R-ids": [],
@@ -41439,9 +41340,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:5]=1[CH:6]=[CH:7][C:2](=[CH:3][CH:4]=1)[NH2:1].[O:11]=[CH:10][CH:9]=[CH2:8]>>[CH:7]=1[C:2]2=[N:1][CH:10]=[CH:9][CH:8]=[C:3]2[CH:4]=[CH:5][CH:6]=1"
+        "reaction": "Nc1ccccc1.C=CC=O>>c1ccc2ncccc2c1"
     },
     {
         "R-ids": [],
@@ -42555,9 +42456,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH2:7]([CH2:8][CH2:9][Li:10])[CH3:6].[CH2:2]1[CH2:3][CH2:4][O:5][CH2:1]1>>[CH2:8]([CH2:7][CH3:6])[CH3:9].[CH2:3]=[CH2:4].[CH2:2]=[CH:1][O:5][Li:10]"
+        "reaction": "C1CCCO1.CCCC[Li]>>C=CO[Li].C=C.CCCC"
     },
     {
         "R-ids": [],
@@ -42681,9 +42582,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:10]=1[CH:11]=[CH:12][C:7](=[CH:8][CH:9]=1)[CH:6]=[O:5].[CH3:19][C:18](=[O:20])[CH2:17][C:15](=[O:16])[O:14][CH3:13].[NH2:1][C:2]([NH2:3])=[O:4]>>[CH:8]1=[CH:9][CH:10]=[CH:11][CH:12]=[C:7]1[CH:6]2[NH:1][C:2](=[O:4])[NH:3][CH:18]([CH:17]2[C:15](=[O:16])[O:14][CH3:13])[CH3:19]"
+        "reaction": "COC(=O)CC(C)=O.O=Cc1ccccc1.NC(N)=O>>COC(=O)C1C(C)NC(=O)NC1c1ccccc1"
     },
     {
         "R-ids": [],
@@ -45453,18 +45354,18 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH2:29]([CH3:28])[N:30]([CH2:31][CH3:32])[CH2:33][CH2:34][CH2:35][Cl:36].[O:9]=[S:8](=[O:10])([C:11]=1[C:27]2=[C:22]([CH:23]=[CH:24][CH:25]=[CH:26]2)[O:21][C:12]=1[CH2:13][C:14]3=[CH:15][CH:16]=[C:17]([Cl:18])[CH:19]=[CH:20]3)[C:5]=4[CH:6]=[CH:7][C:2](=[CH:3][CH:4]=4)[OH:1]>>[CH2:29]([CH3:28])[N:30]([CH2:31][CH3:32])[CH2:33][CH2:34][CH2:35][O:1][C:2]1=[CH:7][CH:6]=[C:5]([CH:4]=[CH:3]1)[S:8](=[O:9])(=[O:10])[C:11]2=[C:12]([O:21][C:22]=3[CH:23]=[CH:24][CH:25]=[CH:26][C:27]2=3)[CH2:13][C:14]4=[CH:20][CH:19]=[C:17]([Cl:18])[CH:16]=[CH:15]4"
+        "reaction": "CCN(CC)CCCCl.Oc1ccc(cc1)S(=O)(=O)c1c(Cc2ccc(Cl)cc2)oc2ccccc12>>CCN(CC)CCCOc1ccc(cc1)S(=O)(=O)c1c(Cc2ccc(Cl)cc2)oc2ccccc12"
     },
     {
         "R-ids": [],
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[C:17]1(=[N:16][C:14]([NH2:15])=[N:13][CH:12]=[C:11]1[CH2:10][C:9]=2[CH:8]=[C:6]([C:5]=3[CH:4]=[CH:3][N:2]([CH3:1])[C:20]=3[CH:19]=2)[OH:7])[NH2:18].[CH3:21][CH:22]([CH3:23])[CH2:24][S:25](=[O:27])(=[O:28])[Cl:26]>>[CH3:21][CH:22]([CH3:23])[CH2:24][S:25](=[O:27])(=[O:28])[O:7][C:6]=1[CH:8]=[C:9]([CH:19]=[C:20]2[C:5]=1[CH:4]=[CH:3][N:2]2[CH3:1])[CH2:10][C:11]3=[CH:12][N:13]=[C:14]([N:16]=[C:17]3[NH2:18])[NH2:15]"
+        "reaction": "CC(C)CS(Cl)(=O)=O.Cn1ccc2c(O)cc(Cc3cnc(N)nc3N)cc12>>CC(C)CS(=O)(=O)Oc1cc(Cc2cnc(N)nc2N)cc2n(C)ccc12"
     },
     {
         "R-ids": [],
@@ -45516,9 +45417,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:3]=1[CH:4]=[C:5]([Cl:6])[CH:7]=[C:8]([Cl:9])[C:2]=1[OH:1].[S:11]([CH3:10])[CH2:12][Cl:13]>>[O:1]([C:2]=1[C:8](=[CH:7][C:5]([Cl:6])=[CH:4][CH:3]=1)[Cl:9])[CH2:12][S:11][CH3:10]"
+        "reaction": "CSCCl.Oc1ccc(Cl)cc1Cl>>CSCOc1ccc(Cl)cc1Cl"
     },
     {
         "R-ids": [],
@@ -45579,9 +45480,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[C:8]=12[CH:9]=[C:10]([CH:12]=[CH:13][C:14]=1[O:15][C:16]=3[CH:17]=[CH:18][CH:19]=[CH:20][C:21]=3[C:6]4=[CH:5][S:4][C:3]([CH2:2][OH:1])=[C:7]24)[Cl:11].[CH3:22][N:23]([CH3:24])[CH2:25][CH2:26][Cl:27]>>[CH3:22][N:23]([CH3:24])[CH2:25][CH2:26][O:1][CH2:2][C:3]=1[S:4][CH:5]=[C:6]2[C:21]=3[CH:20]=[CH:19][CH:18]=[CH:17][C:16]=3[O:15][C:14]=4[CH:13]=[CH:12][C:10](=[CH:9][C:8]=4[C:7]=12)[Cl:11]"
+        "reaction": "CN(C)CCCl.OCc1scc-2c1-c1cc(Cl)ccc1Oc1ccccc-21>>CN(C)CCOCc1scc-2c1-c1cc(Cl)ccc1Oc1ccccc-21"
     },
     {
         "R-ids": [],
@@ -45615,9 +45516,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:6]1=[CH:7][C:8]([C:9]#[N:10])=[C:11]([C:4]([C:2]([NH2:1])=[O:3])=[N:5]1)[NH2:12].[CH:19]=1[CH:20]=[C:21]([C:16]([O:15][CH2:14][CH3:13])=[CH:17][CH:18]=1)[C:22]([Cl:23])=[O:24]>>[N:10]#[C:9][C:8]1=[CH:7][CH:6]=[N:5][C:4](=[C:11]1[NH:12][C:22]([C:21]2=[CH:20][CH:19]=[CH:18][CH:17]=[C:16]2[O:15][CH2:14][CH3:13])=[O:24])[C:2](=[O:3])[NH2:1]"
+        "reaction": "CCOc1ccccc1C(Cl)=O.NC(=O)c1nccc(C#N)c1N>>CCOc1ccccc1C(=O)Nc1c(ccnc1C(N)=O)C#N"
     },
     {
         "R-ids": [],
@@ -45651,9 +45552,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[Cl:9][C:10]([Cl:11])=[S:12].[F:7][C:6]=1[CH:5]=[CH:4][CH:3]=[C:2]([NH2:1])[CH:8]=1>>[F:7][C:6]=1[CH:5]=[CH:4][CH:3]=[C:2]([N:1]=[C:10]=[S:12])[CH:8]=1"
+        "reaction": "ClC(Cl)=S.Nc1cccc(F)c1>>Fc1cccc(c1)N=C=S"
     },
     {
         "R-ids": [],
@@ -45768,9 +45669,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH2:16]([Br:15])[C:17]#[CH:18].[CH:4]1=[C:5]([CH:6]=[N:7][C:2](=[CH:3]1)[OH:1])[C:8]=2[CH:14]=[CH:13][C:11](=[CH:10][CH:9]=2)[Cl:12]>>[CH:18]#[C:17][CH2:16][O:1][C:2]=1[N:7]=[CH:6][C:5](=[CH:4][CH:3]=1)[C:8]=2[CH:9]=[CH:10][C:11](=[CH:13][CH:14]=2)[Cl:12]"
+        "reaction": "BrCC#C.Oc1ccc(cn1)-c1ccc(Cl)cc1>>Clc1ccc(cc1)-c1ccc(OCC#C)nc1"
     },
     {
         "R-ids": [],
@@ -45786,9 +45687,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[C:2]=1([C:7](=[CH:6][CH:5]=[CH:4][CH:3]=1)[F:8])[NH2:1].[CH3:12][O:13][CH2:14][C:15]([CH2:17][C:18](=[O:19])[O:20][CH3:21])=[O:16].[N:10]([O-:11])=[O:9]>>[C:2]1(=[CH:3][CH:4]=[CH:5][CH:6]=[C:7]1[F:8])[NH:1][N:10]=[C:17]([C:18]([O:20][CH3:21])=[O:19])[C:15]([CH2:14][O:13][CH3:12])=[O:16]"
+        "reaction": "COCC(=O)CC(=O)OC.[O-]N=O.Nc1ccccc1F>>COCC(=O)C(=NNc1ccccc1F)C(=O)OC"
     },
     {
         "R-ids": [],
@@ -45813,9 +45714,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:5]1=[C:4]([C:12]2=[C:7]([CH:8]=[CH:9][CH:10]=[CH:11]2)[NH:6]1)[CH2:3][CH2:2][NH2:1].[CH3:13][C:14]([CH2:16][CH2:17][C:18](=[O:20])[OH:19])=[O:15]>>[N:1]12[CH2:2][CH2:3][C:4]=3[C:12]4=[C:7]([CH:8]=[CH:9][CH:10]=[CH:11]4)[NH:6][C:5]=3[C:14]1([CH2:16][CH2:17][C:18]2=[O:20])[CH3:13]"
+        "reaction": "CC(=O)CCC(O)=O.NCCc1c[nH]c2ccccc12>>CC12CCC(=O)N1CCc1c2[nH]c2ccccc12"
     },
     {
         "R-ids": [],
@@ -45885,9 +45786,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH2:30]1[CH2:31][CH:29]1[NH2:28].[CH3:1][CH:2]([CH3:3])[C:4]1=[N:5][CH:6]=[C:7]([C:8]=2[N:20]=[C:12]([NH:13][C:14]3=[CH:15][CH:16]=[CH:17][CH:18]=[CH:19]3)[N:11]=[CH:10][CH:9]=2)[N:21]1[CH3:22].[O:26]=[S:24](=[O:27])([Cl:25])[OH:23]>>[CH2:30]1[CH2:31][CH:29]1[NH:28][S:24](=[O:26])(=[O:27])[C:17]=2[CH:18]=[CH:19][C:14](=[CH:15][CH:16]=2)[NH:13][C:12]=3[N:11]=[CH:10][CH:9]=[C:8]([C:7]4=[CH:6][N:5]=[C:4]([CH:2]([CH3:1])[CH3:3])[N:21]4[CH3:22])[N:20]=3"
+        "reaction": "NC1CC1.OS(Cl)(=O)=O.CC(C)c1ncc(-c2ccnc(Nc3ccccc3)n2)n1C>>CC(C)c1ncc(-c2ccnc(Nc3ccc(cc3)S(=O)(=O)NC3CC3)n2)n1C"
     },
     {
         "R-ids": [],
@@ -45939,27 +45840,27 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:10]=1[N:9]=[C:8]([C:7](=[CH:12][CH:11]=1)[CH3:6])[C:13]#[N:14].[CH3:2][C:1]([CH3:3])([CH3:4])[OH:5].[OH2:15]>>[CH3:2][C:1]([CH3:3])([CH3:4])[NH:14][C:13](=[O:15])[C:8]1=[N:9][CH:10]=[CH:11][CH:12]=[C:7]1[CH3:6]"
+        "reaction": "CC(C)(C)O.Cc1cccnc1C#N.O>>Cc1cccnc1C(=O)NC(C)(C)C"
     },
     {
         "R-ids": [],
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:8]1=[C:9]([NH2:10])[C:2]([CH3:1])=[CH:3][C:4]([CH3:5])=[C:6]1[NH2:7].[CH3:11][C:12]([CH2:14][CH2:15][C:16](=[O:18])[OH:17])=[O:13]>>[C:4]=1([C:6]([N:7]2[C:16](=[O:18])[CH2:15][CH2:14][CH:12]2[CH3:11])=[CH:8][C:9](=[C:2]([CH3:1])[CH:3]=1)[NH2:10])[CH3:5]"
+        "reaction": "CC(=O)CCC(O)=O.Cc1cc(C)c(N)cc1N>>CC1CCC(=O)N1c1cc(N)c(C)cc1C"
     },
     {
         "R-ids": [],
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:10]1=[C:9]2[C:14](=[CH:13][CH:12]=[N:11]1)[N:6]([CH:7]=[CH:8]2)[C:5]3=[CH:4][CH:3]=[C:2]([NH2:1])[C:20]4=[C:15]3[CH:16]=[CH:17][CH:18]=[CH:19]4.[CH3:36][C:35]([CH3:37])([CH3:38])[C:27]=1[CH:28]=[C:29]([NH:30][S:31](=[O:33])(=[O:34])[CH3:32])[C:23]([O:22][CH3:21])=[C:24]([CH:26]=1)[NH2:25].[Cl:41][C:40]([Cl:39])=[O:42]>>[CH3:36][C:35]([CH3:37])([CH3:38])[C:27]1=[CH:26][C:24]([NH:25][C:40](=[O:42])[NH:1][C:2]=2[C:20]=3[CH:19]=[CH:18][CH:17]=[CH:16][C:15]=3[C:5](=[CH:4][CH:3]=2)[N:6]4[C:14]5=[CH:13][CH:12]=[N:11][CH:10]=[C:9]5[CH:8]=[CH:7]4)=[C:23]([C:29](=[CH:28]1)[NH:30][S:31](=[O:33])(=[O:34])[CH3:32])[O:22][CH3:21]"
+        "reaction": "ClC(Cl)=O.COc1c(N)cc(cc1NS(C)(=O)=O)C(C)(C)C.Nc1ccc(-n2ccc3cnccc23)c2ccccc12>>COc1c(NC(=O)Nc2ccc(-n3ccc4cnccc34)c3ccccc23)cc(cc1NS(C)(=O)=O)C(C)(C)C"
     },
     {
         "R-ids": [],
@@ -45975,9 +45876,9 @@
         "correct_reaction": null,
         "wrong_reactions": [],
         "datasets": [
-            "golden_dataset"
+            "Jaworski"
         ],
-        "reaction": "[CH:15](=[CH2:16])[C:14]=1[CH:17]=[C:18]([C:11]([O:10][CH3:9])=[CH:12][CH:13]=1)[O:19][CH3:20].[C:7]=1([C:2]([NH2:1])=[CH:3][CH:4]=[CH:5][CH:6]=1)[I:8].[O:25]=[CH:24][C:22](=[O:23])[OH:21]>>[O:19]([CH3:20])[C:18]1=[CH:17][C:14](=[CH:13][CH:12]=[C:11]1[O:10][CH3:9])[CH:15]2[CH2:16][CH:24]([NH:1][C:2]3=[C:7]([CH:6]=[CH:5][CH:4]=[C:3]23)[I:8])[C:22](=[O:23])[OH:21]"
+        "reaction": "OC(=O)C=O.COc1ccc(C=C)cc1OC.Nc1ccccc1I>>COc1ccc(cc1OC)C1CC(Nc2c(I)cccc12)C(O)=O"
     },
     {
         "R-ids": [],
@@ -48218,15 +48119,6 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "C1CCCO1.CCCC[Li]>>C=CO[Li].C=C.CCCC"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "CC1=C2[C@@](CCC2)([H])[C@]3([H])[C@@](/C(C(O3)=O)=C/C)([H])[C@@H](O)C1>>O[C@H]1CC(C)=C2[C@@]([C@]1([H])/C3=C/C)([H])[C@@](CCC2)([H])OC3=O"
     },
     {
@@ -48353,15 +48245,6 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "COC(=O)CC(C)=O.O=Cc1ccccc1.NC(N)=O>>COC(=O)C1C(C)NC(=O)NC1c1ccccc1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "COC(=O)\\C=C(\\C)N.CC(=O)C#C>>COC(=O)C1=C(C)N=C(C)C=C1"
     },
     {
@@ -48443,33 +48326,6 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "Clc1nc(Cl)c2scc(Br)c2n1.NCC=C>>Clc1nc(NCC=C)c2scc(Br)c2n1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "CCN(CC)CCCCl.Oc1ccc(cc1)S(=O)(=O)c1c(Cc2ccc(Cl)cc2)oc2ccccc12>>CCN(CC)CCCOc1ccc(cc1)S(=O)(=O)c1c(Cc2ccc(Cl)cc2)oc2ccccc12"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "CC(C)CS(Cl)(=O)=O.Cn1ccc2c(O)cc(Cc3cnc(N)nc3N)cc12>>CC(C)CS(=O)(=O)Oc1cc(Cc2cnc(N)nc2N)cc2n(C)ccc12"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "COCOCCCBr.c1ccc(cc1)P(c1ccccc1)c1ccccc1>>[Br-].COCOCCC[P+](c1ccccc1)(c1ccccc1)c1ccccc1"
     },
     {
@@ -48488,15 +48344,6 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "CSCCl.Oc1ccc(Cl)cc1Cl>>CSCOc1ccc(Cl)cc1Cl"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "Fc1ccc(cc1)C(CCCCl)c1ccc(F)cc1.C1OC2(CCNCC2)c2ccccc12>>Cl.Fc1ccc(cc1)C(CCCN1CCC2(CC1)OCc1ccccc21)c1ccc(F)cc1"
     },
     {
@@ -48506,43 +48353,7 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "Clc1ccc(Cl)nc1.O=Cc1ccncc1>>OC(c1ccncc1)c1nc(Cl)ccc1Cl"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "COC(=O)c1c(-c2cc(OC)c(OC)c(OC)c2)c2cc(OC)c(O)cc2c(=O)n1N1CCOCC1.ClCc1ccccn1>>Cl.COC(=O)c1c(-c2cc(OC)c(OC)c(OC)c2)c2cc(OC)c(OCc3ccccn3)cc2c(=O)n1N1CCOCC1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "CN(C)CCCl.OCc1scc-2c1-c1cc(Cl)ccc1Oc1ccccc-21>>CN(C)CCOCc1scc-2c1-c1cc(Cl)ccc1Oc1ccccc-21"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "CCOc1ccccc1C(Cl)=O.NC(=O)c1nccc(C#N)c1N>>CCOc1ccccc1C(=O)Nc1c(ccnc1C(N)=O)C#N"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "Cc1cc2ccccc2n1C.S=C1NCCN1>>Cc1c(SC2=NCCN2)c2ccccc2n1C"
     },
     {
         "R-ids": [],
@@ -48569,24 +48380,6 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "ClC(Cl)=S.Nc1cccc(F)c1>>Fc1cccc(c1)N=C=S"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "OC(=O)c1cc2c(OCc3coc4cc(F)ccc34)cccc2[nH]1.CC(CN1CCC(N)CC1)N1CCC(O)C(C)C1>>CC(CN1CCC(CC1)NC(=O)c1cc2c(OCc3coc4cc(F)ccc34)cccc2[nH]1)N1CCC(O)C(C)C1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "NCc1ccc(Cl)cc1.Cc1ccc2c(O)c(cnc2n1)C(O)=O>>Cc1ccc2c(O)c(cnc2n1)C(=O)NCc1ccc(Cl)cc1"
     },
     {
@@ -48597,33 +48390,6 @@
             "Jaworski"
         ],
         "reaction": "Cc1ccc(N)cc1.[O-][N+](=O)c1cc2C(=O)OC(=O)c2c(c1)[N+]([O-])=O>>Cc1ccc(cc1)N=C(O)c1cc(cc(c1C(O)=O)[N+]([O-])=O)[N+]([O-])=O"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "CC(C)(C)OC(=O)N1CCC(CC1)C(O)=O.Nc1ccc(I)cc1C(=O)Nc1ccc(Cl)cn1>>CC(C)(C)OC(=O)N1CCC(CC1)C(=O)Nc1ccc(I)cc1C(=O)Nc1ccc(Cl)cn1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "OC1CC2CCC(C1)N2.OC(=O)c1ccc2n(CCN=[N+]=[N-])cnc2c1>>OC1CC2CCC(C1)N2C(=O)c1ccc2n(CCN=[N+]=[N-])cnc2c1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "Oc1ccccc1C=O.CC(C)(S)C(N)C(O)=O>>CC1(C)SC(NC1C(O)=O)c1ccccc1O"
     },
     {
         "R-ids": [],
@@ -48650,24 +48416,6 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "CC(C)c1cc(-c2cccc(C=C)c2)c2ncccc2c1.Clc1ccc(cc1)C(=[N+]=[N-])c1ccc(Cl)cc1>>CC(C)c1cc(-c2cccc(c2)C2CC2(c2ccc(Cl)cc2)c2ccc(Cl)cc2)c2ncccc2c1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "BrCC#C.Oc1ccc(cn1)-c1ccc(Cl)cc1>>Clc1ccc(cc1)-c1ccc(OCC#C)nc1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "Nc1nc(-c2cccc(F)c2)c(-c2ccc(=O)[nH]c2)c(=O)n1CC=C.CI>>Cn1cc(ccc1=O)-c1c(nc(N)n(CC=C)c1=O)-c1cccc(F)c1"
     },
     {
@@ -48686,52 +48434,7 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "COCC(=O)CC(=O)OC.[O-]N=O.Nc1ccccc1F>>COCC(=O)C(=NNc1ccccc1F)C(=O)OC"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "CC(=O)CCC(O)=O.NCCc1c[nH]c2ccccc12>>CC12CCC(=O)N1CCc1c2[nH]c2ccccc12"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "O=C1OCc2ccccc12.O=Cc1cccc(c1)C#N>>O=C1C(C(=O)c2ccccc12)c1cccc(c1)C#N"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "Brc1ccc(cc1)-c1ccc(=O)[nH]n1.[C-]#N>>O=c1ccc(n[nH]1)-c1ccc(cc1)C#N"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "NCCc1c[nH]c2ccccc12.O=C1OC(=O)c2ccccc12>>O=C1N(CCc2c[nH]c3ccccc23)C(=O)c2ccccc12"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "NC1CC1.OS(Cl)(=O)=O.CC(C)c1ncc(-c2ccnc(Nc3ccccc3)n2)n1C>>CC(C)c1ncc(-c2ccnc(Nc3ccc(cc3)S(=O)(=O)NC3CC3)n2)n1C"
     },
     {
         "R-ids": [],
@@ -48749,43 +48452,7 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "CC(C)(C)O.Cc1cccnc1C#N.O>>Cc1cccnc1C(=O)NC(C)(C)C"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "CC(=O)CCC(O)=O.Cc1cc(C)c(N)cc1N>>CC1CCC(=O)N1c1cc(N)c(C)cc1C"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "ClC(Cl)=O.COc1c(N)cc(cc1NS(C)(=O)=O)C(C)(C)C.Nc1ccc(-n2ccc3cnccc23)c2ccccc12>>COc1c(NC(=O)Nc2ccc(-n3ccc4cnccc34)c3ccccc23)cc(cc1NS(C)(=O)=O)C(C)(C)C"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "CCCC1(CC(=O)OCC)OCCc2c1[nH]c1c(C)c(cc(Br)c21)C(=O)OCc1ccccc1.[Cu]C#N>>CCCC1(CC(=O)OCC)OCCc2c1[nH]c1c(C)c(cc(C#N)c21)C(=O)OCc1ccccc1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "OC(=O)C=O.COc1ccc(C=C)cc1OC.Nc1ccccc1I>>COc1ccc(cc1OC)C1CC(Nc2c(I)cccc12)C(O)=O"
     },
     {
         "R-ids": [],
@@ -48804,15 +48471,6 @@
             "Jaworski"
         ],
         "reaction": "Clc1ccc2[nH]c(nc2c1)C(Cl)(Cl)Cl.NCc1ccccc1.O>>Clc1ccc2[nH]c(nc2c1)C(=O)NCc1ccccc1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "[H][Si](CC)(CC)CC.COC(CCC(Cl)=O)=O>>COC(CCC=O)=O.Cl[Si](CC)(CC)CC"
     },
     {
         "R-ids": [],
@@ -49550,15 +49208,6 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "O=Cc1ccccc1.FS(F)(c2ccccc2)F>>FC(c3ccccc3)F.FS(c4ccccc4)=O"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "O=S1(CC=CC1)=O.CCOC(/C=C/C(OCC)=O)=O>>CCOC([C@@H]2CC=CC[C@@H]2C(OCC)=O)=O.O=S=O"
     },
     {
@@ -49983,15 +49632,6 @@
             "Jaworski"
         ],
         "reaction": "CC(OC(N1CCCCC1)=O)(C)C.BrC2=CC(OC)=CC=C2>>COC3=CC=CC(C4CN(C(OC(C)(C)C)=O)CCC4)=C3.Br"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "C#C[Si](C)(C)C.C=CC(CC)=O>>O=C(CC)CCC#C[Si](C)(C)C"
     },
     {
         "R-ids": [],
@@ -50666,15 +50306,6 @@
         "datasets": [
             "Jaworski"
         ],
-        "reaction": "OC(=O)c1ccccc1.CC(C)=C>>CC(C)(C)OC(=O)c1ccccc1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
         "reaction": "CC(O)=O.[CH2-][N+]#N>>COC(C)=O.N#N"
     },
     {
@@ -50739,15 +50370,6 @@
             "Jaworski"
         ],
         "reaction": "CC\\C=C\\C=C\\[C@H](CCC(=O)NO)OCc1ccccc1>>[H][C@]12C=C[C@@H](CC)ON1C(=O)CC[C@@H]2OCC1=CC=CC=C1"
-    },
-    {
-        "R-ids": [],
-        "correct_reaction": null,
-        "wrong_reactions": [],
-        "datasets": [
-            "Jaworski"
-        ],
-        "reaction": "Nc1ccccc1.C=CC=O>>c1ccc2ncccc2c1"
     },
     {
         "R-ids": [],
