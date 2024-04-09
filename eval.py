@@ -89,33 +89,40 @@ def update_correct_reactions_in_output():
 if not os.path.exists("imgs"):
     os.mkdir("imgs")
 
-df = pd.read_csv("dataset_out.csv")
+df = pd.read_csv("dataset_extended_out.csv")
 correct_cnt = 0
 known_correct_wrong_cnt = 0
 known_wrong_cnt = 0
 unknown_cnt = 0
 solved = 0
 
+export_n = 20
+export_cnt = 0
+
 for idx, row in df.iterrows():
     if row["solved_by"] not in ["input-balanced", "rule-based", "mcs-based"]:
         continue
     solved += 1
     exp_rxn = None
-    db_entry = db.get(row["input_reaction"])
+    #db_entry = db.get(row["input_reaction"])
     if row["correct_reaction"] is not np.nan:
-        exp_rxn = normalize_smiles(db_entry["correct_reaction"])
-    wrong_rxns = list(db_entry["wrong_reactions"])
+        #exp_rxn = normalize_smiles(db_entry["correct_reaction"])
+        exp_rxn = normalize_smiles(row["correct_reaction"])
+    #wrong_rxns = list(db_entry["wrong_reactions"])
+    wrong_rxns = row["wrong_reactions"]
     in_rxn = normalize_smiles(row["input_reaction"])
     act_rxn = normalize_smiles(row["reaction"])
     if exp_rxn != act_rxn:
         if exp_rxn is not None:
             known_correct_wrong_cnt += 1
-            print(
-                "----- Wrong Reaction ({},{}) -----\n{}\n{}".format(
-                    idx, row["solved_by"], exp_rxn, act_rxn
-                )
-            )
-            #export_reaction(in_rxn, act_rxn, "imgs/{}-{}.png".format(idx, "wrong"), exp=exp_rxn)
+            #print(
+            #    "----- Wrong Reaction ({},{}) -----\n{}\n{}".format(
+            #        idx, row["solved_by"], exp_rxn, act_rxn
+            #    )
+            #)
+            if export_cnt < export_n: 
+                export_reaction(in_rxn, act_rxn, "imgs/{}-{}.png".format(idx, "wrong"), exp=exp_rxn)
+                export_cnt += 1
         else: 
             if act_rxn in wrong_rxns:
                 known_wrong_cnt += 1
@@ -123,12 +130,14 @@ for idx, row in df.iterrows():
                 diffs = [len(act_rxn) - len(wr) for wr in wrong_rxns]
                 if 2 in diffs:
                     unknown_cnt += 1
-                    print(
-                        "----- Uncertain Reaction ({},{}) -----\n{}\n{}".format(
-                            idx, row["solved_by"], exp_rxn, act_rxn
-                        )
-                    )
-                    #export_reaction(in_rxn, act_rxn, "imgs/{}-{}.png".format(idx, "unknown"), exp=exp_rxn)
+                    #print(
+                    #    "----- Uncertain Reaction ({},{}) -----\n{}\n{}".format(
+                    #        idx, row["solved_by"], exp_rxn, act_rxn
+                    #    )
+                    #)
+                    if export_cnt < export_n: 
+                        export_reaction(in_rxn, act_rxn, "imgs/{}-{}.png".format(idx, "unknown"), exp=exp_rxn)
+                        export_cnt += 1
                 else:
                     known_wrong_cnt += 1
     else:
