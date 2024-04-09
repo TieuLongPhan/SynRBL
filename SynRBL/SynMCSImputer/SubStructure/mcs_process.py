@@ -6,6 +6,7 @@ from SynRBL.rsmi_utils import save_database, load_database
 import os
 import copy
 
+from rdkit.rdBase import BlockLogs
 
 def single_mcs(
     data_dict,
@@ -28,6 +29,7 @@ def single_mcs(
     Returns:
     - dict: A dictionary containing MCS results and any sorted reactants encountered.
     """
+    block_logs = BlockLogs()
     mcs_results_dict = copy.deepcopy(data_dict)
     mcs_results_dict["mcs_results"] = []
     mcs_results_dict["sorted_reactants"] = []
@@ -56,6 +58,7 @@ def single_mcs(
 
     except Exception:
         mcs_results_dict["issue"] = "Single MCS identification failed."
+    del block_logs
     return mcs_results_dict
 
 
