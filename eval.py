@@ -95,7 +95,7 @@ known_correct_wrong_cnt = 0
 known_wrong_cnt = 0
 unknown_cnt = 0
 solved = 0
-updated = 0
+
 for idx, row in df.iterrows():
     if row["solved_by"] not in ["input-balanced", "rule-based", "mcs-based"]:
         continue
@@ -129,7 +129,6 @@ for idx, row in df.iterrows():
                         )
                     )
                     #export_reaction(in_rxn, act_rxn, "imgs/{}-{}.png".format(idx, "unknown"), exp=exp_rxn)
-                    updated += 1
                 else:
                     known_wrong_cnt += 1
     else:
@@ -137,7 +136,7 @@ for idx, row in df.iterrows():
 
 assert solved == (correct_cnt + known_correct_wrong_cnt + known_wrong_cnt + unknown_cnt)
 
-print("Updated: {}".format(updated))
+print("Reactions: {}".format(len(df)))
 print("Correct: {}".format(correct_cnt))
 print("Known correct and now wrong: {}".format(known_correct_wrong_cnt))
 print("Uncertain: {}".format(unknown_cnt))
