@@ -11,6 +11,7 @@ from SynRBL.SynUtils.chem_utils import normalize_smiles, remove_atom_mapping
 
 import db_interface as db
 
+
 def get_reaction_img(smiles):
     rxn = rdChemReactions.ReactionFromSmarts(smiles, useSmiles=True)
     d = rdMolDraw2D.MolDraw2DCairo(2000, 500)
@@ -38,13 +39,14 @@ def plot_reactions(smiles, titles=None, suptitle=None):
     plt.tight_layout()
     plt.show()
 
+
 def export_reaction(in_r, act, path, exp=None):
     i = 0
     rows = 2
     if exp is not None:
         rows += 1
 
-    fig, axs = plt.subplots(rows, 1, dpi=400, figsize=(10,7))
+    fig, axs = plt.subplots(rows, 1, dpi=400, figsize=(10, 7))
 
     in_img = get_reaction_img(in_r)
     axs[i].imshow(in_img)
@@ -67,31 +69,57 @@ def export_reaction(in_r, act, path, exp=None):
     plt.tight_layout()
     plt.savefig(path)
     plt.close()
-    
+
+
 def update_correct_reactions_in_output():
     df = pd.read_csv("dataset_out.csv")
     cnt = 0
     for idx, row in df.iterrows():
         db_entry = db.get(row["input_reaction"])
-        if db_entry["correct_reaction"] != row["correct_reaction"]:
+        correct_rxn = db_entry["correct_reaction"]
+        if correct_rxn is not None and row["correct_reaction"] != correct_rxn:
             cnt += 1
-            row["correct_reaction"] = db_entry["correct_reaction"]
+            df.loc[idx, "correct_reaction"] = db_entry["correct_reaction"]
     df.to_csv("dataset_out.csv")
     print("Updated {} entires.".format(cnt))
-        
-#update_correct_reactions_in_output()
+
+update_correct_reactions_in_output()
+#|%%--%%| <MEUWaust47|3adr433zHA>
 
 if not os.path.exists("imgs"):
-    os.mkdir("imgs") 
+    os.mkdir("imgs")
 
 df = pd.read_csv("dataset_out.csv")
-updated = 0
+wrong_cnt = 0
+uncertain_cnt = 0
 for idx, row in df.iterrows():
-    if row["solved_by"] != "input-balanced":
-        continue
-    updated += 1
+    #if idx > 10:
+    #    break
+    exp_rxn = None
+    if row["correct_reaction"] is not np.nan:
+        exp_rxn = normalize_smiles(row["correct_reaction"])
+    wrong_rxns = [normalize_smiles(r) for r in row["wrong_reactions"][1:-1].replace("'", "").split(",")]
     in_rxn = normalize_smiles(row["input_reaction"])
-    db.update(in_rxn, correct_reaction=row["reaction"])
+    act_rxn = normalize_smiles(row["reaction"])
+    if exp_rxn != act_rxn:
+        if exp_rxn is not None:
+            wrong_cnt += 1
+            print(
+                "----- Wrong Reaction ({},{}) -----\n{}\n{}".format(
+                    idx, row["solved_by"], exp_rxn, act_rxn
+                )
+            )
+        elif act_rxn not in wrong_rxns:
+            diffs = [len(act_rxn) - len(wr) for wr in wrong_rxns]
+            if 2 not in diffs:
+                uncertain_cnt += 1
+                print(
+                    "----- Wrong Reaction ({},{}) -----\n{}\n{}".format(
+                        idx, row["solved_by"], exp_rxn, act_rxn
+                    )
+                )
+        # export_reaction(in_rxn, act_rxn, "imgs/{}.png".format(idx), exp=exp_rxn)
 
-print("Updated: {}".format(updated))
-db.flush()
+print("Wrong: {}".format(wrong_cnt))
+print("Uncertain: {}".format(uncertain_cnt))
+# db.flush()
