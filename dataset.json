@@ -240,8 +240,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "COC(=O)C(CCSC)NC(=O)OC(C)(C)C.C=CCI>>C=CCSCCC(NC(=O)OC(C)(C)C)C(=O)OC.OCI",
-            "COC(=O)C(CCSC)NC(=O)OC(C)(C)C.C=CCI.O>>C=CCSCCC(NC(=O)OC(C)(C)C)C(=O)OC.OCI"
+            "COC(=O)C(CCSC)NC(=O)OC(C)(C)C.C=CCI.O>>C=CCSCCC(NC(=O)OC(C)(C)C)C(=O)OC.OCI",
+            "COC(=O)C(CCSC)NC(=O)OC(C)(C)C.C=CCI>>C=CCSCCC(NC(=O)OC(C)(C)C)C(=O)OC.OCI"
         ],
         "reaction": "[CH2:21]=[CH:20][CH2:19][I:18].[CH3:15][C:14]([CH3:16])([CH3:17])[O:13][C:11]([NH:10][CH:5]([C:3]([O:2][CH3:1])=[O:4])[CH2:6][CH2:7][S:8][CH3:9])=[O:12]>>[CH3:15][C:14]([CH3:16])([CH3:17])[O:13][C:11]([NH:10][CH:5]([C:3]([O:2][CH3:1])=[O:4])[CH2:6][CH2:7][S:8][CH2:19][CH:20]=[CH2:21])=[O:12]"
     },
@@ -1713,8 +1713,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CCOC(=O)C(=O)OCC.CC(=O)c1c(-c2ccccc2)cc2ccccn12.O>>CCOC(=O)C(O)=CC(=O)c1c(-c2ccccc2)cc2ccccn12.CCO.O",
-            "CCOC(=O)C(=O)OCC.CC(=O)c1c(-c2ccccc2)cc2ccccn12>>CCOC(=O)C(O)=CC(=O)c1c(-c2ccccc2)cc2ccccn12.CCO.O"
+            "CCOC(=O)C(=O)OCC.CC(=O)c1c(-c2ccccc2)cc2ccccn12>>CCOC(=O)C(O)=CC(=O)c1c(-c2ccccc2)cc2ccccn12.CCO.O",
+            "CCOC(=O)C(=O)OCC.CC(=O)c1c(-c2ccccc2)cc2ccccn12.O>>CCOC(=O)C(O)=CC(=O)c1c(-c2ccccc2)cc2ccccn12.CCO.O"
         ],
         "reaction": "[CH:22]1=[C:23]2[N:28]([C:14](=[C:15]1[C:16]=3[CH:21]=[CH:20][CH:19]=[CH:18][CH:17]=3)[C:12](=[O:13])[CH3:11])[CH:27]=[CH:26][CH:25]=[CH:24]2.[CH3:1][CH2:2][O:3][C:4](=[O:5])[C:6]([O:8][CH2:9][CH3:10])=[O:7]>>[CH:22]1=[C:23]2[N:28]([C:14](=[C:15]1[C:16]=3[CH:21]=[CH:20][CH:19]=[CH:18][CH:17]=3)[C:12]([CH:11]=[C:4]([C:6]([O:8][CH2:9][CH3:10])=[O:7])[OH:5])=[O:13])[CH:27]=[CH:26][CH:25]=[CH:24]2"
     },
@@ -2040,8 +2040,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CCC(OC)=C(C#N)c1ccc(Cl)cc1.N=C(N)N>>CCc1nc(N)nc(N)c1-c1ccc(Cl)cc1.CO.N",
-            "CCC(OC)=C(C#N)c1ccc(Cl)cc1.N=C(N)N.N>>CCc1nc(N)nc(N)c1-c1ccc(Cl)cc1.CO.N"
+            "CCC(OC)=C(C#N)c1ccc(Cl)cc1.N=C(N)N.N>>CCc1nc(N)nc(N)c1-c1ccc(Cl)cc1.CO.N",
+            "CCC(OC)=C(C#N)c1ccc(Cl)cc1.N=C(N)N>>CCc1nc(N)nc(N)c1-c1ccc(Cl)cc1.CO.N"
         ],
         "reaction": "[N:12]#[C:11][C:10](=[C:7]([CH2:6][CH3:5])[O:8][CH3:9])[C:13]1=[CH:14][CH:15]=[C:16]([CH:18]=[CH:19]1)[Cl:17].[NH2:1][C:2]([NH2:3])=[NH:4]>>[C:2]1(=[N:1][C:11]([NH2:12])=[C:10]([C:13]2=[CH:19][CH:18]=[C:16]([CH:15]=[CH:14]2)[Cl:17])[C:7]([CH2:6][CH3:5])=[N:4]1)[NH2:3]"
     },
@@ -2710,8 +2710,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "C=CCCC1=CC(c2c(OC)ccc(OC)c2Br)OC1=O.C=CCCC1=CC(c2c(OC)ccc(OC)c2Br)OC1=O>>COc1ccc(OC)c(C2C=C(CCC=CCCC3=CC(c4c(OC)ccc(OC)c4Br)OC3=O)C(=O)O2)c1Br.C=CO",
-            "C=CCCC1=CC(c2c(OC)ccc(OC)c2Br)OC1=O.C=CCCC1=CC(c2c(OC)ccc(OC)c2Br)OC1=O.O>>COc1ccc(OC)c(C2C=C(CCC=CCCC3=CC(c4c(OC)ccc(OC)c4Br)OC3=O)C(=O)O2)c1Br.C=CO"
+            "C=CCCC1=CC(c2c(OC)ccc(OC)c2Br)OC1=O.C=CCCC1=CC(c2c(OC)ccc(OC)c2Br)OC1=O.O>>COc1ccc(OC)c(C2C=C(CCC=CCCC3=CC(c4c(OC)ccc(OC)c4Br)OC3=O)C(=O)O2)c1Br.C=CO",
+            "C=CCCC1=CC(c2c(OC)ccc(OC)c2Br)OC1=O.C=CCCC1=CC(c2c(OC)ccc(OC)c2Br)OC1=O>>COc1ccc(OC)c(C2C=C(CCC=CCCC3=CC(c4c(OC)ccc(OC)c4Br)OC3=O)C(=O)O2)c1Br.C=CO"
         ],
         "reaction": "[CH2:15]=[CH:14][CH2:13][CH2:12][C:11]1=[CH:16][CH:7]([O:8][C:9]1=[O:10])[C:6]=2[C:17](=[CH:20][CH:21]=[C:3]([O:2][CH3:1])[C:4]=2[Br:5])[O:18][CH3:19].[CH2:36]=[CH:35][CH2:34][CH2:33][C:32]1=[CH:37][CH:28]([O:29][C:30]1=[O:31])[C:27]=2[C:38](=[CH:41][CH:42]=[C:24]([O:23][CH3:22])[C:25]=2[Br:26])[O:39][CH3:40]>>[CH3:1][O:2][C:3]=1[CH:21]=[CH:20][C:17]([O:18][CH3:19])=[C:6]([C:4]=1[Br:5])[CH:7]2[CH:16]=[C:11]([CH2:12][CH2:13][CH:14]=[CH:35][CH2:34][CH2:33][C:32]3=[CH:37][CH:28]([C:27]4=[C:25]([C:24]([O:23][CH3:22])=[CH:42][CH:41]=[C:38]4[O:39][CH3:40])[Br:26])[O:29][C:30]3=[O:31])[C:9]([O:8]2)=[O:10]"
     },
@@ -4217,8 +4217,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "COC1(C)OCC(CCO)O1.O>>CC12OCCC(CO1)O2.OCO",
-            "COC1(C)OCC(CCO)O1>>CC12OCCC(CO1)O2.OCO"
+            "COC1(C)OCC(CCO)O1>>CC12OCCC(CO1)O2.OCO",
+            "COC1(C)OCC(CCO)O1.O>>CC12OCCC(CO1)O2.OCO"
         ],
         "reaction": "[O:5]1[CH2:6][CH:7]([CH2:8][CH2:9][OH:10])[O:11][C:3]1([O:2][CH3:1])[CH3:4]>>[C:3]12([O:5][CH2:6][CH:7]([CH2:8][CH2:9][O:10]1)[O:11]2)[CH3:4]"
     },
@@ -5929,8 +5929,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CC(C)(C)[Si](C)(C)Oc1ccc(CC(=O)O)cc1.CC(C)[N-]C(C)C.CI.[Li+].O>>CC(C(=O)O)c1ccc(O[Si](C)(C)C(C)(C)C)cc1.CC(C)[N-]C(C)O.CI.[Li+]",
-            "CC(C)(C)[Si](C)(C)Oc1ccc(CC(=O)O)cc1.CC(C)[N-]C(C)C.CI.[Li+]>>CC(C(=O)O)c1ccc(O[Si](C)(C)C(C)(C)C)cc1.CC(C)[N-]C(C)O.CI.[Li+]"
+            "CC(C)(C)[Si](C)(C)Oc1ccc(CC(=O)O)cc1.CC(C)[N-]C(C)C.CI.[Li+]>>CC(C(=O)O)c1ccc(O[Si](C)(C)C(C)(C)C)cc1.CC(C)[N-]C(C)O.CI.[Li+]",
+            "CC(C)(C)[Si](C)(C)Oc1ccc(CC(=O)O)cc1.CC(C)[N-]C(C)C.CI.[Li+].O>>CC(C(=O)O)c1ccc(O[Si](C)(C)C(C)(C)C)cc1.CC(C)[N-]C(C)O.CI.[Li+]"
         ],
         "reaction": "[CH3:11][C:10]([CH3:12])([CH3:13])[Si:8]([CH3:9])([CH3:14])[O:7][C:6]1=[CH:5][CH:4]=[C:3]([CH2:2][C:17]([OH:19])=[O:18])[CH:16]=[CH:15]1.[CH3:20][CH:21]([CH3:22])[N-:23][CH:24]([CH3:25])[CH3:26].[I:27][CH3:1].[Li+:28]>>[CH3:11][C:10]([CH3:12])([CH3:13])[Si:8]([CH3:9])([CH3:14])[O:7][C:6]1=[CH:5][CH:4]=[C:3]([CH:2]([C:17]([OH:19])=[O:18])[CH3:1])[CH:16]=[CH:15]1"
     },
@@ -5978,8 +5978,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CC(=O)N1c2ccccc2Sc2cc(O)c3ccccc3c21.CC(C)(C)[O-].CI.[K+].O>>COc1cc2c(c3ccccc13)N(C(C)=O)c1ccccc1S2.CC(C)([O-])O.CI.[K+].O",
-            "CC(=O)N1c2ccccc2Sc2cc(O)c3ccccc3c21.CC(C)(C)[O-].CI.[K+].O.O>>COc1cc2c(c3ccccc13)N(C(C)=O)c1ccccc1S2.CC(C)([O-])O.CI.[K+].O"
+            "CC(=O)N1c2ccccc2Sc2cc(O)c3ccccc3c21.CC(C)(C)[O-].CI.[K+].O.O>>COc1cc2c(c3ccccc13)N(C(C)=O)c1ccccc1S2.CC(C)([O-])O.CI.[K+].O",
+            "CC(=O)N1c2ccccc2Sc2cc(O)c3ccccc3c21.CC(C)(C)[O-].CI.[K+].O>>COc1cc2c(c3ccccc13)N(C(C)=O)c1ccccc1S2.CC(C)([O-])O.CI.[K+].O"
         ],
         "reaction": "[C:5]1=2[CH:20]=[CH:21][CH:22]=[CH:23][C:4]1=[C:3]([OH:2])[CH:19]=[C:18]3[S:17][C:16]=4[CH:15]=[CH:14][CH:13]=[CH:12][C:11]=4[N:7]([C:8]([CH3:9])=[O:10])[C:6]=23.[CH3:24][C:25]([CH3:26])([CH3:27])[O-:28].[I:29][CH3:1].[OH2:30].[K+:31]>>[CH:19]1=[C:18]2[S:17][C:16]=3[CH:15]=[CH:14][CH:13]=[CH:12][C:11]=3[N:7]([C:8]([CH3:9])=[O:10])[C:6]2=[C:5]4[CH:20]=[CH:21][CH:22]=[CH:23][C:4]4=[C:3]1[O:2][CH3:1]"
     },
@@ -6259,8 +6259,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CC(C)(C)OC(=O)N1CCC(c2noc3c(O)c(F)ccc23)CC1.CC(C)(C)[O-].CI.[K+].O>>COc1c(F)ccc2c(C3CCN(C(=O)OC(C)(C)C)CC3)noc12.CC(C)([O-])O.CI.[K+]",
-            "CC(C)(C)OC(=O)N1CCC(c2noc3c(O)c(F)ccc23)CC1.CC(C)(C)[O-].CI.[K+]>>COc1c(F)ccc2c(C3CCN(C(=O)OC(C)(C)C)CC3)noc12.CC(C)([O-])O.CI.[K+]"
+            "CC(C)(C)OC(=O)N1CCC(c2noc3c(O)c(F)ccc23)CC1.CC(C)(C)[O-].CI.[K+]>>COc1c(F)ccc2c(C3CCN(C(=O)OC(C)(C)C)CC3)noc12.CC(C)([O-])O.CI.[K+]",
+            "CC(C)(C)OC(=O)N1CCC(c2noc3c(O)c(F)ccc23)CC1.CC(C)(C)[O-].CI.[K+].O>>COc1c(F)ccc2c(C3CCN(C(=O)OC(C)(C)C)CC3)noc12.CC(C)([O-])O.CI.[K+]"
         ],
         "reaction": "[CH3:2][C:1]([CH3:3])([CH3:4])[O:5][C:6](=[O:7])[N:8]1[CH2:9][CH2:10][CH:11]([CH2:24][CH2:25]1)[C:12]2=[N:13][O:14][C:15]3=[C:16]2[CH:17]=[CH:18][C:19](=[C:21]3[OH:22])[F:20].[CH3:26][C:27]([CH3:28])([CH3:29])[O-:30].[I:31][CH3:23].[K+:32]>>[CH3:2][C:1]([CH3:3])([CH3:4])[O:5][C:6](=[O:7])[N:8]1[CH2:9][CH2:10][CH:11]([CH2:24][CH2:25]1)[C:12]2=[N:13][O:14][C:15]=3[C:21]([O:22][CH3:23])=[C:19]([F:20])[CH:18]=[CH:17][C:16]2=3"
     },
@@ -6523,8 +6523,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "O=S(=O)(NC1CN(C(c2ccc(Cl)cc2)c2ccc(Cl)cc2)C1)c1ccc(F)cc1.CCOC(C)=O.CI.[Na+].[H-]>>CN(C1CN(C(c2ccc(Cl)cc2)c2ccc(Cl)cc2)C1)S(=O)(=O)c1ccc(F)cc1.CC(=O)OCO.CI.[Na+].[H-]",
-            "O=S(=O)(NC1CN(C(c2ccc(Cl)cc2)c2ccc(Cl)cc2)C1)c1ccc(F)cc1.CCOC(C)=O.CI.[Na+].[H-].O>>CN(C1CN(C(c2ccc(Cl)cc2)c2ccc(Cl)cc2)C1)S(=O)(=O)c1ccc(F)cc1.CC(=O)OCO.CI.[Na+].[H-]"
+            "O=S(=O)(NC1CN(C(c2ccc(Cl)cc2)c2ccc(Cl)cc2)C1)c1ccc(F)cc1.CCOC(C)=O.CI.[Na+].[H-].O>>CN(C1CN(C(c2ccc(Cl)cc2)c2ccc(Cl)cc2)C1)S(=O)(=O)c1ccc(F)cc1.CC(=O)OCO.CI.[Na+].[H-]",
+            "O=S(=O)(NC1CN(C(c2ccc(Cl)cc2)c2ccc(Cl)cc2)C1)c1ccc(F)cc1.CCOC(C)=O.CI.[Na+].[H-]>>CN(C1CN(C(c2ccc(Cl)cc2)c2ccc(Cl)cc2)C1)S(=O)(=O)c1ccc(F)cc1.CC(=O)OCO.CI.[Na+].[H-]"
         ],
         "reaction": "[CH:29]1=[CH:28][C:26]([Cl:27])=[CH:25][CH:24]=[C:23]1[CH:6]([C:5]=2[CH:30]=[CH:31][C:2]([Cl:1])=[CH:3][CH:4]=2)[N:7]3[CH2:8][CH:9]([CH2:22]3)[NH:10][S:11](=[O:12])(=[O:13])[C:14]4=[CH:15][CH:16]=[C:17]([CH:19]=[CH:20]4)[F:18].[CH3:36][C:35](=[O:37])[O:34][CH2:33][CH3:32].[I:38][CH3:21].[H-:39].[Na+:40]>>[CH:4]1=[C:5]([CH:30]=[CH:31][C:2]([Cl:1])=[CH:3]1)[CH:6]([C:23]2=[CH:24][CH:25]=[C:26]([CH:28]=[CH:29]2)[Cl:27])[N:7]3[CH2:8][CH:9]([CH2:22]3)[N:10]([CH3:21])[S:11](=[O:12])(=[O:13])[C:14]=4[CH:20]=[CH:19][C:17]([F:18])=[CH:16][CH:15]=4"
     },
@@ -6808,8 +6808,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "O=C1Nc2cnc(Cl)nc2N(C2CCCC2)CC1(F)F.C[Si](C)(C)[N-][Si](C)(C)C.CI.[Na+]>>CN1C(=O)C(F)(F)CN(C2CCCC2)c2nc(Cl)ncc21.C[Si](C)(C)[N-][Si](C)(C)O.CI.[Na+]",
-            "O=C1Nc2cnc(Cl)nc2N(C2CCCC2)CC1(F)F.C[Si](C)(C)[N-][Si](C)(C)C.CI.[Na+].O>>CN1C(=O)C(F)(F)CN(C2CCCC2)c2nc(Cl)ncc21.C[Si](C)(C)[N-][Si](C)(C)O.CI.[Na+]"
+            "O=C1Nc2cnc(Cl)nc2N(C2CCCC2)CC1(F)F.C[Si](C)(C)[N-][Si](C)(C)C.CI.[Na+].O>>CN1C(=O)C(F)(F)CN(C2CCCC2)c2nc(Cl)ncc21.C[Si](C)(C)[N-][Si](C)(C)O.CI.[Na+]",
+            "O=C1Nc2cnc(Cl)nc2N(C2CCCC2)CC1(F)F.C[Si](C)(C)[N-][Si](C)(C)C.CI.[Na+]>>CN1C(=O)C(F)(F)CN(C2CCCC2)c2nc(Cl)ncc21.C[Si](C)(C)[N-][Si](C)(C)O.CI.[Na+]"
         ],
         "reaction": "[CH2:18]1[CH2:19][CH2:20][CH2:21][CH:17]1[N:16]2[CH2:15][C:12]([F:13])([F:14])[C:10](=[O:11])[NH:8][C:5]=3[CH:6]=[N:7][C:2](=[N:3][C:4]2=3)[Cl:1].[CH3:22][Si:23]([CH3:24])([CH3:25])[N-:26][Si:27]([CH3:28])([CH3:29])[CH3:30].[I:31][CH3:9].[Na+:32]>>[CH2:18]1[CH2:19][CH2:20][CH2:21][CH:17]1[N:16]2[C:4]3=[C:5]([CH:6]=[N:7][C:2]([Cl:1])=[N:3]3)[N:8]([CH3:9])[C:10]([C:12]([F:13])([F:14])[CH2:15]2)=[O:11]"
     },
@@ -7329,8 +7329,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "COS(=O)(=O)OC.CC(=O)CC(C)C.Nc1c(Cl)cccc1C(=O)O.O=C([O-])[O-].[K+].[K+].O>>COS(=O)(=O)OC.CC(C)CC(=O)O.COC(=O)c1cccc(Cl)c1N.O=C([O-])[O-].[K+].[K+]",
-            "COS(=O)(=O)OC.CC(=O)CC(C)C.Nc1c(Cl)cccc1C(=O)O.O=C([O-])[O-].[K+].[K+]>>COS(=O)(=O)OC.CC(C)CC(=O)O.COC(=O)c1cccc(Cl)c1N.O=C([O-])[O-].[K+].[K+]"
+            "COS(=O)(=O)OC.CC(=O)CC(C)C.Nc1c(Cl)cccc1C(=O)O.O=C([O-])[O-].[K+].[K+]>>COS(=O)(=O)OC.CC(C)CC(=O)O.COC(=O)c1cccc(Cl)c1N.O=C([O-])[O-].[K+].[K+]",
+            "COS(=O)(=O)OC.CC(=O)CC(C)C.Nc1c(Cl)cccc1C(=O)O.O=C([O-])[O-].[K+].[K+].O>>COS(=O)(=O)OC.CC(C)CC(=O)O.COC(=O)c1cccc(Cl)c1N.O=C([O-])[O-].[K+].[K+]"
         ],
         "reaction": "[C:3]=1([CH:8]=[CH:9][CH:10]=[C:11]([Cl:12])[C:2]=1[NH2:1])[C:4](=[O:5])[OH:29].[CH3:18][CH:17]([CH3:19])[CH2:16][C:14](=[O:15])[CH3:13].[O:23]=[S:22](=[O:24])([O:21][CH3:20])[O:6][CH3:7].[K+:30].[K+:31].[O-:25][C:26]([O-:27])=[O:28]>>[C:4]([C:3]=1[CH:8]=[CH:9][CH:10]=[C:11]([Cl:12])[C:2]=1[NH2:1])([O:6][CH3:7])=[O:5]"
     },
@@ -7463,8 +7463,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CC1CN(Cc2ccccc2)CCC1=O.CC(C)[N-]C(C)C.CI.[Li+].O>>CC1CN(Cc2ccccc2)CC(C)C1=O.CC(C)[N-]C(C)O.CI.[Li+]",
-            "CC1CN(Cc2ccccc2)CCC1=O.CC(C)[N-]C(C)C.CI.[Li+]>>CC1CN(Cc2ccccc2)CC(C)C1=O.CC(C)[N-]C(C)O.CI.[Li+]"
+            "CC1CN(Cc2ccccc2)CCC1=O.CC(C)[N-]C(C)C.CI.[Li+]>>CC1CN(Cc2ccccc2)CC(C)C1=O.CC(C)[N-]C(C)O.CI.[Li+]",
+            "CC1CN(Cc2ccccc2)CCC1=O.CC(C)[N-]C(C)C.CI.[Li+].O>>CC1CN(Cc2ccccc2)CC(C)C1=O.CC(C)[N-]C(C)O.CI.[Li+]"
         ],
         "reaction": "[CH2:1]([C:2]1=[CH:3][CH:4]=[CH:5][CH:6]=[CH:7]1)[N:8]2[CH2:16][CH2:14][C:12](=[O:13])[CH:10]([CH2:9]2)[CH3:11].[CH3:17][CH:18]([CH3:19])[N-:20][CH:21]([CH3:22])[CH3:23].[I:24][CH3:15].[Li+:25]>>[CH3:11][CH:10]1[CH2:9][N:8]([CH2:16][CH:14]([CH3:15])[C:12]1=[O:13])[CH2:1][C:2]=2[CH:7]=[CH:6][CH:5]=[CH:4][CH:3]=2"
     },
@@ -7676,8 +7676,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CC(C)(C)OC(=O)CCC(=O)O.CC(C)[N-]C(C)C.CI.[Li+].O>>CC(CC(=O)O)C(=O)OC(C)(C)C.CC(C)[N-]C(C)O.CI.[Li+]",
-            "CC(C)(C)OC(=O)CCC(=O)O.CC(C)[N-]C(C)C.CI.[Li+]>>CC(CC(=O)O)C(=O)OC(C)(C)C.CC(C)[N-]C(C)O.CI.[Li+]"
+            "CC(C)(C)OC(=O)CCC(=O)O.CC(C)[N-]C(C)C.CI.[Li+]>>CC(CC(=O)O)C(=O)OC(C)(C)C.CC(C)[N-]C(C)O.CI.[Li+]",
+            "CC(C)(C)OC(=O)CCC(=O)O.CC(C)[N-]C(C)C.CI.[Li+].O>>CC(CC(=O)O)C(=O)OC(C)(C)C.CC(C)[N-]C(C)O.CI.[Li+]"
         ],
         "reaction": "[CH3:6][C:5]([CH3:8])([CH3:7])[O:4][C:3]([CH2:2][CH2:10][C:11]([OH:13])=[O:12])=[O:9].[CH3:16][CH:15]([CH3:14])[N-:17][CH:18]([CH3:19])[CH3:20].[I:21][CH3:1].[Li+:22]>>[CH3:6][C:5]([CH3:8])([CH3:7])[O:4][C:3](=[O:9])[CH:2]([CH2:10][C:11]([OH:13])=[O:12])[CH3:1]"
     },
@@ -7852,8 +7852,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CCc1cnc(N2CCC(C3CC3C(CO)OCc3ccc(Br)cc3)CC2)nc1.C[Si](C)(C)[N-][Si](C)(C)C.CI.[Na+]>>CCc1cnc(N2CCC(C3CC3C(COC)OCc3ccc(Br)cc3)CC2)nc1.C[Si](C)(C)[N-][Si](C)(C)O.CI.[Na+]",
-            "CCc1cnc(N2CCC(C3CC3C(CO)OCc3ccc(Br)cc3)CC2)nc1.C[Si](C)(C)[N-][Si](C)(C)C.CI.[Na+].O>>CCc1cnc(N2CCC(C3CC3C(COC)OCc3ccc(Br)cc3)CC2)nc1.C[Si](C)(C)[N-][Si](C)(C)O.CI.[Na+]"
+            "CCc1cnc(N2CCC(C3CC3C(CO)OCc3ccc(Br)cc3)CC2)nc1.C[Si](C)(C)[N-][Si](C)(C)C.CI.[Na+].O>>CCc1cnc(N2CCC(C3CC3C(COC)OCc3ccc(Br)cc3)CC2)nc1.C[Si](C)(C)[N-][Si](C)(C)O.CI.[Na+]",
+            "CCc1cnc(N2CCC(C3CC3C(CO)OCc3ccc(Br)cc3)CC2)nc1.C[Si](C)(C)[N-][Si](C)(C)C.CI.[Na+]>>CCc1cnc(N2CCC(C3CC3C(COC)OCc3ccc(Br)cc3)CC2)nc1.C[Si](C)(C)[N-][Si](C)(C)O.CI.[Na+]"
         ],
         "reaction": "[CH2:16]1[CH2:15][CH:14]([CH2:27][CH2:26][N:17]1[C:18]=2[N:25]=[CH:24][C:21]([CH2:22][CH3:23])=[CH:20][N:19]=2)[CH:13]3[CH:12]([CH2:28]3)[CH:8]([O:7][CH2:6][C:5]4=[CH:4][CH:3]=[C:2]([CH:30]=[CH:29]4)[Br:1])[CH2:9][OH:10].[CH3:33][Si:32]([CH3:34])([CH3:31])[N-:35][Si:36]([CH3:37])([CH3:38])[CH3:39].[I:40][CH3:11].[Na+:41]>>[CH2:16]1[CH2:15][CH:14]([CH2:27][CH2:26][N:17]1[C:18]=2[N:25]=[CH:24][C:21]([CH2:22][CH3:23])=[CH:20][N:19]=2)[CH:13]3[CH2:28][CH:12]3[CH:8]([CH2:9][O:10][CH3:11])[O:7][CH2:6][C:5]=4[CH:29]=[CH:30][C:2](=[CH:3][CH:4]=4)[Br:1]"
     },
@@ -8337,8 +8337,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CNc1nc(=O)c2cccnc2n1Cc1ccc(F)cc1.CC(C)(C)[O-].CI.[K+].O>>CN(C)c1nc(=O)c2cccnc2n1Cc1ccc(F)cc1.CC(C)([O-])O.CI.[K+]",
-            "CNc1nc(=O)c2cccnc2n1Cc1ccc(F)cc1.CC(C)(C)[O-].CI.[K+]>>CN(C)c1nc(=O)c2cccnc2n1Cc1ccc(F)cc1.CC(C)([O-])O.CI.[K+]"
+            "CNc1nc(=O)c2cccnc2n1Cc1ccc(F)cc1.CC(C)(C)[O-].CI.[K+]>>CN(C)c1nc(=O)c2cccnc2n1Cc1ccc(F)cc1.CC(C)([O-])O.CI.[K+]",
+            "CNc1nc(=O)c2cccnc2n1Cc1ccc(F)cc1.CC(C)(C)[O-].CI.[K+].O>>CN(C)c1nc(=O)c2cccnc2n1Cc1ccc(F)cc1.CC(C)([O-])O.CI.[K+]"
         ],
         "reaction": "[CH3:23][C:24]([CH3:25])([CH3:26])[O-:27].[I:28][CH3:11].[N:12]=1[C:13](=[O:14])[C:15]2=[C:16]([N:7]([CH2:6][C:5]3=[CH:4][CH:3]=[C:2]([CH:22]=[CH:21]3)[F:1])[C:8]=1[NH:9][CH3:10])[N:17]=[CH:18][CH:19]=[CH:20]2.[K+:29]>>[CH3:10][N:9]([CH3:11])[C:8]=1[N:7]([C:16]=2[N:17]=[CH:18][CH:19]=[CH:20][C:15]=2[C:13](=[O:14])[N:12]=1)[CH2:6][C:5]3=[CH:4][CH:3]=[C:2]([F:1])[CH:22]=[CH:21]3"
     },
@@ -8364,8 +8364,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "COC(=O)c1cc(OC)c(Cc2cnc(N)nc2N)c(OC)c1.CCO.[Na]>>CCOC(=O)c1cc(OC)c(Cc2cnc(N)nc2N)c(OC)c1.OCO.[Na]",
-            "COC(=O)c1cc(OC)c(Cc2cnc(N)nc2N)c(OC)c1.CCO.[Na].O>>CCOC(=O)c1cc(OC)c(Cc2cnc(N)nc2N)c(OC)c1.OCO.[Na]"
+            "COC(=O)c1cc(OC)c(Cc2cnc(N)nc2N)c(OC)c1.CCO.[Na].O>>CCOC(=O)c1cc(OC)c(Cc2cnc(N)nc2N)c(OC)c1.OCO.[Na]",
+            "COC(=O)c1cc(OC)c(Cc2cnc(N)nc2N)c(OC)c1.CCO.[Na]>>CCOC(=O)c1cc(OC)c(Cc2cnc(N)nc2N)c(OC)c1.OCO.[Na]"
         ],
         "reaction": "[CH2:1]([CH3:24])[OH:2].[C:18]=1([NH2:19])[C:12](=[CH:13][N:14]=[C:15]([NH2:16])[N:17]=1)[CH2:11][C:10]2=[C:7]([CH:6]=[C:5]([CH:23]=[C:20]2[O:21][CH3:22])[C:3]([O:26][CH3:25])=[O:4])[O:8][CH3:9].[Na:27]>>[C:18]=1([NH2:19])[C:12](=[CH:13][N:14]=[C:15]([NH2:16])[N:17]=1)[CH2:11][C:10]2=[C:7]([CH:6]=[C:5]([CH:23]=[C:20]2[O:21][CH3:22])[C:3](=[O:4])[O:2][CH2:1][CH3:24])[O:8][CH3:9]"
     },
@@ -8400,8 +8400,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "COc1ccc(C(=O)Nc2ccccc2CCCC2CCCCN2C)cc1.CN1CCCCC1CCCc1ccccc1N.O=C(Cl)C=Cc1ccccc1.[OH-].[Na+].Cl>>CN1CCCCC1CCCc1ccccc1NC(=O)C=Cc1ccccc1.CNC(CCO)CCCc1ccccc1N.O=C(Cl)C=Cc1ccccc1.[OH-].CO.[Na+].Cl",
-            "COc1ccc(C(=O)Nc2ccccc2CCCC2CCCCN2C)cc1.CN1CCCCC1CCCc1ccccc1N.O=C(Cl)C=Cc1ccccc1.[OH-].[Na+].Cl.O>>CN1CCCCC1CCCc1ccccc1NC(=O)C=Cc1ccccc1.CNC(CCO)CCCc1ccccc1N.O=C(Cl)C=Cc1ccccc1.[OH-].CO.[Na+].Cl"
+            "COc1ccc(C(=O)Nc2ccccc2CCCC2CCCCN2C)cc1.CN1CCCCC1CCCc1ccccc1N.O=C(Cl)C=Cc1ccccc1.[OH-].[Na+].Cl.O>>CN1CCCCC1CCCc1ccccc1NC(=O)C=Cc1ccccc1.CNC(CCO)CCCc1ccccc1N.O=C(Cl)C=Cc1ccccc1.[OH-].CO.[Na+].Cl",
+            "COc1ccc(C(=O)Nc2ccccc2CCCC2CCCCN2C)cc1.CN1CCCCC1CCCc1ccccc1N.O=C(Cl)C=Cc1ccccc1.[OH-].[Na+].Cl>>CN1CCCCC1CCCc1ccccc1NC(=O)C=Cc1ccccc1.CNC(CCO)CCCc1ccccc1N.O=C(Cl)C=Cc1ccccc1.[OH-].CO.[Na+].Cl"
         ],
         "reaction": "[C:9]([CH:8]=[CH:7][C:6]=1[CH:5]=[CH:4][CH:3]=[CH:2][CH:1]=1)([Cl:56])=[O:10].[CH2:16]([CH2:15][CH2:14][C:13]1=[C:12]([CH:27]=[CH:26][CH:25]=[CH:24]1)[NH2:11])[CH:17]2[CH2:23][CH2:22][CH2:21][CH2:20][N:18]2[CH3:19].[ClH:55].[NH:36]([C:34](=[O:35])[C:33]=1[CH:32]=[CH:31][C:30](=[CH:54][CH:53]=1)[O:29][CH3:28])[C:37]2=[CH:38][CH:39]=[CH:40][CH:41]=[C:42]2[CH2:43][CH2:44][CH2:45][CH:46]3[CH2:47][CH2:48][CH2:49][CH2:50][N:51]3[CH3:52].[Na+:57].[OH-:58]>>[CH2:16]([CH2:15][CH2:14][C:13]1=[C:12]([NH:11][C:9]([CH:8]=[CH:7][C:6]=2[CH:1]=[CH:2][CH:3]=[CH:4][CH:5]=2)=[O:10])[CH:27]=[CH:26][CH:25]=[CH:24]1)[CH:17]3[CH2:23][CH2:22][CH2:21][CH2:20][N:18]3[CH3:19]"
     },
@@ -19589,8 +19589,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "O=C(O)C1CCN(C(=O)CO)CC1>>O=C(O)C1CCN(C(=O)CO)CC1.O",
-            "O=C(O)C1CCN(C(=O)CO)CC1.O>>O=C(O)C1CCN(C(=O)CO)CC1.O"
+            "O=C(O)C1CCN(C(=O)CO)CC1.O>>O=C(O)C1CCN(C(=O)CO)CC1.O",
+            "O=C(O)C1CCN(C(=O)CO)CC1>>O=C(O)C1CCN(C(=O)CO)CC1.O"
         ],
         "reaction": "O=C(O)C1CCN(C(=O)CO)CC1>>O"
     },
@@ -19724,8 +19724,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21>>O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21.O",
-            "O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21.O>>O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21.O"
+            "O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21.O>>O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21.O",
+            "O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21>>O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21.O"
         ],
         "reaction": "O=C(O)Cn1c(-c2ccc(Cl)c(Cl)c2)nc2cccnc21>>O"
     },
@@ -19936,8 +19936,8 @@
         ],
         "correct_reaction": null,
         "wrong_reactions": [
-            "CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2NC1=O.Fc1ccc(B2OB(c3ccc(F)cc3)OB(c3ccc(F)cc3)O2)cc1.O>>CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2N(c2ccc(F)cc2)C1=O.OB1OB(c2ccc(F)cc2)OB(c2ccc(F)cc2)O1",
-            "CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2NC1=O.Fc1ccc(B2OB(c3ccc(F)cc3)OB(c3ccc(F)cc3)O2)cc1>>CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2N(c2ccc(F)cc2)C1=O.OB1OB(c2ccc(F)cc2)OB(c2ccc(F)cc2)O1"
+            "CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2NC1=O.Fc1ccc(B2OB(c3ccc(F)cc3)OB(c3ccc(F)cc3)O2)cc1>>CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2N(c2ccc(F)cc2)C1=O.OB1OB(c2ccc(F)cc2)OB(c2ccc(F)cc2)O1",
+            "CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2NC1=O.Fc1ccc(B2OB(c3ccc(F)cc3)OB(c3ccc(F)cc3)O2)cc1.O>>CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2N(c2ccc(F)cc2)C1=O.OB1OB(c2ccc(F)cc2)OB(c2ccc(F)cc2)O1"
         ],
         "reaction": "CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2NC1=O.Fc1ccc(B2OB(c3ccc(F)cc3)OB(c3ccc(F)cc3)O2)cc1>>CC1(C)Oc2cc(N(S(C)(=O)=O)S(C)(=O)=O)ccc2N(c2ccc(F)cc2)C1=O"
     },

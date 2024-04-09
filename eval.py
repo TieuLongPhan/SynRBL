@@ -1,6 +1,7 @@
 import os
 import io
 import json
+import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -83,43 +84,60 @@ def update_correct_reactions_in_output():
     df.to_csv("dataset_out.csv")
     print("Updated {} entires.".format(cnt))
 
-update_correct_reactions_in_output()
-#|%%--%%| <MEUWaust47|3adr433zHA>
+#update_correct_reactions_in_output()
 
 if not os.path.exists("imgs"):
     os.mkdir("imgs")
 
 df = pd.read_csv("dataset_out.csv")
-wrong_cnt = 0
-uncertain_cnt = 0
+correct_cnt = 0
+known_correct_wrong_cnt = 0
+known_wrong_cnt = 0
+unknown_cnt = 0
+solved = 0
+updated = 0
 for idx, row in df.iterrows():
-    #if idx > 10:
-    #    break
+    if row["solved_by"] not in ["input-balanced", "rule-based", "mcs-based"]:
+        continue
+    solved += 1
     exp_rxn = None
+    db_entry = db.get(row["input_reaction"])
     if row["correct_reaction"] is not np.nan:
-        exp_rxn = normalize_smiles(row["correct_reaction"])
-    wrong_rxns = [normalize_smiles(r) for r in row["wrong_reactions"][1:-1].replace("'", "").split(",")]
+        exp_rxn = normalize_smiles(db_entry["correct_reaction"])
+    wrong_rxns = list(db_entry["wrong_reactions"])
     in_rxn = normalize_smiles(row["input_reaction"])
     act_rxn = normalize_smiles(row["reaction"])
     if exp_rxn != act_rxn:
         if exp_rxn is not None:
-            wrong_cnt += 1
+            known_correct_wrong_cnt += 1
             print(
                 "----- Wrong Reaction ({},{}) -----\n{}\n{}".format(
                     idx, row["solved_by"], exp_rxn, act_rxn
                 )
             )
-        elif act_rxn not in wrong_rxns:
-            diffs = [len(act_rxn) - len(wr) for wr in wrong_rxns]
-            if 2 not in diffs:
-                uncertain_cnt += 1
-                print(
-                    "----- Wrong Reaction ({},{}) -----\n{}\n{}".format(
-                        idx, row["solved_by"], exp_rxn, act_rxn
+            #export_reaction(in_rxn, act_rxn, "imgs/{}-{}.png".format(idx, "wrong"), exp=exp_rxn)
+        else: 
+            if act_rxn in wrong_rxns:
+                known_wrong_cnt += 1
+            else:
+                diffs = [len(act_rxn) - len(wr) for wr in wrong_rxns]
+                if 2 in diffs:
+                    unknown_cnt += 1
+                    print(
+                        "----- Uncertain Reaction ({},{}) -----\n{}\n{}".format(
+                            idx, row["solved_by"], exp_rxn, act_rxn
+                        )
                     )
-                )
-        # export_reaction(in_rxn, act_rxn, "imgs/{}.png".format(idx), exp=exp_rxn)
+                    #export_reaction(in_rxn, act_rxn, "imgs/{}-{}.png".format(idx, "unknown"), exp=exp_rxn)
+                    updated += 1
+                else:
+                    known_wrong_cnt += 1
+    else:
+        correct_cnt += 1
 
-print("Wrong: {}".format(wrong_cnt))
-print("Uncertain: {}".format(uncertain_cnt))
-# db.flush()
+assert solved == (correct_cnt + known_correct_wrong_cnt + known_wrong_cnt + unknown_cnt)
+
+print("Updated: {}".format(updated))
+print("Correct: {}".format(correct_cnt))
+print("Known correct and now wrong: {}".format(known_correct_wrong_cnt))
+print("Uncertain: {}".format(unknown_cnt))
