@@ -35,3 +35,11 @@ def update(reaction, correct_reaction=None, wrong_reaction=None):
         _reaction_dict[reaction]["correct_reaction"] = correct_reaction
     if wrong_reaction is not None:
         _reaction_dict[reaction]["wrong_reactions"].append(wrong_reaction)
+
+def get(reaction):
+    global _reaction_dict
+    _load()
+    assert _reaction_dict is not None
+    r = normalize_smiles(reaction)
+    return _reaction_dict[r]
+        

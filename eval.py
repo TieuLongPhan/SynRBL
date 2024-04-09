@@ -38,23 +38,48 @@ def plot_reactions(smiles, titles=None, suptitle=None):
     plt.tight_layout()
     plt.show()
 
-def export_reaction(in_r, exp, act, path):
-    fig, axs = plt.subplots(3, 1, dpi=400, figsize=(10,7))
-    exp_img = get_reaction_img(exp)
-    act_img = get_reaction_img(act)
+def export_reaction(in_r, act, path, exp=None):
+    i = 0
+    rows = 2
+    if exp is not None:
+        rows += 1
+
+    fig, axs = plt.subplots(rows, 1, dpi=400, figsize=(10,7))
+
     in_img = get_reaction_img(in_r)
-    axs[0].imshow(in_img)
-    axs[0].set_title("Input")
-    axs[1].imshow(exp_img)
-    axs[1].set_title("Expected")
-    axs[2].imshow(act_img)
-    axs[2].set_title("Actual")
+    axs[i].imshow(in_img)
+    axs[i].set_title("Input")
+    i += 1
+
+    if exp is not None:
+        exp_img = get_reaction_img(exp)
+        axs[i].imshow(exp_img)
+        axs[i].set_title("Expected")
+        i += 1
+
+    act_img = get_reaction_img(act)
+    axs[i].imshow(act_img)
+    axs[i].set_title("Actual")
+    i += 1
+
     for ax in axs:
         ax.axis("off")
     plt.tight_layout()
     plt.savefig(path)
     plt.close()
     
+def update_correct_reactions_in_output():
+    df = pd.read_csv("dataset_out.csv")
+    cnt = 0
+    for idx, row in df.iterrows():
+        db_entry = db.get(row["input_reaction"])
+        if db_entry["correct_reaction"] != row["correct_reaction"]:
+            cnt += 1
+            row["correct_reaction"] = db_entry["correct_reaction"]
+    df.to_csv("dataset_out.csv")
+    print("Updated {} entires.".format(cnt))
+        
+#update_correct_reactions_in_output()
 
 if not os.path.exists("imgs"):
     os.mkdir("imgs") 
@@ -62,32 +87,22 @@ if not os.path.exists("imgs"):
 df = pd.read_csv("dataset_out.csv")
 wrong_cnt = 0
 for idx, row in df.iterrows():
-    if row["solved_by"] == "mcs-based":
-        exp_rxn = None
-        if row["correct_reaction"] is not np.nan:
-            exp_rxn = normalize_smiles(row["correct_reaction"])
-        in_rxn = normalize_smiles(row["input_reaction"])
-        act_rxn = normalize_smiles(row["reaction"])
-        if exp_rxn != act_rxn and exp_rxn != None:
-            print(
-                "----- Unequal Reaction ({},{}) -----\n{}\n{}".format(
-                    idx, row["solved_by"], exp_rxn, act_rxn
-                )
-            )
-            #db.update(in_rxn, correct_reaction=row["reaction"])
-            #export_reaction(in_rxn, exp_rxn, act_rxn, "imgs/{}-{}.png".format(idx, d))
-    elif row["solved_by"] == "rule-based":
+    if wrong_cnt == 10:
+        break
+    exp_rxn = None
+    if row["correct_reaction"] is not np.nan:
+        exp_rxn = normalize_smiles(row["correct_reaction"])
+    in_rxn = normalize_smiles(row["input_reaction"])
+    act_rxn = normalize_smiles(row["reaction"])
+    if exp_rxn == None:
         wrong_cnt += 1
-        in_rxn = normalize_smiles(row["input_reaction"])
-        act_rxn = normalize_smiles(row["reaction"])
-        #print(
-        #    "----- Unequal Reaction ({},{}) -----\n{}\n{}".format(
-        #        idx, row["solved_by"], exp_rxn, act_rxn
-        #    )
-        #)
-        db.update(in_rxn, correct_reaction=row["reaction"])
-
+        print(
+            "----- Unequal Reaction ({},{}) -----\n{}\n{}".format(
+                idx, row["solved_by"], exp_rxn, act_rxn
+            )
+        )
+        export_reaction(in_rxn, act_rxn, "imgs/{}.png".format(idx), exp=exp_rxn)
 
 print("Wrong: {}".format(wrong_cnt))
-db.flush()
+#db.flush()
 
