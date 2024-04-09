@@ -64,3 +64,10 @@ class TestNormalizeReaction(unittest.TestCase):
         exp_smiles = "CC(=O)O"
         result = normalize_smiles(smiles)
         self.assertEqual(exp_smiles, result)
+
+    def test_order_1(self):
+        smiles1 = "[BrH].[Cl-]"
+        smiles2 = "Br.[Cl-]"
+        result1 = normalize_smiles(smiles1)
+        result2 = normalize_smiles(smiles2)
+        self.assertEqual(result1, result2)

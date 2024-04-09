@@ -237,6 +237,11 @@ def normalize_smiles(smiles: str) -> str:
             key=lambda x: (sum(1 for c in x if c.isupper()), sum(ord(c) for c in x)),
             reverse=True,
         )
-        return ".".join([normalize_smiles(t) for t in token])
+        token = [normalize_smiles(t) for t in token]
+        token.sort(
+            key=lambda x: (sum(1 for c in x if c.isupper()), sum(ord(c) for c in x)),
+            reverse=True,
+        )
+        return ".".join(token)
     else:
         return Chem.CanonSmiles(remove_atom_mapping(smiles))
