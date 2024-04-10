@@ -21,13 +21,13 @@ class MCS:
                 "sort": "MCIS",
                 "ignore_bond_order": True,
             },
-            {
-                "RingMatchesRingOnly": True,
-                "CompleteRingsOnly": True,
-                "method": "MCIS",
-                "sort": "MCIS",
-                "ignore_bond_order": False,
-            },
+            #{
+            #    "RingMatchesRingOnly": True,
+            #    "CompleteRingsOnly": True,
+            #    "method": "MCIS",
+            #    "sort": "MCIS",
+            #    "ignore_bond_order": False,
+            #},
             {
                 "RingMatchesRingOnly": False,
                 "CompleteRingsOnly": False,
@@ -35,13 +35,13 @@ class MCS:
                 "sort": "MCIS",
                 "ignore_bond_order": True,
             },
-            {
-                "RingMatchesRingOnly": False,
-                "CompleteRingsOnly": False,
-                "method": "MCIS",
-                "sort": "MCIS",
-                "ignore_bond_order": False,
-            },
+            #{
+            #    "RingMatchesRingOnly": False,
+            #    "CompleteRingsOnly": False,
+            #    "method": "MCIS",
+            #    "sort": "MCIS",
+            #    "ignore_bond_order": False,
+            #},
             {"method": "MCES", "sort": "MCES"},
         ]
 
