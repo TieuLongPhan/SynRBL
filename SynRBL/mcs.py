@@ -64,7 +64,7 @@ class MCS:
         )
 
         condition_results = ensemble_mcs(
-            mcs_reactions, self.conditions, batch_size=5000, Timeout=90
+            mcs_reactions, self.conditions, Timeout=30
         )
 
         analysis = ExtractMCS()

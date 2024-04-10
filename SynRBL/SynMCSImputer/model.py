@@ -3,6 +3,7 @@ import traceback
 from SynRBL.SynMCSImputer.structure import Compound, CompoundSet
 from SynRBL.SynMCSImputer.utils import is_carbon_balanced
 from SynRBL.SynMCSImputer.merge import merge
+from rdkit.rdBase import BlockLogs
 
 
 def build_compounds(data_dict) -> CompoundSet:
@@ -108,6 +109,7 @@ class MCSBasedMethod:
     def run(self, reactions: list[dict], stats=None):
         mcs_applied = 0
         mcs_solved = 0
+        block_logs = BlockLogs()
         for reaction in reactions:
             if self.mcs_data_col not in reaction.keys():
                 continue
@@ -127,6 +129,7 @@ class MCSBasedMethod:
                 #traceback.print_exc()
                 reaction[self.issue_col] = str(e)
 
+        del block_logs
         if stats is not None:
             stats["mcs_applied"] = mcs_applied
             stats["mcs_solved"] = mcs_solved

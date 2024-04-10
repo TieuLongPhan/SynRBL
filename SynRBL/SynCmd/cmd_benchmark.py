@@ -39,7 +39,7 @@ def print_result(stats, rb_correct, mcs_correct):
             "Success rate",
             _sr(rb_s, rb_a),
             _sr(mcs_cth, mcs_a),
-            _sr(rb_s + mcs_cth, rb_a + mcs_cth),
+            _sr(rb_s + mcs_cth, rb_a + mcs_a),
         )
     )
     logger.info(
@@ -52,8 +52,19 @@ def print_result(stats, rb_correct, mcs_correct):
     )
 
 
+def check_columns(reactions, reaction_col, result_col):
+    if len(reactions) == 0:
+        raise ValueError("No reactions found in input.")
+    cols = reactions[0].keys()
+    if reaction_col not in cols:
+        raise KeyError("No column '{}' found in input.".format(reaction_col))
+    if result_col not in cols:
+        raise KeyError("No column '{}' found in input.".format(result_col))
+
+
 def run(args):
     input_reactions = pd.read_csv(args.inputfile).to_dict("records")
+    check_columns(input_reactions, args.col, args.result_col)
 
     stats = {}
     synrbl = Balancer(reaction_col=args.col, confidence_threshold=args.min_confidence)
@@ -61,10 +72,16 @@ def run(args):
 
     rb_correct = 0
     mcs_correct = 0
-    for in_r, out_r in zip(input_reactions, rbl_reactions):
+    for i, (in_r, out_r) in enumerate(zip(input_reactions, rbl_reactions)):
         if not out_r["solved"]:
             continue
-        exp_reaction = normalize_smiles(in_r[args.result_col])
+        exp = in_r[args.result_col]
+        if pd.isna(exp):
+            logger.warning(
+                "Missing expected reaction ({}) in line {}.".format(args.result_col, i)
+            )
+            continue
+        exp_reaction = normalize_smiles(exp)
         act_reaction = normalize_smiles(out_r[args.col])
         if exp_reaction == act_reaction:
             if out_r["solved_by"] == "rule-based":
@@ -72,6 +89,10 @@ def run(args):
             elif out_r["solved_by"] == "mcs-based":
                 mcs_correct += 1
     print_result(stats, rb_correct, mcs_correct)
+
+    if args.o is not None:
+        df = pd.DataFrame(rbl_reactions)
+        df.to_csv(args.o)
 
 
 class Range(object):

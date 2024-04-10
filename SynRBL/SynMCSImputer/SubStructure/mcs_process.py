@@ -3,10 +3,18 @@ from rdkit import Chem
 from joblib import Parallel, delayed
 from SynRBL.rsmi_utils import save_database, load_database
 
+import datetime
+import time
+import sys
+import json
 import os
 import copy
+import logging
 
 from rdkit.rdBase import BlockLogs
+
+logger = logging.getLogger("SynRBL")
+
 
 def single_mcs(
     data_dict,
@@ -62,19 +70,28 @@ def single_mcs(
     return mcs_results_dict
 
 
-def ensemble_mcs(data, conditions, batch_size=100, Timeout=60):
+def ensemble_mcs(data, conditions, Timeout=60):
     condition_results = []
-    for condition in conditions:
+    start_time = time.time()
+    last_tsmp = start_time
+    for i, condition in enumerate(conditions):
         all_results = []  # Accumulate results for each condition
 
-        # Process data in batches
-        for start in range(0, len(data), batch_size):
-            end = start + batch_size
-            batch_results = Parallel(n_jobs=4, verbose=0)(
-                delayed(single_mcs)(data_dict, **condition, Timeout=Timeout)
-                for data_dict in data[start:end]
-            )
-            all_results.extend(batch_results)  # Combine batch results
+        p_generator = Parallel(n_jobs=-1, verbose=0, return_as="generator")(
+            delayed(single_mcs)(data_dict, **condition, Timeout=Timeout)
+            for data_dict in data
+        )
+        for result in p_generator:
+            all_results.append(result)  # Combine batch results
+            prg = (i * len(data) + len(all_results)) / (len(conditions) * len(data))
+            t = time.time()
+            if t - last_tsmp > 10:
+                eta = (t - start_time) * (1 / prg - 1)
+                logger.info(
+                    "MCS Progress {:.2%} ETA {}".format(
+                        prg, datetime.timedelta(seconds=int(eta))
+                    )
+                )
+                last_tsmp = t
         condition_results.append(all_results)
     return condition_results
-
