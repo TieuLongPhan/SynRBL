@@ -128,6 +128,7 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "-p",
         default=-1,
+        type=int,
         help="The number of parallel process. (Default -1 => # of processors)",
     )
     test_parser.add_argument(
