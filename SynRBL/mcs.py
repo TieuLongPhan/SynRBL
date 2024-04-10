@@ -65,7 +65,7 @@ class MCS:
         )
 
         condition_results = ensemble_mcs(
-            mcs_reactions, self.conditions, n_jobs=self.n_jobs, Timeout=30
+            mcs_reactions, self.conditions, n_jobs=self.n_jobs, Timeout=60
         )
 
         analysis = ExtractMCS()

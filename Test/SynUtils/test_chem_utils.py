@@ -71,3 +71,10 @@ class TestNormalizeReaction(unittest.TestCase):
         result1 = normalize_smiles(smiles1)
         result2 = normalize_smiles(smiles2)
         self.assertEqual(result1, result2)
+
+    def test_remove_stereochemistry(self):
+        smiles = "C[C@H][C@@H]"
+        result = normalize_smiles(smiles)
+        self.assertEqual("CCC", result)
+
+

@@ -93,6 +93,8 @@ def run(args):
     print_result(stats, rb_correct, mcs_correct)
 
     if args.o is not None:
+        for in_r, out_r in zip(input_reactions, rbl_reactions):
+            out_r[args.result_col] = in_r[args.result_col]
         df = pd.DataFrame(rbl_reactions)
         df.to_csv(args.o)
 

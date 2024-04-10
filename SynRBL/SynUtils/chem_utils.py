@@ -229,6 +229,7 @@ def remove_atom_mapping(smiles: str) -> str:
 
 
 def normalize_smiles(smiles: str) -> str:
+    smiles = smiles.replace("@", "")
     if ">>" in smiles:
         return ">>".join([normalize_smiles(t) for t in smiles.split(">>")])
     elif "." in smiles:
