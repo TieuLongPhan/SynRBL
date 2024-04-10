@@ -133,7 +133,7 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         choices=[Range(0.0, 1.0)],
         help=(
             "Set a confidence threshold for the results "
-            + "from the MCS-based method. (Default: 0.5)"
+            + "from the MCS-based method. (Default: 0)"
         ),
     )
 
