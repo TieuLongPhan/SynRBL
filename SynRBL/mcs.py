@@ -8,10 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class MCS:
-    def __init__(self, id_col, solved_col="solved", mcs_data_col="mcs"):
+    def __init__(self, id_col, solved_col="solved", mcs_data_col="mcs", n_jobs=-1):
         self.id_col = id_col
         self.solved_col = solved_col
         self.mcs_data_col = mcs_data_col
+        self.n_jobs = n_jobs
 
         self.conditions = [
             {
@@ -64,7 +65,7 @@ class MCS:
         )
 
         condition_results = ensemble_mcs(
-            mcs_reactions, self.conditions, Timeout=30
+            mcs_reactions, self.conditions, n_jobs=self.n_jobs, Timeout=30
         )
 
         analysis = ExtractMCS()

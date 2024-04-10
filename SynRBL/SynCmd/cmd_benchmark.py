@@ -67,7 +67,9 @@ def run(args):
     check_columns(input_reactions, args.col, args.result_col)
 
     stats = {}
-    synrbl = Balancer(reaction_col=args.col, confidence_threshold=args.min_confidence)
+    synrbl = Balancer(
+        reaction_col=args.col, confidence_threshold=args.min_confidence, n_jobs=args.p
+    )
     rbl_reactions = synrbl.rebalance(input_reactions, output_dict=True, stats=stats)
 
     rb_correct = 0
@@ -120,6 +122,11 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "-o",
         default=None,
         help="If set, the detailed results will be written to that file.",
+    )
+    test_parser.add_argument(
+        "-p",
+        default=-1,
+        help="The number of parallel process. (Default -1 => # of processors)",
     )
     test_parser.add_argument(
         "--col",

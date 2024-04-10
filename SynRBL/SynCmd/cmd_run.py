@@ -58,10 +58,13 @@ def impute(
     reaction_col,
     passthrough_cols,
     min_confidence,
+    n_jobs=-1,
 ):
     input_reactions = pd.read_csv(src_file).to_dict("records")
 
-    synrbl = Balancer(reaction_col=reaction_col, confidence_threshold=min_confidence)
+    synrbl = Balancer(
+        reaction_col=reaction_col, confidence_threshold=min_confidence, n_jobs=n_jobs
+    )
     stats = {}
     rbl_reactions = synrbl.rebalance(input_reactions, output_dict=True, stats=stats)
 
@@ -86,6 +89,7 @@ def run(args):
         reaction_col=args.col,
         passthrough_cols=columns,
         min_confidence=args.min_confidence,
+        n_jobs=args.p
     )
 
 
@@ -114,6 +118,11 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         "inputfile", help="Path to file containing reaction SMILES."
     )
     test_parser.add_argument("-o", default=None, help="Path to output file.")
+    test_parser.add_argument(
+        "-p",
+        default=-1,
+        help="The number of parallel process. (Default -1 => # of processors)",
+    )
     test_parser.add_argument(
         "--col",
         default="reaction",

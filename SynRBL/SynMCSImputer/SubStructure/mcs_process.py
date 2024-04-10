@@ -70,14 +70,14 @@ def single_mcs(
     return mcs_results_dict
 
 
-def ensemble_mcs(data, conditions, Timeout=60):
+def ensemble_mcs(data, conditions, n_jobs=-1, Timeout=60):
     condition_results = []
     start_time = time.time()
     last_tsmp = start_time
     for i, condition in enumerate(conditions):
         all_results = []  # Accumulate results for each condition
 
-        p_generator = Parallel(n_jobs=-1, verbose=0, return_as="generator")(
+        p_generator = Parallel(n_jobs=n_jobs, verbose=0, return_as="generator")(
             delayed(single_mcs)(data_dict, **condition, Timeout=Timeout)
             for data_dict in data
         )

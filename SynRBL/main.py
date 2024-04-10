@@ -15,7 +15,9 @@ logger = logging.getLogger("SynRBL")
 
 
 class Balancer:
-    def __init__(self, id_col="id", reaction_col="reaction", confidence_threshold=0):
+    def __init__(
+        self, id_col="id", reaction_col="reaction", confidence_threshold=0, n_jobs=-1
+    ):
         self.__reaction_col = reaction_col
         self.__id_col = id_col
         self.solved_col = "solved"
@@ -29,13 +31,15 @@ class Balancer:
             "rules",
         ]
         self.confidence_threshold = confidence_threshold
-        self.input_validator = Validator(reaction_col, "input-balanced")
+        self.input_validator = Validator(reaction_col, "input-balanced", n_jobs=n_jobs)
         self.rb_validator = Validator(
-            reaction_col, "rule-based", check_carbon_balance=False
+            reaction_col, "rule-based", check_carbon_balance=False, n_jobs=n_jobs
         )
-        self.mcs_validator = Validator(reaction_col, "mcs-based")
-        self.rb_method = RuleBasedMethod(id_col, reaction_col, reaction_col)
-        self.mcs = MCS(id_col, mcs_data_col=self.mcs_data_col)
+        self.mcs_validator = Validator(reaction_col, "mcs-based", n_jobs=n_jobs)
+        self.rb_method = RuleBasedMethod(
+            id_col, reaction_col, reaction_col, n_jobs=n_jobs
+        )
+        self.mcs = MCS(id_col, mcs_data_col=self.mcs_data_col, n_jobs=n_jobs)
         self.mcs_method = MCSBasedMethod(
             reaction_col, reaction_col, mcs_data_col=self.mcs_data_col
         )
