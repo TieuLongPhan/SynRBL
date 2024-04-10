@@ -111,9 +111,9 @@ class MCSBasedMethod:
         mcs_solved = 0
         block_logs = BlockLogs()
         for reaction in reactions:
-            mcs_applied += 1
             if self.mcs_data_col not in reaction.keys():
                 continue
+            mcs_applied += 1
             try:
                 result, rules = impute_reaction(
                     reaction,
