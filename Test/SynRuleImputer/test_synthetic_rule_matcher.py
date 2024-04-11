@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynRuleImputer import SyntheticRuleMatcher
+from synrbl.SynRuleImputer import SyntheticRuleMatcher
 
 
 class TestSyntheticRuleMatcher(unittest.TestCase):

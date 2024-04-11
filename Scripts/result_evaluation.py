@@ -6,9 +6,9 @@ import pandas as pd
 import rdkit.Chem.rdChemReactions as rdChemReactions
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 from PIL import Image
-from SynRBL.SynUtils.chem_utils import normalize_smiles, remove_atom_mapping
+from synrbl.SynUtils.chem_utils import normalize_smiles, remove_atom_mapping
 
-import Scripts.validation_set_interface as db
+import scripts.validation_set_interface as db
 
 
 def get_reaction_img(smiles):

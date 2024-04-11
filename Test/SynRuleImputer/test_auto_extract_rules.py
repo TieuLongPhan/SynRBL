@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynRuleImputer import AutomaticRulesExtraction
+from synrbl.SynRuleImputer import AutomaticRulesExtraction
 
 
 class TestAutomaticRulesExtraction(unittest.TestCase):

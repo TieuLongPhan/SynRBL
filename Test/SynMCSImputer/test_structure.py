@@ -1,6 +1,6 @@
 import unittest
 import rdkit.Chem.rdmolfiles as rdmolfiles
-import SynRBL.SynMCSImputer.structure as structure
+import synrbl.SynMCSImputer.structure as structure
 
 
 class TestCompound(unittest.TestCase):

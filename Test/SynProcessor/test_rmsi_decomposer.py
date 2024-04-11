@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-from SynRBL.SynProcessor.rsmi_decomposer import RSMIDecomposer
+from synrbl.SynProcessor.rsmi_decomposer import RSMIDecomposer
 
 
 class TestRSMIDecomposer(unittest.TestCase):

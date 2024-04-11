@@ -2,8 +2,8 @@ import unittest
 import copy
 
 from rdkit import Chem
-from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
-from SynRBL.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
+from synrbl.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
+from synrbl.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
 
 
 class TestFindMissingGraphs(unittest.TestCase):

@@ -90,13 +90,13 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   After installation, you can verify that SynRBL is correctly installed by running a simple test or checking the package version.
 
   ```python
-  python -c "import SynRBL; print(SynRBL.__version__)"
+  python -c "import synrbl; print(synrbl.__version__)"
   ```
 
 ## Usage
 
   ```python
-  from SynRBL import SynRBL
+  from synrbl import Balancer
   ```
 
 

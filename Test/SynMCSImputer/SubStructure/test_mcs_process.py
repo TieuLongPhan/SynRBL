@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 
 from unittest.mock import patch
-from SynRBL.SynMCSImputer.SubStructure.mcs_process import single_mcs
+from synrbl.SynMCSImputer.SubStructure.mcs_process import single_mcs
 
 
 class TestMCSFunctions(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestMCSFunctions(unittest.TestCase):
         ]
 
     @patch(
-        "SynRBL.SynMCSImputer.SubStructure.mcs_graph_detector.MCSMissingGraphAnalyzer.fit"
+        "synrbl.SynMCSImputer.SubStructure.mcs_graph_detector.MCSMissingGraphAnalyzer.fit"
     )
     def test_single_mcs(self, mock_fit):
         # Mocking MCSMissingGraphAnalyzer.fit to return predefined values

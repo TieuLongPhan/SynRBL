@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynChemImputer.appel_reaction import (
+from synrbl.SynChemImputer.appel_reaction import (
     AppelReaction,
 )  # Make sure to import your class correctly
 

@@ -2,7 +2,7 @@ import copy
 import json
 import pandas as pd
 
-from SynRBL.SynUtils.chem_utils import normalize_smiles
+from synrbl.SynUtils.chem_utils import normalize_smiles
 
 _FILE_NAME = "dataset"
 

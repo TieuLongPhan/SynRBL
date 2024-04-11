@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
-from SynRBL.SynVis import ReactionVisualizer
-from SynRBL.rsmi_utils import load_database
-from SynRBL.SynUtils.chem_utils import remove_atom_mapping
+from synrbl.SynVis import ReactionVisualizer
+from synrbl.rsmi_utils import load_database
+from synrbl.SynUtils.chem_utils import remove_atom_mapping
 
 
 def clear_atom_nums(dataset):

@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
+from synrbl.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
 
 
 class TestGraphMissingUncertainty(unittest.TestCase):
