@@ -2,7 +2,7 @@ import unittest
 
 from synrbl.SynChemImputer.appel_reaction import (
     AppelReaction,
-)  # Make sure to import your class correctly
+) 
 
 
 class TestAppelReaction(unittest.TestCase):
