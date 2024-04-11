@@ -6,14 +6,14 @@ from typing import List, Optional, Dict
 
 class RuleImputeManager(RSMIDecomposer):
     """
-    A class for managing a database of chemical compounds, allowing for the addition, removal,
-    and standardization of compound entries.
+    A class for managing a database of chemical compounds, allowing for the
+    addition, removal, and standardization of compound entries.
 
     Parameters
     ----------
     database : list
-        A list of dictionaries representing chemical compounds. Each dictionary has keys:
-        'formula' (str), 'smiles' (str), and 'Composition' (dict).
+        A list of dictionaries representing chemical compounds. Each dictionary
+        has keys: 'formula' (str), 'smiles' (str), and 'Composition' (dict).
 
     Methods
     -------
@@ -48,14 +48,16 @@ class RuleImputeManager(RSMIDecomposer):
 
     def add_entry(self, formula: str, smiles: str) -> None:
         """
-        Adds a new entry to the database, ensuring no duplicates and valid SMILES.
+        Adds a new entry to the database, ensuring no duplicates and valid
+        SMILES.
 
         Args:
             formula: The formula of the compound.
             smiles: The SMILES string of the compound.
 
         Raises:
-            ValueError: If the SMILES string is invalid or if the entry already exists.
+            ValueError: If the SMILES string is invalid or if the entry already
+                exists.
 
         Example:
             >>> db = RSMIDataImpute()
@@ -95,7 +97,12 @@ class RuleImputeManager(RSMIDecomposer):
 
         Example:
         >>> db = RSMIDataImpute()
-        >>> invalid_entries = db.add_entries([{'formula': 'CO2', 'smiles': 'C=O'}, {'formula': 'Invalid', 'smiles': 'Invalid'}])
+        >>> invalid_entries = db.add_entries(
+            [
+                {"formula": "CO2", "smiles": "C=O"},
+                {"formula": "Invalid", "smiles": "Invalid"},
+            ]
+        )
         Invalid entries: [{'formula': 'Invalid', 'smiles': 'Invalid'}]
         """
         invalid_entries = []

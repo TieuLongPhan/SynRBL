@@ -1,5 +1,4 @@
 import logging
-import pandas as pd
 
 from collections import Counter
 from rdkit import Chem
@@ -41,7 +40,7 @@ class ExtractMCS:
                 return molecule.GetNumAtoms()
             else:
                 return 0
-        except:
+        except Exception:
             return 0
 
     @staticmethod

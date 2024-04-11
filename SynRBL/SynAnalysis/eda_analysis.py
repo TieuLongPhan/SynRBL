@@ -1,54 +1,70 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
-from statsmodels.stats.proportion import proportion_confint
 import numpy as np
+import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-from matplotlib.ticker import MultipleLocator, AutoMinorLocator
+
+from statsmodels.stats.proportion import proportion_confint
+from matplotlib.ticker import AutoMinorLocator
 from typing import List, Optional
 
 
 class EDAVisualizer:
     """
-    A class for visualizing accuracy metrics and confidence intervals of datasets across different categories,
-    with support for line and bar charts, including error bars for confidence intervals. It dynamically adjusts
-    subplot arrangements based on the number of metrics provided, allowing for a comprehensive and customizable
-    visualization experience.
+    A class for visualizing accuracy metrics and confidence intervals of
+    datasets across different categories, with support for line and bar
+    charts, including error bars for confidence intervals. It dynamically
+    adjusts subplot arrangements based on the number of metrics provided,
+    allowing for a comprehensive and customizable visualization experience.
 
     Attributes
     ----------
     df : pd.DataFrame
-        The dataset containing accuracy results and other metrics for visualization. It must contain a 'Result' column
-        used for calculating accuracy and confidence intervals.
+        The dataset containing accuracy results and other metrics for
+        visualization. It must contain a 'Result' column used for calculating
+        accuracy and confidence intervals.
     columns : list of str
-        Column names in the dataframe that represent different categories or groups for which accuracy and confidence
-        intervals will be visualized.
+        Column names in the dataframe that represent different categories or
+        groups for which accuracy and confidence intervals will be visualized.
     titles : list of str
-        Custom titles for each subplot corresponding to the columns being visualized. These titles are used as x-axis
-        labels for each chart.
+        Custom titles for each subplot corresponding to the columns being
+        visualized. These titles are used as x-axis labels for each chart.
 
     Methods
     -------
     calculate_accuracy_and_confidence(column):
-        Calculates the accuracy and Wilson confidence intervals for a given column in the dataframe.
+        Calculates the accuracy and Wilson confidence intervals for a given
+        column in the dataframe.
 
-    visualize_accuracy(error_bar=True, chart_type='line', error_bar_color='black', same_color_scale=False, show_values=False, savepath=None):
-        Generates visualizations for the accuracy metrics specified in the columns attribute, with optional error bars,
-        supporting both line and bar chart types.
+    visualize_accuracy(
+        error_bar=True,
+        chart_type="line",
+        error_bar_color="black",
+        same_color_scale=False,
+        show_values=False,
+        savepath=None,
+    ):
+        Generates visualizations for the accuracy metrics specified in the
+        columns attribute, with optional error bars, supporting both line and
+        bar chart types.
     """
 
     def __init__(self, df: pd.DataFrame, columns: List[str], titles: List[str]):
         """
-        Initializes the AccuracyVisualizer with a dataframe, columns for visualization, and titles.
+        Initializes the AccuracyVisualizer with a dataframe, columns for
+        visualization, and titles.
 
         Parameters
         ----------
         df : pd.DataFrame
-            The dataset to visualize, containing at least one column for grouping and a 'Result' column for accuracy calculations.
+            The dataset to visualize, containing at least one column for
+            grouping and a 'Result' column for accuracy calculations.
         columns : list of str
-            The columns in the dataset that should be visualized, representing different categories or groups.
+            The columns in the dataset that should be visualized, representing
+            different categories or groups.
         titles : list of str
-            Titles for the subplots corresponding to each column, used as x-axis labels.
+            Titles for the subplots corresponding to each column, used as
+            x-axis labels.
         """
         assert len(columns) == len(
             titles
@@ -59,20 +75,25 @@ class EDAVisualizer:
 
     def calculate_accuracy_and_confidence(self, column: str) -> pd.DataFrame:
         """
-        Calculates the accuracy and confidence intervals for a given column in the dataframe.
+        Calculates the accuracy and confidence intervals for a given column in
+        the dataframe.
 
-        This method groups the dataset by the specified column, calculates the sum and size for each group, determines
-        the accuracy as the ratio of sum to size, and computes the confidence intervals using the Wilson method.
+        This method groups the dataset by the specified column, calculates the
+        sum and size for each group, determines the accuracy as the ratio of
+        sum to size, and computes the confidence intervals using the Wilson
+        method.
 
         Parameters
         ----------
         column : str
-            The column for which to calculate accuracy and confidence intervals.
+            The column for which to calculate accuracy and confidence
+            intervals.
 
         Returns
         -------
         pd.DataFrame
-            A dataframe with the specified column, accuracy, and confidence intervals (lower and upper bounds) for each group.
+            A dataframe with the specified column, accuracy, and confidence
+            intervals (lower and upper bounds) for each group.
         """
 
         group_data = self.df.groupby(column)["Result"].agg(["sum", "size"])
@@ -97,27 +118,36 @@ class EDAVisualizer:
         save_path: Optional[str] = None,
     ) -> None:
         """
-        Generates a visualization of the accuracy metrics specified in the columns attribute.
+        Generates a visualization of the accuracy metrics specified in the
+        columns attribute.
 
-        This method supports dynamic adjustment of subplot layouts based on the number of metrics, optional error bars,
-        and the choice between line and bar charts. It allows for a unified or varying color scale across subplots and
-        the option to display numerical values on the charts.
+        This method supports dynamic adjustment of subplot layouts based on
+        the number of metrics, optional error bars, and the choice between
+        line and bar charts. It allows for a unified or varying color scale
+        across subplots and the option to display numerical values on the
+        charts.
 
         Parameters
         ----------
         error_bar : bool, optional
-            Whether to include error bars for confidence intervals in the charts (default is True).
+            Whether to include error bars for confidence intervals in the
+            charts (default is True).
         chart_type : {'line', 'bar'}, optional
-            The type of chart to use for visualization ('line' or 'bar', default is 'line').
+            The type of chart to use for visualization ('line' or 'bar',
+            default is 'line').
         error_bar_color : str, optional
-            Color for the error bars, if error_bar is True (default is 'black').
+            Color for the error bars, if error_bar is True
+            (default is 'black').
         same_color_scale : bool, optional
-            Whether to use the same color scale across all subplots based on the maximum 'size' value in the dataset
+            Whether to use the same color scale across all subplots based on
+            the maximum 'size' value in the dataset
             (default is False, which uses individual scales per subplot).
         show_values : bool, optional
-            Whether to display numerical values on the charts (default is False).
+            Whether to display numerical values on the charts
+            (default is False).
         save_path : str or None, optional
-            Path to save the figure. If None, the figure is not saved (default is None).
+            Path to save the figure. If None, the figure is not saved
+            (default is None).
 
         Returns
         -------

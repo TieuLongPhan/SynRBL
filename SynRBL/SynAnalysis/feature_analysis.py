@@ -1,13 +1,12 @@
 import pandas as pd
 import xgboost as xgb
+import matplotlib.pyplot as plt
+import numpy as np
+
 from copy import deepcopy
 from sklearn.preprocessing import LabelEncoder
 from xgboost import XGBClassifier
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import numpy as np
 from typing import List, Optional
-import seaborn as sns
 
 
 class FeatureAnalysis:
@@ -24,7 +23,8 @@ class FeatureAnalysis:
         Parameters:
         - data (pd.DataFrame): The DataFrame containing the data.
         - target_col (str): The name of the target column.
-        - cols_for_contour (List[List[str]]): List of lists containing feature pairs for contour plots.
+        - cols_for_contour (List[List[str]]): List of lists containing feature
+            pairs for contour plots.
         - figsize (tuple): Figure size for the visualization. Default is (16, 12).
         """
         self.data = data
@@ -61,17 +61,7 @@ class FeatureAnalysis:
         )
         importance_df = importance_df.sort_values(by="Importance", ascending=False)
 
-        cmap = plt.get_cmap("flare")
         colors = ["gray" for i in range(len(importance_df))]
-        bars = ax.barh(
-            importance_df["Feature"],
-            importance_df["Importance"],
-            color=colors,
-            zorder=2,
-        )
-
-        # for bar, val in zip(bars, importance_df['Importance']):
-        # ax.text(val + 0.002, bar.get_y() + bar.get_height() / 2, f'{val:.3f}', va='center', color='black')
 
         ax.set_xlabel("Importance", color="black")
         ax.invert_yaxis()
@@ -106,23 +96,16 @@ class FeatureAnalysis:
         Z = model.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
         Z = Z.reshape(xx.shape)
 
-        # Create filled contour plot with increased size
-        contour = ax.contourf(
-            xx, yy, Z, alpha=0.8, levels=np.linspace(0, 1, 11), cmap=plt.cm.coolwarm
-        )
-
         ax.set_xlabel(features[0])
         ax.set_ylabel(features[1])
-
-        # Add colorbar for the probability values
-        cbar = plt.colorbar(contour, ax=ax, orientation="vertical", label="Probability")
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
         Visualize feature importance and contour plots.
 
         Parameters:
-        - save_path (Optional[str]): Path to save the figure. If None, the figure is not saved. Default is None.
+        - save_path (Optional[str]): Path to save the figure. If None, the
+            figure is not saved. Default is None.
 
         Returns:
         None

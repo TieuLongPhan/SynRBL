@@ -1,6 +1,4 @@
-import traceback
-
-from SynRBL.SynMCSImputer.structure import Compound, CompoundSet
+from SynRBL.SynMCSImputer.structure import CompoundSet
 from SynRBL.SynMCSImputer.utils import is_carbon_balanced
 from SynRBL.SynMCSImputer.merge import merge
 from rdkit.rdBase import BlockLogs
@@ -126,7 +124,6 @@ class MCSBasedMethod:
                 reaction[self.rules_col] = rules
                 mcs_solved += 1
             except Exception as e:
-                #traceback.print_exc()
                 reaction[self.issue_col] = str(e)
 
         del block_logs

@@ -1,9 +1,9 @@
+import json
+import random
+
 from typing import List, Dict, Set, Any
 from typing import Optional, Union, Callable, Tuple
 from rdkit import Chem
-from rdkit.Chem import Draw
-import json
-import random
 from collections import defaultdict
 
 

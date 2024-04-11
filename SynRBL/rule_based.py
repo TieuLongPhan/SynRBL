@@ -30,7 +30,7 @@ class RuleBasedMethod:
         if rules_path is None:
             with importlib.resources.files(SynRBL.SynRuleImputer).joinpath(
                 "rules_manager.json.gz"
-                ).open('r') as f:
+            ).open("r") as f:
                 self.rules = json.load(f)
         else:
             self.rules = load_database(rules_path)

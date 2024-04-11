@@ -1,15 +1,10 @@
-from joblib import Parallel, delayed
-from rdkit import Chem
 import pandas as pd
+import rdkit.Chem as Chem
 
-import sys
-from pathlib import Path
-
-root_dir = Path(__file__).parents[2]
-sys.path.append(str(root_dir))
+from joblib import Parallel, delayed
 from SynRBL.rsmi_utils import save_database
 
-from typing import Union, Tuple
+from typing import Tuple
 
 
 class RSMIProcessing:

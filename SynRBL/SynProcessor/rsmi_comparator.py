@@ -1,4 +1,3 @@
-from collections import defaultdict
 from joblib import Parallel, delayed
 from typing import List, Dict, Tuple
 

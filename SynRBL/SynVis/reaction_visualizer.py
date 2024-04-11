@@ -1,17 +1,22 @@
+import io
 import matplotlib.pyplot as plt
+
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.Draw import rdMolDraw2D
-import io
 from PIL import Image
-from typing import List, Dict, Tuple, Optional
+from typing import Dict, Tuple, Optional
 
 
 class ReactionVisualizer:
     """
-    Plot and optionally compare two chemical reactions for visualization using data from a given source.
+    Plot and optionally compare two chemical reactions for visualization using
+    data from a given source.
 
-    This method allows the visualization of chemical reactions represented as strings. It can plot a single reaction or compare two reactions side-by-side, depending on the 'compare' parameter. The reactions are visualized using RDKit and plotted using Matplotlib.
+    This method allows the visualization of chemical reactions represented as
+    strings. It can plot a single reaction or compare two reactions
+    side-by-side, depending on the 'compare' parameter. The reactions are
+    visualized using RDKit and plotted using Matplotlib.
 
     Parameters
     ----------
@@ -22,9 +27,11 @@ class ReactionVisualizer:
     new_reaction_col : str
         The key in 'data' for the new reaction string.
     compare : bool, optional
-        If True, both the old and new reactions are plotted side by side for comparison. Default is False.
+        If True, both the old and new reactions are plotted side by side for
+        comparison. Default is False.
     orientation : str, optional
-        The layout orientation of the plots, either 'vertical' or 'horizontal'. Default is 'vertical'.
+        The layout orientation of the plots, either 'vertical' or 'horizontal'.
+        Default is 'vertical'.
     savefig : bool, optional
         If True, the figure is saved to the specified pathname. Default is False.
     pathname : str, optional
@@ -37,13 +44,26 @@ class ReactionVisualizer:
     # Example usage of the plot_reactions method
     visualizer = ReactionVisualizer()
     reaction_data = {
-        'old_reaction': 'C1=CC=CC=C1.CCO>>C1=CC=CC=C1OCCO',
-        'new_reaction': 'C1=CC=CC=C1>>CCO'
+        "old_reaction": "C1=CC=CC=C1.CCO>>C1=CC=CC=C1OCCO",
+        "new_reaction": "C1=CC=CC=C1>>CCO",
     }
-    visualizer.plot_reactions(reaction_data, 'old_reaction', 'new_reaction', compare=True, orientation='horizontal')
+    visualizer.plot_reactions(
+        reaction_data,
+        "old_reaction",
+        "new_reaction",
+        compare=True,
+        orientation="horizontal",
+    )
 
     # To save the plot as an image
-    visualizer.plot_reactions(reaction_data, 'old_reaction', 'new_reaction', compare=True, savefig=True, pathname='reaction_comparison.png')
+    visualizer.plot_reactions(
+        reaction_data,
+        "old_reaction",
+        "new_reaction",
+        compare=True,
+        savefig=True,
+        pathname="reaction_comparison.png",
+    )
     """
 
     def __init__(
@@ -61,14 +81,21 @@ class ReactionVisualizer:
         Initialize the ReactionVisualizer.
 
         Parameters:
-        - compare (bool): Whether to compare old and new reactions side by side. Default is True.
-        - orientation (str): Orientation of comparison ('vertical' or 'horizontal'). Default is 'vertical'.
-        - figsize (Tuple[int, int]): Figure size (width, height) in inches. Default is (10, 5).
-        - label_position (str): Position of labels ('above' or 'below') the reaction images. Default is 'below'.
+        - compare (bool): Whether to compare old and new reactions side by
+            side. Default is True.
+        - orientation (str): Orientation of comparison ('vertical' or
+            'horizontal'). Default is 'vertical'.
+        - figsize (Tuple[int, int]): Figure size (width, height) in inches.
+            Default is (10, 5).
+        - label_position (str): Position of labels ('above' or 'below') the
+            reaction images. Default is 'below'.
         - dpi (int): Dots per inch for image resolution. Default is 300.
-        - bond_line_width (float): Width of bond lines in the reaction image. Default is 6.
-        - atom_label_font_size (int): Font size for atom labels in the reaction image. Default is 50.
-        - padding (float): Padding around the drawing in the reaction image. Default is 0.001.
+        - bond_line_width (float): Width of bond lines in the reaction image.
+            Default is 6.
+        - atom_label_font_size (int): Font size for atom labels in the reaction
+            image. Default is 50.
+        - padding (float): Padding around the drawing in the reaction image.
+            Default is 0.001.
         """
         self.compare = compare
         self.orientation = orientation
@@ -161,7 +188,8 @@ class ReactionVisualizer:
         Parameters
         ----------
         data : Dict[str, str]
-            A dictionary containing the data with keys as column names and values as reaction strings.
+            A dictionary containing the data with keys as column names and
+            values as reaction strings.
         old_reaction_col : str
             The column name containing the string representation of the old reaction.
         new_reaction_col : str
@@ -169,7 +197,8 @@ class ReactionVisualizer:
         compare : bool, optional
             If True, both the old and new reactions are plotted. Default is False.
         orientation : str, optional
-            The layout orientation of the plots ('vertical' or 'horizontal'). Default is 'vertical'.
+            The layout orientation of the plots ('vertical' or 'horizontal').
+            Default is 'vertical'.
         savefig : bool, optional
             If True, saves the figure to the specified pathname. Default is False.
         pathname : str, optional

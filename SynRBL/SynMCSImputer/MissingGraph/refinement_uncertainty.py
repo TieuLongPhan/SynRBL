@@ -1,4 +1,4 @@
-from typing import List, Tuple, Set, Optional
+from typing import List, Tuple, Optional
 from collections import Counter
 
 
@@ -8,8 +8,10 @@ class RefinementUncertainty:
         Initialize the RefinementUncertainty class with the graph conditions.
 
         Parameters:
-        finalgraph_uncertainty (List[dict]): A list of dictionaries representing missing graph data.
-        graph_conditions (List[dict]): A list of dictionaries representing graph conditions.
+        finalgraph_uncertainty (List[dict]): A list of dictionaries
+            representing missing graph data.
+        graph_conditions (List[dict]): A list of dictionaries representing
+            graph conditions.
         """
         self.finalgraph_uncertainty = finalgraph_uncertainty
         self.id = [i["R-id"] for i in finalgraph_uncertainty]
@@ -21,7 +23,8 @@ class RefinementUncertainty:
         Retrieve the SMILES graph for a given final graph and ID.
 
         Parameters:
-        final_graph (List[dict]): A list of dictionaries representing missing graph data.
+        final_graph (List[dict]): A list of dictionaries representing missing
+            graph data.
         id (str): The ID to search for in the graph.
 
         Returns:
@@ -34,14 +37,18 @@ class RefinementUncertainty:
         lists: List[List[str]], intersection_num: int = 2
     ) -> Tuple[Optional[List[str]], Optional[int]]:
         """
-        Find lists that are present at least a specified number of times in the provided list of lists and their first index.
+        Find lists that are present at least a specified number of times in
+        the provided list of lists and their first index.
 
         Parameters:
         lists (List[List[str]]): A list containing multiple lists of elements.
-        intersection_num (int): The minimum number of times a list must appear to be considered.
+        intersection_num (int): The minimum number of times a list must appear
+            to be considered.
 
         Returns:
-        Tuple[Optional[List[str]], Optional[int]]: The first list that meets the intersection criteria and its first index, or None if no such list exists.
+        Tuple[Optional[List[str]], Optional[int]]: The first list that meets
+            the intersection criteria and its first index, or None if no such
+            list exists.
         """
         # Convert inner lists to tuples for hashing and count occurrences
         tuple_lists = [tuple(lst) for lst in lists]
@@ -56,11 +63,13 @@ class RefinementUncertainty:
 
     def fit(self, intersection_num: int = 2) -> List[dict]:
         """
-        Generate a new graph for uncertain IDs based on the first intersection condition.
+        Generate a new graph for uncertain IDs based on the first intersection
+        condition.
 
         Parameters:
         id_uncertainty (List[str]): A list of uncertain IDs.
-        intersection_num (int): The minimum number of lists in which an element must appear to be considered.
+        intersection_num (int): The minimum number of lists in which an element
+            must appear to be considered.
 
         Returns:
         List[dict]: A new graph list for uncertain IDs.

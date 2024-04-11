@@ -6,9 +6,10 @@ from typing import Union
 
 class SyntheticRuleMatcher:
     """
-    A class to match rules based on given chemical data using a depth-first search algorithm.
-    Implements backtracking to revert to previous states if a dead end is reached.
-    Allows selection between finding the 'best' single solution or 'all' possible solutions.
+    A class to match rules based on given chemical data using a depth-first
+    search algorithm. Implements backtracking to revert to previous states if a
+    dead end is reached. Allows selection between finding the 'best' single
+    solution or 'all' possible solutions.
 
     Example:
     rule_dict = [{'smiles': 'C1=CC=CC=C1', 'Composition': {'C': 6, 'H': 6}},
@@ -20,13 +21,18 @@ class SyntheticRuleMatcher:
     # Output: [{'smiles': 'C1=CC=CC=C1', 'Ratio': 1}]
 
     Attributes:
-        rule_dict (list): A list of dictionaries representing chemical rules, each containing 'smiles' and 'Composition'.
-        data_dict (dict): A dictionary representing available chemical data, with element symbols as keys and counts as values.
-        select (str): Selection mode, either 'best' for the best solution or 'all' for all solutions.
-        ranking (str or bool): Ranking mode for solutions, options are 'longest', 'least', 'greatliest', or False.
+        rule_dict (list): A list of dictionaries representing chemical rules,
+            each containing 'smiles' and 'Composition'.
+        data_dict (dict): A dictionary representing available chemical data,
+            with element symbols as keys and counts as values.
+        select (str): Selection mode, either 'best' for the best solution or
+            'all' for all solutions.
+        ranking (str or bool): Ranking mode for solutions, options are
+            'longest', 'least', 'greatliest', or False.
 
     Methods:
-        match(): Find matching solutions based on the specified selection and ranking mode.
+        match(): Find matching solutions based on the specified selection and
+            ranking mode.
     """
 
     def __init__(
@@ -61,13 +67,15 @@ class SyntheticRuleMatcher:
         self.data_dict = {k: v for k, v in self.data_dict.items() if v != 0 or k == "Q"}
 
     def match(self) -> List[List[Dict[str, Any]]]:
-        """Find matching solutions based on the specified selection and ranking mode.
+        """Find matching solutions based on the specified selection and ranking
+        mode.
 
         Args:
             self (obj): The instance of the class.
 
         Returns:
-            List[List[Dict[str, Any]]]: List of matching solutions, each represented as a list of dictionaries.
+            List[List[Dict[str, Any]]]: List of matching solutions, each
+                represented as a list of dictionaries.
         """
         if self.select == "all":
             self.dfs(self.data_dict, [])
@@ -79,11 +87,13 @@ class SyntheticRuleMatcher:
 
     def dfs(self, data: dict, path: list) -> Union[dict, None]:
         """
-        Depth-First Search (DFS) algorithm to find solutions by exploring possible paths.
+        Depth-First Search (DFS) algorithm to find solutions by exploring
+        possible paths.
 
         Args:
             data (dict): Current chemical data to match against.
-            path (list): List of dictionaries representing the current path/solution.
+            path (list): List of dictionaries representing the current
+                path/solution.
 
         Returns:
             Union[dict, None]: A solution (path) if found, None otherwise.
@@ -114,7 +124,8 @@ class SyntheticRuleMatcher:
             rule: Chemical rule to apply, containing 'Composition' and 'smiles'.
 
         Returns:
-            A tuple containing the updated chemical data and path if the rule can be applied, None otherwise.
+            A tuple containing the updated chemical data and path if the rule
+            can be applied, None otherwise.
         """
         if not self.can_match(rule["Composition"], data):
             return None, None
@@ -161,7 +172,8 @@ class SyntheticRuleMatcher:
         Rank a list of solutions based on the specified ranking mode.
 
         Args:
-            solutions: List of solutions, each represented as a list of dictionaries.
+            solutions: List of solutions, each represented as a list of
+                dictionaries.
             ranking: Ranking mode for solutions.
 
         Returns:
@@ -202,8 +214,9 @@ class SyntheticRuleMatcher:
         Remove overlapping solutions from the list of solutions.
 
         Args:
-            solutions: List of solutions, each represented as a list of dictionaries.
-                Each dictionary should have 'smiles' and 'Ratio' keys with string values.
+            solutions: List of solutions, each represented as a list of
+                dictionaries. Each dictionary should have 'smiles' and 'Ratio'
+                keys with string values.
 
         Returns:
             List of unique solutions with overlapping solutions removed.

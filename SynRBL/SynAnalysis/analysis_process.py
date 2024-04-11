@@ -1,7 +1,5 @@
-import sys
 import pandas as pd
 
-sys.path.append("../../../")
 from SynRBL.rsmi_utils import load_database
 from SynRBL.SynAnalysis.analysis_utils import (
     remove_atom_mapping_from_reaction_smiles,
@@ -68,13 +66,13 @@ class AnalysisProcess:
                 axis=1,
             )
             combined_data.loc[
-                (combined_data["mcs_carbon_balanced"] == False)
-                & (combined_data["Result"] == True),
+                (combined_data["mcs_carbon_balanced"] is False)
+                & (combined_data["Result"] is True),
                 "Result",
             ] = False
             if remove_undetected:
                 combined_data = combined_data[
-                    combined_data["mcs_carbon_balanced"] == True
+                    combined_data["mcs_carbon_balanced"] is True
                 ]
 
             data_all = pd.concat([data_all, combined_data], axis=0)

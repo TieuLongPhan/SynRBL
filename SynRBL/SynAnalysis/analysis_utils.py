@@ -1,8 +1,5 @@
-import sys
-
-sys.path.append("../../../")
-from SynRBL.rsmi_utils import load_database
 import re
+
 from rdkit import Chem
 from rdkit.Chem.rdMolDescriptors import CalcNumRings
 from copy import deepcopy

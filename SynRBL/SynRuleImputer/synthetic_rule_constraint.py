@@ -18,7 +18,8 @@ class RuleConstraint:
     Methods
     -------
     fit():
-        Applies oxidation rules to modify reactions and filters out reactions with banned atoms.
+        Applies oxidation rules to modify reactions and filters out reactions
+        with banned atoms.
     """
 
     def __init__(
@@ -28,15 +29,16 @@ class RuleConstraint:
         ban_atoms_reactants: Optional[List[str]] = None,
     ) -> None:
         """
-        Initializes the RuleConstraint class with a list of chemical reactions and optional banned atoms.
+        Initializes the RuleConstraint class with a list of chemical reactions
+        and optional banned atoms.
 
         Parameters
         ----------
         list_dict : List[Dict[str, Any]]
             A list of dictionaries, each representing a chemical reaction.
         ban_atoms : Optional[List[str]], optional
-            A list of SMILES strings for atoms or molecules to be banned from the reactions.
-            Defaults to a predefined list.
+            A list of SMILES strings for atoms or molecules to be banned from
+            the reactions. Defaults to a predefined list.
         """
         self.list_dict = copy.deepcopy(list_dict)
         self.ban_atoms = ban_atoms or [
@@ -137,10 +139,12 @@ class RuleConstraint:
 
         Parameters:
         reaction_list (List[Dict[str, str]]): A list containing reaction data.
-        ban_pattern (Pattern): A compiled regular expression pattern that matches any of the banned atoms.
+        ban_pattern (Pattern): A compiled regular expression pattern that
+            matches any of the banned atoms.
 
         Returns:
-        Tuple[List[Dict[str, str]], List[Dict[str, str]]]: The filtered list of reactions without and with banned atoms in their products.
+        Tuple[List[Dict[str, str]], List[Dict[str, str]]]: The filtered list
+            of reactions without and with banned atoms in their products.
         """
         filtered_reactions = [
             reaction
@@ -172,16 +176,19 @@ class RuleConstraint:
     @staticmethod
     def check_even(data_dict: dict, key: str, frag: str, symbol: str = ">>") -> bool:
         """
-        Check if the number of occurrences of a fragment in a list of SMILES strings is even.
+        Check if the number of occurrences of a fragment in a list of SMILES
+        strings is even.
 
         Args:
             data_dict (dict): A dictionary containing SMILES strings.
             key (str): The key to access the relevant value in the dictionary.
             frag (str): The fragment to count in the SMILES strings.
-            symbol (str, optional): The delimiter used in the SMILES strings. Defaults to '>>'.
+            symbol (str, optional): The delimiter used in the SMILES strings.
+                Defaults to '>>'.
 
         Returns:
-            bool: True if the number of occurrences of the fragment is even, False otherwise.
+            bool: True if the number of occurrences of the fragment is even,
+                False otherwise.
         """
         smiles_list = data_dict[key].split(symbol)
         count = smiles_list.count(frag)
@@ -189,7 +196,8 @@ class RuleConstraint:
 
     def fit(self) -> List[Dict[str, Any]]:
         """
-        Applies oxidation modification rules and filters out reactions with banned atoms.
+        Applies oxidation modification rules and filters out reactions with
+        banned atoms.
 
         Returns
         -------
@@ -206,8 +214,9 @@ class RuleConstraint:
         """
         Remove atom mapping numbers from a SMILES string.
 
-        Atom mappings are typically represented by numbers following a colon (':') after the atom symbol.
-        This function removes these mappings to return a SMILES string without them.
+        Atom mappings are typically represented by numbers following a
+        colon (':') after the atom symbol. This function removes these mappings
+        to return a SMILES string without them.
 
         Args:
             smiles (str): A SMILES string with atom mappings.
@@ -222,14 +231,17 @@ class RuleConstraint:
     @staticmethod
     def check_no_constraint(reactants, no_constraint):
         """
-        Check if any elements in the no_constraint list match exactly with any elements in the reactants list.
+        Check if any elements in the no_constraint list match exactly with any
+        elements in the reactants list.
 
         Args:
             reactants (List[str]): A list of reactant elements or compounds.
-            no_constraint (List[str]): A list of elements to check against in the reactants list.
+            no_constraint (List[str]): A list of elements to check against in
+                the reactants list.
 
         Returns:
-            bool: True if any element from no_constraint is found in reactants, False otherwise.
+            bool: True if any element from no_constraint is found in reactants,
+                False otherwise.
         """
         # Convert lists to sets for efficient membership testing
         reactants_set = set(reactants)

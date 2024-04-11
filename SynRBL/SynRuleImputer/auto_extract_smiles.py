@@ -6,7 +6,8 @@ from typing import List, Dict
 
 class AutomaticSmilesExtraction:
     """
-    A class for automatically extracting information from reaction SMILES (RSMI) data.
+    A class for automatically extracting information from reaction SMILES
+    (RSMI) data.
 
     Parameters
     ----------
@@ -29,7 +30,8 @@ class AutomaticSmilesExtraction:
 
     Example
     -------
-    # Create an instance of the AutomaticSmilesExtraction class with a list of reaction dictionaries
+    # Create an instance of the AutomaticSmilesExtraction class with a list of
+    reaction dictionaries
     >>> reactions = [
     ...     {'reactants': 'CCO', 'products': 'CCOCC'},
     ...     {'reactants': 'CC', 'products': 'C'}
@@ -42,12 +44,7 @@ class AutomaticSmilesExtraction:
     [2, 2]
     """
 
-    def __init__(
-        self, 
-        reactions: List[str], 
-        n_jobs: int = 4, 
-        verbose: int = 1
-        ) -> None:
+    def __init__(self, reactions: List[str], n_jobs: int = 4, verbose: int = 1) -> None:
         self.reactions = reactions
         self.smiles_list = self.get_smiles(reactions)
         # Use n_jobs and verbose as arguments in Parallel
@@ -61,27 +58,38 @@ class AutomaticSmilesExtraction:
     @staticmethod
     def get_smiles(list_of_dicts: List[Dict[str, str]]) -> List[str]:
         """
-        Extract SMILES strings from a list of dictionaries containing reaction data.
+        Extract SMILES strings from a list of dictionaries containing reaction
+        data.
 
         Parameters:
-        - list_of_dicts (List[Dict[str, str]]): A list of dictionaries containing reaction data.
-        Each dictionary should contain 'reactants' and 'products' keys, where the values are SMILES strings.
+        - list_of_dicts (List[Dict[str, str]]): A list of dictionaries
+            containing reaction data. Each dictionary should contain
+            'reactants' and 'products' keys, where the values are SMILES
+            strings.
 
         Returns:
         - List[str]: List of SMILES strings extracted from the reactions.
         """
-        return [smi for reaction in list_of_dicts for smi in reaction.get('reactants', '').split('.') + reaction.get('products', '').split('.') if smi]
+        return [
+            smi
+            for reaction in list_of_dicts
+            for smi in reaction.get("reactants", "").split(".")
+            + reaction.get("products", "").split(".")
+            if smi
+        ]
 
     @staticmethod
     def calculate_mol_weight(smiles: str) -> float:
         """
-        Calculate the molecular weight of a molecule represented by a SMILES string.
+        Calculate the molecular weight of a molecule represented by a SMILES
+        string.
 
         Parameters:
         - smiles (str): The SMILES string of the molecule.
 
         Returns:
-        - float: The molecular weight of the molecule, or None if the SMILES string is invalid.
+        - float: The molecular weight of the molecule, or None if the SMILES
+            string is invalid.
         """
         molecule = Chem.MolFromSmiles(smiles)
         if molecule:
@@ -90,7 +98,8 @@ class AutomaticSmilesExtraction:
     @staticmethod
     def count_carbon_atoms(smiles: str) -> int:
         """
-        Count the number of carbon (C) atoms in a molecule represented by its SMILES string.
+        Count the number of carbon (C) atoms in a molecule represented by its
+        SMILES string.
 
         Parameters
         ----------
@@ -105,12 +114,14 @@ class AutomaticSmilesExtraction:
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             raise ValueError("Invalid SMILES string")
-        num_carbon_atoms = sum(1 for atom in mol.GetAtoms() if atom.GetSymbol() == 'C')
+        num_carbon_atoms = sum(1 for atom in mol.GetAtoms() if atom.GetSymbol() == "C")
 
         return num_carbon_atoms
 
     @staticmethod
-    def get_fragments(input_dict: dict, mw: float = 100, n_C: int = 10, combination: str = 'union') -> dict:
+    def get_fragments(
+        input_dict: dict, mw: float = 100, n_C: int = 10, combination: str = "union"
+    ) -> dict:
         """
         Filter a dictionary of lists based on conditions specified by mw and n_C.
 
@@ -132,15 +143,15 @@ class AutomaticSmilesExtraction:
         """
         filtered_dict = {key: [] for key in input_dict.keys()}
 
-        for i in range(len(input_dict['smiles'])):
+        for i in range(len(input_dict["smiles"])):
             include_fragment = False
 
-            if combination == 'union':
-                if input_dict['mw'][i] <= mw or input_dict['n_C'][i] <= n_C:
+            if combination == "union":
+                if input_dict["mw"][i] <= mw or input_dict["n_C"][i] <= n_C:
                     include_fragment = True
 
-            if combination == 'intersection':
-                if input_dict['mw'][i] <= mw and input_dict['n_C'][i] <= n_C:
+            if combination == "intersection":
+                if input_dict["mw"][i] <= mw and input_dict["n_C"][i] <= n_C:
                     include_fragment = True
 
             if include_fragment:

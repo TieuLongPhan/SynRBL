@@ -1,15 +1,14 @@
+import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from statsmodels.stats.proportion import proportion_confint
-import numpy as np
-import matplotlib.colors as mcolors
+
 from typing import List, Optional
+from statsmodels.stats.proportion import proportion_confint
 from rdkit import Chem
 from rdkit.Chem import Draw
 from matplotlib.gridspec import GridSpec
-import re
 from sklearn.metrics import (
     confusion_matrix,
     classification_report,
@@ -18,8 +17,6 @@ from sklearn.metrics import (
     precision_recall_curve,
     average_precision_score,
 )
-from typing import List, Optional
-from statsmodels.stats.proportion import proportion_confint
 
 
 def barplot_accuracy_comparison(
@@ -213,7 +210,6 @@ def mcs_comparsion(
     )
 
     # Custom color palette with 'flare'
-    cmap = plt.get_cmap("flare")
     num_configs = len(df["Configuration"].unique())
     palette = ["gray" for i in range(num_configs)]
     # ensemble_color = "#e377c2"  # Distinct color for Ensemble

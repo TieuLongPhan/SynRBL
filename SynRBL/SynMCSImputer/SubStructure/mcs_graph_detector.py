@@ -1,13 +1,7 @@
 from rdkit import Chem
-from rdkit.Chem import rdmolops
 from rdkit.Chem import rdFMCS
 from rdkit.Chem import rdRascalMCES
 from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
-import concurrent.futures
-import functools
-import time
-import multiprocessing
-from SynRBL.SynUtils.chem_utils import CheckCarbonBalance
 
 
 class MCSMissingGraphAnalyzer:
@@ -95,7 +89,7 @@ class MCSMissingGraphAnalyzer:
                 mcs_results, key=lambda x: x[1].numAtoms, reverse=True
             )
         elif sort == "MCES":
-            if params == None:
+            if params is None:
                 params = rdRascalMCES.RascalOptions()
             mcs_results = [
                 (reactant, rdRascalMCES.FindMCES(reactant, product_mol, params)[0])
@@ -163,9 +157,9 @@ class MCSMissingGraphAnalyzer:
 
                     try:
                         Chem.SanitizeMol(current_product)
-                    except:
+                    except Exception:
                         pass
-            except:
+            except Exception:
                 mcs_list.append(None)
                 pass
 

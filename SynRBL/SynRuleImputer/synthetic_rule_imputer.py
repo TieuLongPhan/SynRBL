@@ -1,12 +1,10 @@
 import copy
+
 from rdkit import Chem
 from SynRBL.SynRuleImputer.synthetic_rule_matcher import SyntheticRuleMatcher
-import copy
-from rdkit import Chem
 from joblib import Parallel, delayed
 from typing import List, Dict, Any, Union, Optional
 from rdkit import RDLogger
-from rdkit.rdBase import BlockLogs
 
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.ERROR)
@@ -50,8 +48,10 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
 
         Args:
             rule_dict: A list of dictionaries representing chemical rules.
-            select: Selection mode, either 'best' for the best solution or 'all' for all solutions.
-            ranking: Ranking mode for solutions, options are 'longest', 'least', 'greatest'.
+            select: Selection mode, either 'best' for the best solution or
+                'all' for all solutions.
+            ranking: Ranking mode for solutions, options are 'longest',
+                'least', 'greatest'.
         """
         self.rule_dict = rule_dict
         self.select = select
@@ -68,10 +68,14 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
         Impute missing chemical data based on the provided rules.
 
         Args:
-            missing_dict (List[Dict[str, Any]]): A list of dictionaries representing missing chemical data.
-            rule_dict (Dict[str, Any]): A dictionary representing the rules for imputing missing data.
-            select (str, optional): The selection strategy for choosing the best rule. Defaults to 'best'.
-            ranking (str, optional): The ranking strategy for ordering the rules. Defaults to 'longest'.
+            missing_dict (List[Dict[str, Any]]): A list of dictionaries
+                representing missing chemical data.
+            rule_dict (Dict[str, Any]): A dictionary representing the rules for
+                imputing missing data.
+            select (str, optional): The selection strategy for choosing the
+                best rule. Defaults to 'best'.
+            ranking (str, optional): The ranking strategy for ordering the
+                rules. Defaults to 'longest'.
 
         Returns:
             List[Dict[str, Any]]: A list of dictionaries with imputed data.
@@ -106,7 +110,8 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
         Impute missing chemical data in parallel.
 
         Args:
-            missing_dict: A list of dictionaries representing missing chemical data.
+            missing_dict: A list of dictionaries representing missing chemical
+                data.
 
         Returns:
             A list of dictionaries with imputed data.
@@ -122,7 +127,8 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
         solution: List[Dict[str, Union[str, int]]]
     ) -> Optional[str]:
         """
-        Concatenate smiles strings based on their ratios and validate the result using RDKit.
+        Concatenate smiles strings based on their ratios and validate the
+        result using RDKit.
 
         Args:
             solution: A list of dictionaries representing chemical solutions,

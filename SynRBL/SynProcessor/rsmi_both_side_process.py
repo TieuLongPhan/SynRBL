@@ -1,5 +1,6 @@
 from joblib import Parallel, delayed
 
+
 class BothSideReact:
     """
     Class to process chemical reactions on both sides (reactants and products).
@@ -27,8 +28,8 @@ class BothSideReact:
         # Ensure 'Q' key is present in all reactant and product dictionaries
         for d in [self.react_dict, self.product_dict]:
             for value in d:
-                if 'Q' not in value:
-                    value['Q'] = 0
+                if "Q" not in value:
+                    value["Q"] = 0
 
         self.unbalance = unbalance
         self.diff_formula = diff_formula
@@ -85,16 +86,16 @@ class BothSideReact:
         Returns:
         tuple: A tuple containing the updated dictionary and a string indicating the balance status.
         """
-        if len(diff_dict) == 2 and 'Q' in diff_dict.keys():
-            if any(value < 0 for key, value in diff_dict.items() if key != 'Q'):
+        if len(diff_dict) == 2 and "Q" in diff_dict.keys():
+            if any(value < 0 for key, value in diff_dict.items() if key != "Q"):
                 # Reverse all values except for 'Q'
-                return {key: -value for key, value in diff_dict.items()}, 'Reactants'
+                return {key: -value for key, value in diff_dict.items()}, "Reactants"
             else:
                 # Original dictionary if no negative values found
-                return diff_dict, 'Products'
+                return diff_dict, "Products"
         else:
             # Return as is if conditions not met
-            return diff_dict, 'Both'
+            return diff_dict, "Both"
 
     def fit(self, n_jobs=4):
         """
@@ -104,7 +105,7 @@ class BothSideReact:
         tuple: A tuple containing the updated diff_formula and unbalance lists.
         """
         # Filter indices where balance status is 'Both'
-        both_index = [i for i, val in enumerate(self.unbalance) if val == 'Both']
+        both_index = [i for i, val in enumerate(self.unbalance) if val == "Both"]
         react_dict_both = self.filter_list_by_indices(self.react_dict, both_index)
         product_dict_both = self.filter_list_by_indices(self.product_dict, both_index)
 
@@ -121,7 +122,9 @@ class BothSideReact:
             diff_dict_both, unbalance_both = zip(*results)
 
         # Update diff_formula and unbalance lists
-        for index, diff_new, unbalance_new in zip(both_index, diff_dict_both, unbalance_both):
+        for index, diff_new, unbalance_new in zip(
+            both_index, diff_dict_both, unbalance_both
+        ):
             self.diff_formula[index] = diff_new
             self.unbalance[index] = unbalance_new
 

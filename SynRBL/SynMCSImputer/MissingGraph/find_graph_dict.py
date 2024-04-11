@@ -1,11 +1,11 @@
+import pandas as pd
+
 from rdkit import Chem
 from rdkit.rdBase import BlockLogs
 from joblib import Parallel, delayed
 from typing import List
 from SynRBL.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
 from SynRBL.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
-from SynRBL.SynUtils.data_utils import load_database, save_database
-import pandas as pd
 
 
 def find_single_graph(mcs_mol_list, sorted_reactants_mol_list):
@@ -117,18 +117,11 @@ def find_graph_dict(mcs_dict, n_jobs: int = 4):
     mcs_mol_list = smiles_to_mol_parallel(mcs_results, useSmiles=False)
     sorted_reactants_mol_list = smiles_to_mol_parallel(sorted_reactants, useSmiles=True)
 
-    # find_graph = FindMissingGraphs()
-
     missing_results = find_single_graph_parallel(
         mcs_mol_list, sorted_reactants_mol_list, n_jobs=n_jobs
     )
 
     missing_results = GraphMissingUncertainty(missing_results, threshold=2).fit()
-    uncertainty_data = (
-        len(pd.DataFrame(missing_results))
-        - pd.DataFrame(missing_results)["Certainty"].sum()
-    )
-    # print('Uncertainty Data:', uncertainty_data)
 
     return missing_results
 

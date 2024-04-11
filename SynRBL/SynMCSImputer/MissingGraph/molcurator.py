@@ -1,11 +1,11 @@
 from rdkit import Chem
 from rdkit.Chem import rdmolops
-from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.Chem import AllChem
+
 
 class MoleculeCurator:
     """
-    A class for curating molecules, which includes adding hydrogens to radicals, 
+    A class for curating molecules, which includes adding hydrogens to radicals,
     standardizing diazo charges, and manually kekulizing molecules.
 
     Methods:
@@ -13,7 +13,6 @@ class MoleculeCurator:
     - standardize_diazo_charge: Converts a diazo compound with charged atoms to its neutral form.
     - manual_kekulize: Manually kekulizes a molecule to ensure valid structure.
     """
-
 
     @staticmethod
     def add_hydrogens_to_radicals(mol: Chem.Mol) -> Chem.Mol:
@@ -49,7 +48,9 @@ class MoleculeCurator:
         Returns:
         - Chem.Mol: The neutralized molecule, or the original molecule if the reaction doesn't occur.
         """
-        neutral_mol = AllChem.ReactionFromSmarts('[N-]=[NH2+]>>[N:1]#[N:2]').RunReactants((mol,))
+        neutral_mol = AllChem.ReactionFromSmarts(
+            "[N-]=[NH2+]>>[N:1]#[N:2]"
+        ).RunReactants((mol,))
         return neutral_mol[0][0] if neutral_mol else mol
 
     @staticmethod
@@ -63,6 +64,7 @@ class MoleculeCurator:
         Returns:
         - Chem.Mol: The kekulized molecule, or None if it's not possible.
         """
+
         # Function to add a hydrogen to a specific atom in a molecule
         def add_hydrogen(mol, atom_index):
             edited_mol = Chem.RWMol(mol)
@@ -81,7 +83,7 @@ class MoleculeCurator:
                     continue
             return None
 
-        components_smiles = smiles.split('.')
+        components_smiles = smiles.split(".")
         valid_components = []
 
         for comp_smiles in components_smiles:
