@@ -8,12 +8,13 @@ from typing import List, Dict, Tuple
 
 logger = logging.getLogger("SynRBL")
 
+
 class ExtractMCS:
     """
-    A class to extract and analyze the most common Maximum Common Substructure 
+    A class to extract and analyze the most common Maximum Common Substructure
     (MCS) from a list of MCS results.
-    Provides functionality to determine the most common elements, the top n 
-    common elements, and to calculate the corrected individual overlap 
+    Provides functionality to determine the most common elements, the top n
+    common elements, and to calculate the corrected individual overlap
     percentage for multiple conditions. Additionally, extracts the MCS results
     that meet a specified threshold for commonality.
     """
@@ -24,14 +25,14 @@ class ExtractMCS:
     @staticmethod
     def get_num_atoms(smiles):
         """
-        Calculate the number of atoms in a molecule represented by a SMILES 
+        Calculate the number of atoms in a molecule represented by a SMILES
         string.
 
         Args:
         smiles (str): A string representing a molecule in SMILES format.
 
         Returns:
-        int: The number of atoms in the molecule. Returns 0 if the SMILES 
+        int: The number of atoms in the molecule. Returns 0 if the SMILES
             string is invalid or an error occurs.
         """
         try:
@@ -46,17 +47,17 @@ class ExtractMCS:
     @staticmethod
     def calculate_total_number_atoms_mcs_parallel(condition, n_jobs=4):
         """
-        Calculate the total number of atoms in the MCS results for each 
+        Calculate the total number of atoms in the MCS results for each
         dictionary in a condition using parallel processing.
 
         Args:
-        condition (list): A list of dictionaries, each containing 
+        condition (list): A list of dictionaries, each containing
             'mcs_results', which are lists of SMILES strings.
-        n_jobs (int, optional): The number of jobs to run in parallel. 
+        n_jobs (int, optional): The number of jobs to run in parallel.
             Defaults to 4.
 
         Returns:
-        list: A list containing the total number of atoms in the MCS results 
+        list: A list containing the total number of atoms in the MCS results
             for each dictionary in the condition.
         """
 
@@ -73,7 +74,7 @@ class ExtractMCS:
         Get the most popular elements in a flat list.
 
         :param elements_list: A list containing elements.
-        :return: A list of elements that appear with the highest frequency in 
+        :return: A list of elements that appear with the highest frequency in
             the provided list.
         """
         element_count = Counter(elements_list)
@@ -101,14 +102,14 @@ class ExtractMCS:
 
     def calculate_corrected_individual_overlap_percentage(self, *conditions):
         """
-        Calculate the corrected individual overlap percentage across multiple 
+        Calculate the corrected individual overlap percentage across multiple
         conditions.
 
-        :param conditions: A variable number of conditions, each a list of 
+        :param conditions: A variable number of conditions, each a list of
             dictionaries containing 'mcs_results'.
-        :return: A list of overlap percentages for each index across the 
+        :return: A list of overlap percentages for each index across the
             conditions.
-        :raises ValueError: If all conditions do not have the same number of 
+        :raises ValueError: If all conditions do not have the same number of
             cases.
         """
         if not all(len(condition) == len(conditions[0]) for condition in conditions):
@@ -144,9 +145,9 @@ class ExtractMCS:
         Extract MCS results that meet a specified threshold for commonality.
 
         :param threshold: The percentage threshold for commonality.
-        :param conditions: A variable number of conditions, each a list of 
+        :param conditions: A variable number of conditions, each a list of
             dictionaries containing 'mcs_results'.
-        :return: A list of dictionaries representing the MCS results that meet 
+        :return: A list of dictionaries representing the MCS results that meet
             the specified threshold.
         """
         (
@@ -164,20 +165,20 @@ class ExtractMCS:
         total_atoms_conditions: List[List[int]], *conditions: List[List[Dict]]
     ) -> Tuple[List[Dict], List[List[str]]]:
         """
-        Compare the total number of atoms across different conditions and find 
+        Compare the total number of atoms across different conditions and find
         the condition with the largest MCS for each index.
-        In case of a tie, compares the total number of atoms in the first 
+        In case of a tie, compares the total number of atoms in the first
         SMILES/SMARTS for those conditions.
 
         Args:
-        - total_atoms_conditions (list): A list of lists, where each sublist 
+        - total_atoms_conditions (list): A list of lists, where each sublist
             contains the total number of atoms for each MCS result in a condition.
 
         Returns:
         - Tuple:
-            - A list of dictionaries, each representing the condition with the 
+            - A list of dictionaries, each representing the condition with the
                 largest MCS for a given index.
-            - A reference list of the biggest MCS for each index across the 
+            - A reference list of the biggest MCS for each index across the
                 conditions.
         """
         results = []
@@ -244,16 +245,16 @@ class ExtractMCS:
         using_threshold=False,
     ):
         """
-        Extract and return the first matching condition for each index that 
+        Extract and return the first matching condition for each index that
         meets the threshold.
 
-        :param threshold_index: A list of boolean values indicating whether 
+        :param threshold_index: A list of boolean values indicating whether
             each condition meets the threshold.
-        :param conditions: A list of conditions, each a list of dictionaries 
+        :param conditions: A list of conditions, each a list of dictionaries
             containing 'mcs_results'.
-        :param reference_results_list: A list of reference results to match 
+        :param reference_results_list: A list of reference results to match
             against the conditions.
-        :return: A list of dictionaries representing the matching condition 
+        :return: A list of dictionaries representing the matching condition
             for each index that meets the threshold.
         """
 

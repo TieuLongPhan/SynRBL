@@ -5,6 +5,7 @@ import pandas as pd
 from typing import List
 from SynRBL.SynRuleImputer.rule_data_manager import RuleImputeManager
 
+
 class AutomaticRulesExtraction:
     """
     A class for extracting automatic rules from chemical reactions.
@@ -22,14 +23,11 @@ class AutomaticRulesExtraction:
     """
 
     def __init__(
-        self, 
-        existing_database: list = None,
-        n_jobs: int = 4, 
-        verbose: int = 1
-        ) -> None:
+        self, existing_database: list = None, n_jobs: int = 4, verbose: int = 1
+    ) -> None:
         """
         Constructor for the class.
-        
+
         Args:
             existing_database (list): A list representing an existing database. Default is an empty list.
             n_jobs (int): The number of jobs. Default is -5.
@@ -67,13 +65,14 @@ class AutomaticRulesExtraction:
         """
         # Calculate molecular formulas in parallel
         molecular_formula = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
-            delayed(self.smiles_to_molecular_formula)(smi) for smi in filtered_fragments['smiles'])
-        
+            delayed(self.smiles_to_molecular_formula)(smi)
+            for smi in filtered_fragments["smiles"]
+        )
+
         # Create a DataFrame with 'smiles' and 'formula' and convert to a list of records
-        self.new_smiles_dict = pd.DataFrame({
-            'formula': molecular_formula,
-            'smiles': filtered_fragments['smiles']
-        }).to_dict('records')
+        self.new_smiles_dict = pd.DataFrame(
+            {"formula": molecular_formula, "smiles": filtered_fragments["smiles"]}
+        ).to_dict("records")
 
     def extract_rules(self) -> List:
         """
@@ -84,7 +83,11 @@ class AutomaticRulesExtraction:
         List
             A list of automatic rules extracted from the database.
         """
-        db = RuleImputeManager(self.existing_database)  # Create a RuleImputeManager instance
+        db = RuleImputeManager(
+            self.existing_database
+        )  # Create a RuleImputeManager instance
         db.add_entries(self.new_smiles_dict)  # Add new entries to the database
-        self.rule_list = db.database  # Set self.rule_list to the database attribute of db
+        self.rule_list = (
+            db.database
+        )  # Set self.rule_list to the database attribute of db
         return self.rule_list  # Return self.rule_list

@@ -2,6 +2,8 @@ from SynRBL.SynUtils.data_utils import find_shortest_sublists
 from SynRBL.SynUtils.chem_utils import calculate_net_charge
 from typing import List, Dict, Any
 from typing import Union
+
+
 class SyntheticRuleMatcher:
     """
     A class to match rules based on given chemical data using a depth-first search algorithm.
@@ -26,14 +28,14 @@ class SyntheticRuleMatcher:
     Methods:
         match(): Find matching solutions based on the specified selection and ranking mode.
     """
-    
+
     def __init__(
-        self, 
-        rule_dict: List[Dict[str, Any]], 
-        data_dict: Dict[str, int], 
-        select: str = 'best',
-        ranking: bool = False
-        ) -> None:
+        self,
+        rule_dict: List[Dict[str, Any]],
+        data_dict: Dict[str, int],
+        select: str = "best",
+        ranking: bool = False,
+    ) -> None:
         """
         Initialize the class.
 
@@ -44,29 +46,30 @@ class SyntheticRuleMatcher:
             ranking: A boolean indicating whether ranking is enabled.
         """
         # Sort rules by composition length in descending order for efficient matching.
-        self.rule_dict = sorted(rule_dict, key=lambda r: len(r['Composition']), reverse=True)
+        self.rule_dict = sorted(
+            rule_dict, key=lambda r: len(r["Composition"]), reverse=True
+        )
         self.data_dict = data_dict
         self.select = select
-        if self.select == 'all':
+        if self.select == "all":
             self.all_solutions = []
         self.ranking = ranking
 
         # Ensure 'Q' key exists in data_dict and remove elements with zero counts.
-        if 'Q' not in self.data_dict:
-            self.data_dict['Q'] = 0
-        self.data_dict = {k: v for k, v in self.data_dict.items() if v != 0 or k == 'Q'}
+        if "Q" not in self.data_dict:
+            self.data_dict["Q"] = 0
+        self.data_dict = {k: v for k, v in self.data_dict.items() if v != 0 or k == "Q"}
 
-    def match(self
-        ) -> List[List[Dict[str, Any]]]:
+    def match(self) -> List[List[Dict[str, Any]]]:
         """Find matching solutions based on the specified selection and ranking mode.
 
         Args:
             self (obj): The instance of the class.
-        
+
         Returns:
             List[List[Dict[str, Any]]]: List of matching solutions, each represented as a list of dictionaries.
         """
-        if self.select == 'all':
+        if self.select == "all":
             self.dfs(self.data_dict, [])
             self.all_solutions = self.remove_overlapping_solutions(self.all_solutions)
             return self.rank_solutions(self.all_solutions, self.ranking)
@@ -74,11 +77,7 @@ class SyntheticRuleMatcher:
             solution = self.dfs(self.data_dict, [])
             return [solution] if solution is not None else []
 
-    def dfs(
-        self, 
-        data: dict, 
-        path: list
-        ) -> Union[dict, None]:
+    def dfs(self, data: dict, path: list) -> Union[dict, None]:
         """
         Depth-First Search (DFS) algorithm to find solutions by exploring possible paths.
 
@@ -90,7 +89,7 @@ class SyntheticRuleMatcher:
             Union[dict, None]: A solution (path) if found, None otherwise.
         """
         if self.exit_strategy_solution(data):
-            if self.select == 'all':
+            if self.select == "all":
                 self.all_solutions.append(path)
                 return None
             else:
@@ -101,16 +100,11 @@ class SyntheticRuleMatcher:
             if new_data is not None:
                 result = self.dfs(new_data, new_path)
                 if result is not None:
-                    if self.select != 'all':
+                    if self.select != "all":
                         return result
         return None
 
-    def apply_rule(
-        self, 
-        data: dict, 
-        path: list, 
-        rule: dict
-        ) -> tuple[dict, list]:
+    def apply_rule(self, data: dict, path: list, rule: dict) -> tuple[dict, list]:
         """
         Apply a chemical rule to the current data and path.
 
@@ -122,25 +116,27 @@ class SyntheticRuleMatcher:
         Returns:
             A tuple containing the updated chemical data and path if the rule can be applied, None otherwise.
         """
-        if not self.can_match(rule['Composition'], data):
+        if not self.can_match(rule["Composition"], data):
             return None, None
 
-        ratio = abs(min((data[k] // v if v != 0 else 0) for k, v in rule['Composition'].items() if k != 'Q'))
+        ratio = abs(
+            min(
+                (data[k] // v if v != 0 else 0)
+                for k, v in rule["Composition"].items()
+                if k != "Q"
+            )
+        )
         new_data = data.copy()
-        for k, v in rule['Composition'].items():
+        for k, v in rule["Composition"].items():
             if k in new_data:
                 new_data[k] -= v * ratio
-                if new_data[k] == 0 and k != 'Q':
+                if new_data[k] == 0 and k != "Q":
                     del new_data[k]
 
-        new_path = path + [{'smiles': rule['smiles'], 'Ratio': ratio}]
+        new_path = path + [{"smiles": rule["smiles"], "Ratio": ratio}]
         return new_data, new_path
 
-    def can_match(
-        self, 
-        rule: dict, 
-        data: dict
-        ) -> bool:
+    def can_match(self, rule: dict, data: dict) -> bool:
         """
         Check if a chemical rule can be matched with the current data.
 
@@ -155,12 +151,12 @@ class SyntheticRuleMatcher:
         # Check if the key is in the data dictionary and if the corresponding value in the data dictionary is greater than or equal to the value in the rule dictionary
         # Exclude the key 'Q' from the check
         # Return True if all the conditions are met, False otherwise
-        return all(k in data and data[k] >= v for k, v in rule.items() if k != 'Q')
-
-
+        return all(k in data and data[k] >= v for k, v in rule.items() if k != "Q")
 
     @staticmethod
-    def rank_solutions(solutions: List[List[Dict[str, Any]]], ranking: Union[str, bool]) -> List[List[Dict[str, Any]]]:
+    def rank_solutions(
+        solutions: List[List[Dict[str, Any]]], ranking: Union[str, bool]
+    ) -> List[List[Dict[str, Any]]]:
         """
         Rank a list of solutions based on the specified ranking mode.
 
@@ -171,13 +167,15 @@ class SyntheticRuleMatcher:
         Returns:
             List of ranked solutions.
         """
-        if ranking == 'longest':
+        if ranking == "longest":
             return sorted(solutions, key=lambda sol: -len(sol), reverse=True)
-        elif ranking == 'least':
+        elif ranking == "least":
             return sorted(solutions, key=lambda sol: sum(len(item) for item in sol))
-        elif ranking == 'greatest':
-            return sorted(solutions, key=lambda sol: sum(len(item) for item in sol), reverse=True)
-        elif ranking == 'ion_priority':
+        elif ranking == "greatest":
+            return sorted(
+                solutions, key=lambda sol: sum(len(item) for item in sol), reverse=True
+            )
+        elif ranking == "ion_priority":
             shortest_sublists = find_shortest_sublists(solutions)
             return sorted(shortest_sublists, key=calculate_net_charge, reverse=True)
         else:
@@ -194,10 +192,12 @@ class SyntheticRuleMatcher:
         Returns:
             bool: True if the exit strategy condition is met, False otherwise.
         """
-        return len(data) == 1 and data.get('Q', 0) == 0
+        return len(data) == 1 and data.get("Q", 0) == 0
 
     @staticmethod
-    def remove_overlapping_solutions(solutions: List[List[Dict[str, str]]]) -> List[List[Dict[str, str]]]:
+    def remove_overlapping_solutions(
+        solutions: List[List[Dict[str, str]]]
+    ) -> List[List[Dict[str, str]]]:
         """
         Remove overlapping solutions from the list of solutions.
 
@@ -213,7 +213,9 @@ class SyntheticRuleMatcher:
 
         for solution in solutions:
             # Convert each solution to a set of tuples for comparison
-            solution_set = frozenset((item['smiles'], item['Ratio']) for item in solution)
+            solution_set = frozenset(
+                (item["smiles"], item["Ratio"]) for item in solution
+            )
             if solution_set not in seen:
                 seen.add(solution_set)
                 unique_solutions.append(solution)

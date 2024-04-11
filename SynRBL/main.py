@@ -1,7 +1,5 @@
-import os
 import copy
 import logging
-import importlib.resources
 import pandas as pd
 
 from SynRBL.preprocess import preprocess
@@ -51,7 +49,7 @@ class Balancer:
         reactions = preprocess(
             reactions, self.__reaction_col, self.__id_col, self.solved_col
         )
-        l = len(reactions)
+        rxn_cnt = len(reactions)
         self.input_validator.check(reactions)
 
         logger.info("Run rule-based method.")
@@ -73,7 +71,7 @@ class Balancer:
             reactions, stats=stats, threshold=self.confidence_threshold
         )
 
-        assert l == len(reactions)
+        assert rxn_cnt == len(reactions)
 
         logger.info("DONE")
 

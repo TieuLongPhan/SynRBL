@@ -2,9 +2,10 @@ from collections import defaultdict
 from joblib import Parallel, delayed
 from typing import List, Dict, Tuple
 
+
 class RSMIComparator:
     """
-    A class to compare two lists of dictionaries representing reactants and products. 
+    A class to compare two lists of dictionaries representing reactants and products.
     It determines if the reaction is balanced and calculates the difference in atomic compositions.
 
     Parameters
@@ -17,7 +18,7 @@ class RSMIComparator:
         Number of jobs to run in parallel.
     verbose : int
         Verbosity level.
-    
+
     Example
     -------
     # Example usage of RSMIComparator
@@ -29,11 +30,12 @@ class RSMIComparator:
     """
 
     def __init__(
-        self, 
-        reactants: List[str], 
-        products: List[str], 
-        n_jobs: int = 4, 
-        verbose: int = 1) -> None:
+        self,
+        reactants: List[str],
+        products: List[str],
+        n_jobs: int = 4,
+        verbose: int = 1,
+    ) -> None:
         """
         Initialize the RSMIComparator object.
 
@@ -81,12 +83,16 @@ class RSMIComparator:
 
         # Check if the keys in both dictionaries are the same
         if reactant.keys() != product.keys():
-            if RSMIComparator.check_keys(reactant, product) and not RSMIComparator.check_keys(product, reactant):
+            if RSMIComparator.check_keys(
+                reactant, product
+            ) and not RSMIComparator.check_keys(product, reactant):
                 if all(reactant[key] >= product[key] for key in product.keys()):
                     return "Products"
                 else:
                     return "Both"
-            elif RSMIComparator.check_keys(product, reactant) and not RSMIComparator.check_keys(reactant, product):
+            elif RSMIComparator.check_keys(
+                product, reactant
+            ) and not RSMIComparator.check_keys(reactant, product):
                 if all(reactant[key] <= product[key] for key in reactant.keys()):
                     return "Reactants"
                 else:
@@ -105,7 +111,6 @@ class RSMIComparator:
                 return "Reactants"
             else:
                 return "Both"
-                
 
     @staticmethod
     def diff_dicts(reactant: dict, product: dict) -> dict:
@@ -143,7 +148,9 @@ class RSMIComparator:
 
         return diff_dict
 
-    def run_parallel(self, reactants: List[Dict], products: List[Dict]) -> Tuple[List, List]:
+    def run_parallel(
+        self, reactants: List[Dict], products: List[Dict]
+    ) -> Tuple[List, List]:
         """
         Run comparison and difference calculation in parallel for reactants and products.
 
@@ -161,11 +168,13 @@ class RSMIComparator:
         """
         # Run comparisons and difference calculations in parallel using joblib
         comparison_results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
-            delayed(self.compare_dicts)(reactant, product) for reactant, product in zip(reactants, products)
+            delayed(self.compare_dicts)(reactant, product)
+            for reactant, product in zip(reactants, products)
         )
 
         difference_results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
-            delayed(self.diff_dicts)(reactant, product) for reactant, product in zip(reactants, products)
+            delayed(self.diff_dicts)(reactant, product)
+            for reactant, product in zip(reactants, products)
         )
 
         return comparison_results, difference_results

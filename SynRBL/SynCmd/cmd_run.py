@@ -11,7 +11,7 @@ def print_result(stats, min_confidence=0):
     def _sr(v, c):
         return "{:.2%}".format(v / c) if c > 0 else "-"
 
-    l = stats["reaction_cnt"]
+    rxn_cnt = stats["reaction_cnt"]
     in_blcd = stats["balanced_cnt"]
     rb_s = stats["rb_solved"]
     rb_a = stats["rb_applied"]
@@ -47,7 +47,7 @@ def print_result(stats, min_confidence=0):
         )
     logger.info(
         "SynRBL solved {} out of {} reactions (success rate: {}).".format(
-            rb_s + mcs_cth, l - in_blcd, _sr(rb_s + mcs_cth, l - in_blcd)
+            rb_s + mcs_cth, rxn_cnt - in_blcd, _sr(rb_s + mcs_cth, rxn_cnt - in_blcd)
         )
     )
 
@@ -89,7 +89,7 @@ def run(args):
         reaction_col=args.col,
         passthrough_cols=columns,
         min_confidence=args.min_confidence,
-        n_jobs=args.p
+        n_jobs=args.p,
     )
 
 

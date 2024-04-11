@@ -1,5 +1,7 @@
 from typing import List, Tuple, Set, Optional
 from collections import Counter
+
+
 class RefinementUncertainty:
     def __init__(self, finalgraph_uncertainty, graph_conditions: List[dict]):
         """
@@ -10,7 +12,7 @@ class RefinementUncertainty:
         graph_conditions (List[dict]): A list of dictionaries representing graph conditions.
         """
         self.finalgraph_uncertainty = finalgraph_uncertainty
-        self.id = [i['R-id'] for i in finalgraph_uncertainty]
+        self.id = [i["R-id"] for i in finalgraph_uncertainty]
         self.graph_conditions = graph_conditions
 
     @staticmethod
@@ -25,10 +27,12 @@ class RefinementUncertainty:
         Returns:
         List[str]: The SMILES graph for the given ID.
         """
-        return [item['smiles'] for item in final_graph if item['R-id'] == id][0]
-    
+        return [item["smiles"] for item in final_graph if item["R-id"] == id][0]
+
     @staticmethod
-    def intersection_of_lists_with_count(lists: List[List[str]], intersection_num: int = 2) -> Tuple[Optional[List[str]], Optional[int]]:
+    def intersection_of_lists_with_count(
+        lists: List[List[str]], intersection_num: int = 2
+    ) -> Tuple[Optional[List[str]], Optional[int]]:
         """
         Find lists that are present at least a specified number of times in the provided list of lists and their first index.
 
@@ -63,14 +67,22 @@ class RefinementUncertainty:
         """
         new_graph_uncertain = []
         for id in self.id:
-            list_cond = [self.get_smiles_graph(cond, id) for cond in self.graph_conditions]
-            intersection, first_key_index = self.intersection_of_lists_with_count(list_cond, intersection_num)
+            list_cond = [
+                self.get_smiles_graph(cond, id) for cond in self.graph_conditions
+            ]
+            intersection, first_key_index = self.intersection_of_lists_with_count(
+                list_cond, intersection_num
+            )
             if intersection and first_key_index is not None:
                 match_cond = self.graph_conditions[first_key_index]
-                new_graph = [value for value in match_cond if value['R-id'] == id]
+                new_graph = [value for value in match_cond if value["R-id"] == id]
                 new_graph_uncertain.extend(new_graph)
             else:
-                new_graph = [value for value in self.finalgraph_uncertainty if value['R-id'] == id]
+                new_graph = [
+                    value
+                    for value in self.finalgraph_uncertainty
+                    if value["R-id"] == id
+                ]
                 new_graph_uncertain.extend(new_graph)
 
         return new_graph_uncertain

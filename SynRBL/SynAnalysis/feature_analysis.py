@@ -9,8 +9,15 @@ import numpy as np
 from typing import List, Optional
 import seaborn as sns
 
+
 class FeatureAnalysis:
-    def __init__(self, data: pd.DataFrame, target_col: str, cols_for_contour: List[List[str]], figsize: tuple = (16, 12)):
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        target_col: str,
+        cols_for_contour: List[List[str]],
+        figsize: tuple = (16, 12),
+    ):
         """
         Initialize the FeatureAnalysis class.
 
@@ -37,29 +44,36 @@ class FeatureAnalysis:
         """
         X = self.data.drop(self.target_col, axis=1)
         y = self.data[self.target_col]
-        ax.tick_params(axis='x', colors='black')
-        ax.tick_params(axis='y', colors='black')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_color('grey')
-        ax.spines['bottom'].set_color('grey')
-        ax.xaxis.grid(True, which='major', alpha=.3)
+        ax.tick_params(axis="x", colors="black")
+        ax.tick_params(axis="y", colors="black")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["left"].set_color("grey")
+        ax.spines["bottom"].set_color("grey")
+        ax.xaxis.grid(True, which="major", alpha=0.3)
 
         clf = xgb.XGBClassifier(random_state=42)
         clf.fit(X, y)
 
         feature_importances = clf.feature_importances_
-        importance_df = pd.DataFrame({'Feature': X.columns, 'Importance': feature_importances})
-        importance_df = importance_df.sort_values(by='Importance', ascending=False)
+        importance_df = pd.DataFrame(
+            {"Feature": X.columns, "Importance": feature_importances}
+        )
+        importance_df = importance_df.sort_values(by="Importance", ascending=False)
 
-        cmap = plt.get_cmap('flare')
-        colors = ['gray' for i in range(len(importance_df))]
-        bars = ax.barh(importance_df['Feature'], importance_df['Importance'], color=colors, zorder=2)
+        cmap = plt.get_cmap("flare")
+        colors = ["gray" for i in range(len(importance_df))]
+        bars = ax.barh(
+            importance_df["Feature"],
+            importance_df["Importance"],
+            color=colors,
+            zorder=2,
+        )
 
-        #for bar, val in zip(bars, importance_df['Importance']):
-            #ax.text(val + 0.002, bar.get_y() + bar.get_height() / 2, f'{val:.3f}', va='center', color='black')
+        # for bar, val in zip(bars, importance_df['Importance']):
+        # ax.text(val + 0.002, bar.get_y() + bar.get_height() / 2, f'{val:.3f}', va='center', color='black')
 
-        ax.set_xlabel('Importance', color='black')
+        ax.set_xlabel("Importance", color="black")
         ax.invert_yaxis()
 
     def contour_plot(self, features: List[str], ax: plt.Axes) -> None:
@@ -75,29 +89,33 @@ class FeatureAnalysis:
         """
         df = deepcopy(self.data)
         le = LabelEncoder()
-        df['Outcome'] = le.fit_transform(df[self.target_col])
+        df["Outcome"] = le.fit_transform(df[self.target_col])
 
         X = df[list(features)]
-        y = df['Outcome']
+        y = df["Outcome"]
 
         model = XGBClassifier(random_state=42)
         model.fit(X, y)
 
         x_min, x_max = X[features[0]].min() - 1, X[features[0]].max() + 1
         y_min, y_max = X[features[1]].min() - 1, X[features[1]].max() + 1
-        xx, yy = np.meshgrid(np.linspace(x_min, x_max, 1000), np.linspace(y_min, y_max, 1000))  # Increase the number of points
+        xx, yy = np.meshgrid(
+            np.linspace(x_min, x_max, 1000), np.linspace(y_min, y_max, 1000)
+        )  # Increase the number of points
 
         Z = model.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
         Z = Z.reshape(xx.shape)
 
         # Create filled contour plot with increased size
-        contour = ax.contourf(xx, yy, Z, alpha=0.8, levels=np.linspace(0, 1, 11), cmap=plt.cm.coolwarm)
+        contour = ax.contourf(
+            xx, yy, Z, alpha=0.8, levels=np.linspace(0, 1, 11), cmap=plt.cm.coolwarm
+        )
 
         ax.set_xlabel(features[0])
         ax.set_ylabel(features[1])
 
         # Add colorbar for the probability values
-        cbar = plt.colorbar(contour, ax=ax, orientation='vertical', label='Probability')
+        cbar = plt.colorbar(contour, ax=ax, orientation="vertical", label="Probability")
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -110,13 +128,13 @@ class FeatureAnalysis:
         None
         """
         fig, ax = plt.subplots(1, 1, figsize=self.figsize)
-        
+
         # Feature importance plot (A)
         self.feature_importance(ax)
 
         plt.tight_layout()
-        
+
         if save_path:
-            plt.savefig(save_path, transparent=True, bbox_inches='tight')
-        
+            plt.savefig(save_path, transparent=True, bbox_inches="tight")
+
         plt.show()

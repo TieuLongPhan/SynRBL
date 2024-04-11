@@ -1,6 +1,7 @@
 import pandas as pd
 
-from SynRBL.SynProcessor import  RSMIProcessing
+from SynRBL.SynProcessor import RSMIProcessing
+
 
 def preprocess(reactions, reaction_col, index_col, solved_col, n_jobs=1):
     df = pd.DataFrame(reactions)
@@ -25,5 +26,3 @@ def preprocess(reactions, reaction_col, index_col, solved_col, n_jobs=1):
     reactions["input_reaction"] = reactions[reaction_col]
 
     return reactions.to_dict("records")
-
-

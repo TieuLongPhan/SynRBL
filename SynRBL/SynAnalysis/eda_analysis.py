@@ -7,11 +7,12 @@ import matplotlib.colors as mcolors
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from typing import List, Optional
 
+
 class EDAVisualizer:
     """
-    A class for visualizing accuracy metrics and confidence intervals of datasets across different categories, 
+    A class for visualizing accuracy metrics and confidence intervals of datasets across different categories,
     with support for line and bar charts, including error bars for confidence intervals. It dynamically adjusts
-    subplot arrangements based on the number of metrics provided, allowing for a comprehensive and customizable 
+    subplot arrangements based on the number of metrics provided, allowing for a comprehensive and customizable
     visualization experience.
 
     Attributes
@@ -20,7 +21,7 @@ class EDAVisualizer:
         The dataset containing accuracy results and other metrics for visualization. It must contain a 'Result' column
         used for calculating accuracy and confidence intervals.
     columns : list of str
-        Column names in the dataframe that represent different categories or groups for which accuracy and confidence 
+        Column names in the dataframe that represent different categories or groups for which accuracy and confidence
         intervals will be visualized.
     titles : list of str
         Custom titles for each subplot corresponding to the columns being visualized. These titles are used as x-axis
@@ -35,6 +36,7 @@ class EDAVisualizer:
         Generates visualizations for the accuracy metrics specified in the columns attribute, with optional error bars,
         supporting both line and bar chart types.
     """
+
     def __init__(self, df: pd.DataFrame, columns: List[str], titles: List[str]):
         """
         Initializes the AccuracyVisualizer with a dataframe, columns for visualization, and titles.
@@ -48,7 +50,9 @@ class EDAVisualizer:
         titles : list of str
             Titles for the subplots corresponding to each column, used as x-axis labels.
         """
-        assert len(columns) == len(titles), "Columns and titles must have the same length"
+        assert len(columns) == len(
+            titles
+        ), "Columns and titles must have the same length"
         self.df = df
         self.columns = columns
         self.titles = titles
@@ -71,24 +75,26 @@ class EDAVisualizer:
             A dataframe with the specified column, accuracy, and confidence intervals (lower and upper bounds) for each group.
         """
 
-        group_data = self.df.groupby(column)['Result'].agg(['sum', 'size'])
-        group_data['Accuracy'] = group_data['sum'] / group_data['size']
-        group_data = group_data[group_data['Accuracy'] > 0]
+        group_data = self.df.groupby(column)["Result"].agg(["sum", "size"])
+        group_data["Accuracy"] = group_data["sum"] / group_data["size"]
+        group_data = group_data[group_data["Accuracy"] > 0]
 
-        confidence_lower, confidence_upper = proportion_confint(group_data['sum'], group_data['size'], method='wilson')
-        group_data['lower'] = group_data['Accuracy'] - confidence_lower
-        group_data['upper'] = confidence_upper - group_data['Accuracy']
+        confidence_lower, confidence_upper = proportion_confint(
+            group_data["sum"], group_data["size"], method="wilson"
+        )
+        group_data["lower"] = group_data["Accuracy"] - confidence_lower
+        group_data["upper"] = confidence_upper - group_data["Accuracy"]
 
         return group_data.reset_index()
 
     def visualize_accuracy(
-        self, 
-        error_bar: bool = True, 
-        chart_type: str = 'line', 
-        error_bar_color: str = 'black', 
-        same_color_scale: bool = False, 
-        show_values: bool = False, 
-        save_path: Optional[str] = None
+        self,
+        error_bar: bool = True,
+        chart_type: str = "line",
+        error_bar_color: str = "black",
+        same_color_scale: bool = False,
+        show_values: bool = False,
+        save_path: Optional[str] = None,
     ) -> None:
         """
         Generates a visualization of the accuracy metrics specified in the columns attribute.
@@ -131,57 +137,103 @@ class EDAVisualizer:
         else:
             nrows, ncols = (n_metrics + 2) // 3, 3
 
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(4.5*ncols, 2.7*nrows), squeeze=False)
-        cmap = plt.get_cmap('flare', 256)
-        labels = ['A', 'B', 'C', 'D', 'E', 'F']
+        fig, axes = plt.subplots(
+            nrows=nrows, ncols=ncols, figsize=(4.5 * ncols, 2.7 * nrows), squeeze=False
+        )
+        cmap = plt.get_cmap("flare", 256)
+        labels = ["A", "B", "C", "D", "E", "F"]
         for i, (column, title) in enumerate(zip(self.columns, self.titles)):
             ax = axes.flatten()[i]
             data = self.calculate_accuracy_and_confidence(column)
 
-            norm = plt.Normalize(vmin=0, vmax=data['size'].max()) if not same_color_scale else plt.Normalize(vmin=0, vmax=self.df['size'].max())
+            norm = (
+                plt.Normalize(vmin=0, vmax=data["size"].max())
+                if not same_color_scale
+                else plt.Normalize(vmin=0, vmax=self.df["size"].max())
+            )
             sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-            colors = [mcolors.to_rgba(cmap(norm(s))) for s in data['size']]
+            colors = [mcolors.to_rgba(cmap(norm(s))) for s in data["size"]]
 
-            if chart_type == 'line':
-                sns.lineplot(data=data, x=column, y='Accuracy', marker='o', ax=ax, palette=colors, color='black', zorder=3)
+            if chart_type == "line":
+                sns.lineplot(
+                    data=data,
+                    x=column,
+                    y="Accuracy",
+                    marker="o",
+                    ax=ax,
+                    palette=colors,
+                    color="black",
+                    zorder=3,
+                )
                 if error_bar:
-                    ax.errorbar(data[column], data['Accuracy'], yerr=[data['lower'], data['upper']], fmt='o', capsize=5, ecolor='black', elinewidth=1)
-            elif chart_type == 'bar':
-                sns.barplot(data=data, x=column, y='Accuracy', palette=colors, ax=ax, zorder=2)
+                    ax.errorbar(
+                        data[column],
+                        data["Accuracy"],
+                        yerr=[data["lower"], data["upper"]],
+                        fmt="o",
+                        capsize=5,
+                        ecolor="black",
+                        elinewidth=1,
+                    )
+            elif chart_type == "bar":
+                sns.barplot(
+                    data=data, x=column, y="Accuracy", palette=colors, ax=ax, zorder=2
+                )
                 if error_bar:
                     x_positions = np.arange(len(data[column]))
-                    ax.errorbar(x=x_positions, y=data['Accuracy'], yerr=[data['lower'].values, data['upper'].values], fmt='none', ecolor='black', elinewidth=1)
+                    ax.errorbar(
+                        x=x_positions,
+                        y=data["Accuracy"],
+                        yerr=[data["lower"].values, data["upper"].values],
+                        fmt="none",
+                        ecolor="black",
+                        elinewidth=1,
+                    )
                 if show_values:
                     for bar in ax.patches:
-                        ax.annotate(format(bar.get_height(), '.2f'), 
-                                    (bar.get_x() + bar.get_width() / 2, bar.get_height()), 
-                                    ha='center', va='bottom', 
-                                    xytext=(0, 5), textcoords='offset points')
+                        ax.annotate(
+                            format(bar.get_height(), ".2f"),
+                            (bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                            ha="center",
+                            va="bottom",
+                            xytext=(0, 5),
+                            textcoords="offset points",
+                        )
 
-            ax.set_xlabel(title, labelpad=4, color='black')
+            ax.set_xlabel(title, labelpad=4, color="black")
 
             # Bring x-axis ticks and labels to the top
             ax.xaxis.tick_top()
-            ax.xaxis.set_label_position('bottom')  # Set the x-axis label position to top
+            ax.xaxis.set_label_position(
+                "bottom"
+            )  # Set the x-axis label position to top
 
             # Adjust tick parameters for better visibility
-            ax.tick_params(axis='x', which='major', direction='out', pad=2, colors='black')
-            ax.tick_params(axis='y', which='major', direction='out', colors='black')
-            ax.text(-0.02, 1.05,  labels[i], transform=ax.transAxes, weight='bold', fontsize=12)
+            ax.tick_params(
+                axis="x", which="major", direction="out", pad=2, colors="black"
+            )
+            ax.tick_params(axis="y", which="major", direction="out", colors="black")
+            ax.text(
+                -0.02,
+                1.05,
+                labels[i],
+                transform=ax.transAxes,
+                weight="bold",
+                fontsize=12,
+            )
 
             cbar_ax = plt.colorbar(sm, ax=ax, pad=0.05, aspect=10)
-            cbar_ax.ax.tick_params(colors='black')
-            if i % 2 ==  0:
-                ax.set_ylabel('Accuracy', color='black')
+            cbar_ax.ax.tick_params(colors="black")
+            if i % 2 == 0:
+                ax.set_ylabel("Accuracy", color="black")
             else:
-                ax.set_ylabel('')
-                cbar_ax.ax.set_ylabel('Number of Samples', color='black')
+                ax.set_ylabel("")
+                cbar_ax.ax.set_ylabel("Number of Samples", color="black")
 
             ax.set_ylim(0, 1)
             ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-            ax.grid(axis='y', which='major', linewidth=0.5, alpha=0.3)
-            ax.grid(axis='y', which='minor', linewidth=0.1, alpha=0.3)
-
+            ax.grid(axis="y", which="major", linewidth=0.5, alpha=0.3)
+            ax.grid(axis="y", which="minor", linewidth=0.1, alpha=0.3)
 
         plt.tight_layout()
         if save_path:

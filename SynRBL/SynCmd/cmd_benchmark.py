@@ -12,11 +12,9 @@ def print_result(stats, rb_correct, mcs_correct):
     def _sr(v, c):
         return "{:.2%}".format(v / c) if c > 0 else "-"
 
-    l = stats["reaction_cnt"]
-    in_blcd = stats["balanced_cnt"]
+    rxn_cnt = stats["reaction_cnt"]
     rb_s = stats["rb_solved"]
     rb_a = stats["rb_applied"]
-    mcs_s = stats["mcs_solved"]
     mcs_a = stats["mcs_applied"]
     mcs_cth = stats["confident_cnt"]
     logger.info("{} Summary {}".format("#" * 20, "#" * 20))
@@ -24,7 +22,7 @@ def print_result(stats, rb_correct, mcs_correct):
     header = line_fmt.format("", "Rule-based", "MCS-based", "SynRBL")
     logger.info(header)
     logger.info("-" * len(header))
-    logger.info(line_fmt.format("Input", str(rb_a), str(mcs_a), str(rb_a + mcs_a)))
+    logger.info(line_fmt.format("Input", str(rb_a), str(mcs_a), str(rxn_cnt)))
     logger.info(line_fmt.format("Solved", str(rb_s), str(mcs_cth), str(rb_s + mcs_cth)))
     logger.info(
         line_fmt.format(
@@ -39,7 +37,7 @@ def print_result(stats, rb_correct, mcs_correct):
             "Success rate",
             _sr(rb_s, rb_a),
             _sr(mcs_cth, mcs_a),
-            _sr(rb_s + mcs_cth, rb_a + mcs_a),
+            _sr(rb_s + mcs_cth, rxn_cnt),
         )
     )
     logger.info(

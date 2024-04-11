@@ -6,13 +6,13 @@ from typing import List, Optional, Dict
 
 class RuleImputeManager(RSMIDecomposer):
     """
-    A class for managing a database of chemical compounds, allowing for the addition, removal, 
+    A class for managing a database of chemical compounds, allowing for the addition, removal,
     and standardization of compound entries.
 
     Parameters
     ----------
     database : list
-        A list of dictionaries representing chemical compounds. Each dictionary has keys: 
+        A list of dictionaries representing chemical compounds. Each dictionary has keys:
         'formula' (str), 'smiles' (str), and 'Composition' (dict).
 
     Methods
@@ -42,10 +42,9 @@ class RuleImputeManager(RSMIDecomposer):
         """
         super().__init__()
         if isinstance(database, pd.DataFrame):
-            self.database = database.to_dict('records')
+            self.database = database.to_dict("records")
         else:
             self.database = database or []
-
 
     def add_entry(self, formula: str, smiles: str) -> None:
         """
@@ -63,23 +62,26 @@ class RuleImputeManager(RSMIDecomposer):
             >>> db.add_entry('H2O', 'O')
             Entry with formula 'H2O' and smiles 'O' added to the database.
         """
-        if any(d['formula'] == formula for d in self.database):
+        if any(d["formula"] == formula for d in self.database):
             raise ValueError(f"Entry with formula '{formula}' already exists.")
 
-        if any(d['smiles'] == smiles for d in self.database):
+        if any(d["smiles"] == smiles for d in self.database):
             raise ValueError(f"Entry with SMILES '{smiles}' already exists.")
 
         if not self.is_valid_smiles(smiles):
             raise ValueError(f"Invalid SMILES string: {smiles}")
 
         composition = self.decompose(smiles)
-        if 'Q' not in composition:
-            composition['Q'] = 0
-    
+        if "Q" not in composition:
+            composition["Q"] = 0
 
-        self.database.append({'formula': formula, 'smiles': smiles, 'Composition': composition})
-        
-        print(f"Entry with formula '{formula}' and smiles '{smiles}' added to the database.")
+        self.database.append(
+            {"formula": formula, "smiles": smiles, "Composition": composition}
+        )
+
+        print(
+            f"Entry with formula '{formula}' and smiles '{smiles}' added to the database."
+        )
 
     def add_entries(self, entries: List[Dict[str, str]]) -> List[Dict[str, str]]:
         """
@@ -99,7 +101,7 @@ class RuleImputeManager(RSMIDecomposer):
         invalid_entries = []
         for entry in entries:
             try:
-                self.add_entry(entry['formula'], entry['smiles'])
+                self.add_entry(entry["formula"], entry["smiles"])
             except ValueError:
                 invalid_entries.append(entry)
 
@@ -118,7 +120,7 @@ class RuleImputeManager(RSMIDecomposer):
             >>> db.remove_entry('H2O')
             Entry with formula 'H2O' removed from the database.
         """
-        entry = next((d for d in self.database if d['formula'] == formula), None)
+        entry = next((d for d in self.database if d["formula"] == formula), None)
         if entry:
             self.database.remove(entry)
             print(f"Entry with formula '{formula}' removed from the database.")

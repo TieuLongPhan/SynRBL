@@ -4,6 +4,7 @@ import pandas as pd
 
 import sys
 from pathlib import Path
+
 root_dir = Path(__file__).parents[2]
 sys.path.append(str(root_dir))
 from SynRBL.rsmi_utils import save_database
@@ -55,18 +56,18 @@ class RSMIProcessing:
         self,
         reaction_smiles: str = None,
         data: pd.DataFrame = None,
-        data_name: str = 'USPTO_50K',
-        index_col: str = 'R-id',
+        data_name: str = "USPTO_50K",
+        index_col: str = "R-id",
         rsmi_col: str = None,
-        symbol: str = '>>',
+        symbol: str = ">>",
         n_jobs: int = 4,
         drop_duplicates: bool = True,
         verbose: int = 1,
         parallel: bool = True,
         save_json: bool = True,
-        save_path_name: str = 'reaction.json.gz',
-        orient: str = 'records',
-        compression: str = 'gzip'
+        save_path_name: str = "reaction.json.gz",
+        orient: str = "records",
+        compression: str = "gzip",
     ) -> None:
         self.reaction_smiles = reaction_smiles
         self.symbol = symbol
@@ -84,7 +85,7 @@ class RSMIProcessing:
         self.compression = compression
 
     @staticmethod
-    def smi_splitter(rsmi: str, symbol: str = '>>') -> Tuple[str, str]:
+    def smi_splitter(rsmi: str, symbol: str = ">>") -> Tuple[str, str]:
         """
         Split a RSMI string into reactants and products.
 
@@ -125,42 +126,46 @@ class RSMIProcessing:
             # Use joblib's Parallel to concurrently process each RSMI string in the DataFrame
             # 'can_parse' function is applied to each RSMI string to check if it's parsable
             parsable = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
-                delayed(RSMIProcessing.can_parse)(rsmi) for rsmi in self.data[self.rsmi_col].values
+                delayed(RSMIProcessing.can_parse)(rsmi)
+                for rsmi in self.data[self.rsmi_col].values
             )
             # Filter the data to include only parsable RSMI strings
             self.data = self.data[parsable]
         else:
             # If parallel processing is not enabled, apply 'can_parse' function sequentially
             # to each RSMI string in the DataFrame and filter parsable ones
-            self.data = self.data[self.data[self.rsmi_col].apply(RSMIProcessing.can_parse)]
+            self.data = self.data[
+                self.data[self.rsmi_col].apply(RSMIProcessing.can_parse)
+            ]
 
         # Split each RSMI string in the DataFrame into reactants and products
         # 'expand=True' splits the string into separate columns
         split_smiles = self.data[self.rsmi_col].str.split(self.symbol, expand=True)
 
         # Assign the first part of the split (reactants) to a new column in the DataFrame
-        self.data['reactants'] = split_smiles[0]
+        self.data["reactants"] = split_smiles[0]
         # Assign the second part of the split (products) to another new column
-        self.data['products'] = split_smiles[1]
+        self.data["products"] = split_smiles[1]
 
         if self.drop_duplicates:
             self.data.drop_duplicates(subset=self.rsmi_col, inplace=True)
         self.data.reset_index(drop=True, inplace=True)
-        self.data[self.index_col] = [self.data_name + '_' 
-                                     if self.data_name is not None 
-                                     else "" + str(i) for i in self.data.index]
+        self.data[self.index_col] = [
+            self.data_name + "_" if self.data_name is not None else "" + str(i)
+            for i in self.data.index
+        ]
         # Check if there's a need to save the processed data to a JSON file
         if self.save_json:
-            data=self.data.to_dict(orient=self.orient)
+            data = self.data.to_dict(orient=self.orient)
             save_database(data, self.save_path_name)
             # Save the DataFrame to a JSON file with specified format and compression
-            #self.data.to_json(self.save_path_name, orient=self.orient, compression=self.compression)
+            # self.data.to_json(self.save_path_name, orient=self.orient, compression=self.compression)
 
         # Return the processed DataFrame with separate columns for reactants and products
         return self.data
-    
+
     @staticmethod
-    def can_parse(rsmi: str, symbol: str = '>>') -> bool:
+    def can_parse(rsmi: str, symbol: str = ">>") -> bool:
         """
         Check if a RSMI string can be parsed into reactants and products.
 
@@ -179,7 +184,9 @@ class RSMIProcessing:
 
         # Split the RSMI string into reactants and products using the provided symbol
         react, prod = rsmi.split(symbol)
-        
+
         # Check if both reactants and products can be converted into RDKit molecule objects
-        return Chem.MolFromSmiles(prod) is not None and Chem.MolFromSmiles(react) is not None
-    
+        return (
+            Chem.MolFromSmiles(prod) is not None
+            and Chem.MolFromSmiles(react) is not None
+        )

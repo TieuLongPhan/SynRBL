@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal
+
 import json
 import inspect
 import numpy as np
@@ -356,10 +356,10 @@ class CountBoundariesCompoundProperty(CompoundProperty):
         self.use_set = use_set
 
     def check(self, value: Compound, check_value) -> bool:
-        l = len(value.boundaries)
+        value_l = len(value.boundaries)
         if self.use_set:
-            l = len(value.compound_set.boundaries)
-        return l == int(check_value)
+            value_l = len(value.compound_set.boundaries)
+        return value_l == int(check_value)
 
 
 class CountCompoundsCompoundProperty(CompoundProperty):

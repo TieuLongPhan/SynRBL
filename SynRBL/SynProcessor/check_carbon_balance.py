@@ -4,9 +4,12 @@ from typing import List, Dict
 from rdkit import Chem
 from joblib import Parallel, delayed
 
+
 class InvalidSmilesException(Exception):
-    """ Custom exception for invalid SMILES strings. """
+    """Custom exception for invalid SMILES strings."""
+
     pass
+
 
 class CheckCarbonBalance:
     """
@@ -33,7 +36,14 @@ class CheckCarbonBalance:
         Check and return the atom balance status for each reaction using parallel processing.
     """
 
-    def __init__(self, reactions_data: List[Dict[str, str]], rsmi_col='reactions', symbol='>>', atom_type='C', n_jobs=4):
+    def __init__(
+        self,
+        reactions_data: List[Dict[str, str]],
+        rsmi_col="reactions",
+        symbol=">>",
+        atom_type="C",
+        n_jobs=4,
+    ):
         self.reactions_data = reactions_data
         self.rsmi_col = rsmi_col
         self.symbol = symbol
@@ -48,36 +58,52 @@ class CheckCarbonBalance:
 
         try:
             mol = Chem.MolFromSmiles(smiles)
-            count = sum(1 for atom in mol.GetAtoms() if atom.GetSymbol() == atom_type) if mol else 0
+            count = (
+                sum(1 for atom in mol.GetAtoms() if atom.GetSymbol() == atom_type)
+                if mol
+                else 0
+            )
             smiles_cache[smiles] = count
             return count
         except Exception as e:
             raise InvalidSmilesException(f"Invalid SMILES string {smiles}: {e}")
 
     @staticmethod
-    def process_reaction(reaction: Dict[str, str], rsmi_col: str, symbol: str, atom_type: str, smiles_cache: Dict[str, int]) -> Dict[str, str]:
+    def process_reaction(
+        reaction: Dict[str, str],
+        rsmi_col: str,
+        symbol: str,
+        atom_type: str,
+        smiles_cache: Dict[str, int],
+    ) -> Dict[str, str]:
         block = BlockLogs()
         new_reaction = reaction.copy()
         try:
             reactants_smiles, products_smiles = new_reaction[rsmi_col].split(symbol)
-            reactants_carbon = sum(CheckCarbonBalance.count_atoms(smiles, atom_type, smiles_cache) for smiles in reactants_smiles.split('.'))
-            products_carbon = sum(CheckCarbonBalance.count_atoms(smiles, atom_type, smiles_cache) for smiles in products_smiles.split('.'))
-            
+            reactants_carbon = sum(
+                CheckCarbonBalance.count_atoms(smiles, atom_type, smiles_cache)
+                for smiles in reactants_smiles.split(".")
+            )
+            products_carbon = sum(
+                CheckCarbonBalance.count_atoms(smiles, atom_type, smiles_cache)
+                for smiles in products_smiles.split(".")
+            )
+
             if reactants_carbon == products_carbon:
-                new_reaction['carbon_balance_check'] = 'balanced'
+                new_reaction["carbon_balance_check"] = "balanced"
             elif reactants_carbon > products_carbon:
-                new_reaction['carbon_balance_check'] = 'products'
+                new_reaction["carbon_balance_check"] = "products"
             else:
-                new_reaction['carbon_balance_check'] = 'reactants'
+                new_reaction["carbon_balance_check"] = "reactants"
         except InvalidSmilesException as e:
             logging.error(e)
-            new_reaction['carbon_balance_check'] = 'error'
+            new_reaction["carbon_balance_check"] = "error"
         except KeyError as e:
             logging.error(f"Key error in reaction data: {e}")
-            new_reaction['carbon_balance_check'] = 'error'
+            new_reaction["carbon_balance_check"] = "error"
         except ValueError as e:
             logging.error(f"Value error in parsing SMILES: {e}")
-            new_reaction['carbon_balance_check'] = 'error'
+            new_reaction["carbon_balance_check"] = "error"
 
         del block
         return new_reaction
@@ -87,7 +113,9 @@ class CheckCarbonBalance:
             raise ValueError("Each item in reactions_data should be a dictionary.")
 
         parallel_results = Parallel(n_jobs=self.n_jobs, verbose=0)(
-            delayed(self.process_reaction)(reaction, self.rsmi_col, self.symbol, self.atom_type, self.smiles_cache) 
+            delayed(self.process_reaction)(
+                reaction, self.rsmi_col, self.symbol, self.atom_type, self.smiles_cache
+            )
             for reaction in self.reactions_data
         )
         return parallel_results
