@@ -1,5 +1,5 @@
 from rdkit import Chem
-from SynRBL.SynProcessor import RSMIDecomposer
+from synrbl.SynProcessor import RSMIDecomposer
 import pandas as pd
 from typing import List, Optional, Dict
 

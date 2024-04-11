@@ -2,12 +2,12 @@ import copy
 import logging
 import pandas as pd
 
-from SynRBL.preprocess import preprocess
-from SynRBL.postprocess import Validator
-from SynRBL.rule_based import RuleBasedMethod
-from SynRBL.mcs import MCS
-from SynRBL.SynMCSImputer.model import MCSBasedMethod
-from SynRBL.confidence_prediction import ConfidencePredictor
+from synrbl.preprocess import preprocess
+from synrbl.postprocess import Validator
+from synrbl.rule_based import RuleBasedMethod
+from synrbl.mcs import MCS
+from synrbl.SynMCSImputer.model import MCSBasedMethod
+from synrbl.confidence_prediction import ConfidencePredictor
 
 logger = logging.getLogger("SynRBL")
 

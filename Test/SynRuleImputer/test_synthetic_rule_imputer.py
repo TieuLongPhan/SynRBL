@@ -2,7 +2,7 @@ import unittest
 
 from rdkit import Chem
 
-from SynRBL.SynRuleImputer import SyntheticRuleImputer
+from synrbl.SynRuleImputer import SyntheticRuleImputer
 
 
 # not fixed

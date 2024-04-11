@@ -9,7 +9,7 @@ from rdkit import Chem
 from PIL import Image
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape, letter
-from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
+from synrbl.SynVis.reaction_visualizer import ReactionVisualizer
 
 
 class CheckCarbonBalance:

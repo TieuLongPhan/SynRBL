@@ -1,8 +1,8 @@
 import logging
 
-from SynRBL.SynMCSImputer.SubStructure.mcs_process import ensemble_mcs
-from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
-from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
+from synrbl.SynMCSImputer.SubStructure.mcs_process import ensemble_mcs
+from synrbl.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
+from synrbl.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
 
 logger = logging.getLogger(__name__)
 

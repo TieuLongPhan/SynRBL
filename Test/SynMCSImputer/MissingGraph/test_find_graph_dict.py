@@ -1,6 +1,6 @@
 import unittest
 from rdkit import Chem
-from SynRBL.SynMCSImputer.MissingGraph.find_graph_dict import (
+from synrbl.SynMCSImputer.MissingGraph.find_graph_dict import (
     find_single_graph,
     find_single_graph_parallel,
     convert_smiles_to_mols,

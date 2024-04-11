@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynVis import ReactionVisualizer
+from synrbl.SynVis import ReactionVisualizer
 from PIL import Image
 
 

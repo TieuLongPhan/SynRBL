@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynChemImputer.peroxide_imputer import (
+from synrbl.SynChemImputer.peroxide_imputer import (
     PeroxidGroupImputer,
 )  # Replace with the actual module name
 

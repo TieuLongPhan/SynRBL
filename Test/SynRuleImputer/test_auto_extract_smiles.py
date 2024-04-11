@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynRuleImputer import AutomaticSmilesExtraction
+from synrbl.SynRuleImputer import AutomaticSmilesExtraction
 
 
 class TestAutomaticSmilesExtraction(unittest.TestCase):

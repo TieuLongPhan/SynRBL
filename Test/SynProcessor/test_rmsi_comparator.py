@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynProcessor import RSMIComparator
+from synrbl.SynProcessor import RSMIComparator
 
 
 class TestRSMIComparator(unittest.TestCase):

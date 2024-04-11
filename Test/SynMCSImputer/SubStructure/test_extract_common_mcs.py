@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
+from synrbl.SynMCSImputer.SubStructure.extract_common_mcs import ExtractMCS
 
 
 class TestExtractMCS(unittest.TestCase):

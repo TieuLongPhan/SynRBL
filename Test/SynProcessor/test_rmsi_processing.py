@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-from SynRBL.SynProcessor import RSMIProcessing
+from synrbl.SynProcessor import RSMIProcessing
 
 
 class TestRSMIProcessing(unittest.TestCase):

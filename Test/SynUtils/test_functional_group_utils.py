@@ -1,6 +1,6 @@
 import unittest
 import rdkit.Chem.rdmolfiles as rdmolfiles
-import SynRBL.SynUtils.functional_group_utils as fgutils
+import synrbl.SynUtils.functional_group_utils as fgutils
 
 
 class TestReduce(unittest.TestCase):

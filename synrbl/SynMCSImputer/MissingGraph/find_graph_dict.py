@@ -4,8 +4,8 @@ from rdkit import Chem
 from rdkit.rdBase import BlockLogs
 from joblib import Parallel, delayed
 from typing import List
-from SynRBL.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
-from SynRBL.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
+from synrbl.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
+from synrbl.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
 
 
 def find_single_graph(mcs_mol_list, sorted_reactants_mol_list):

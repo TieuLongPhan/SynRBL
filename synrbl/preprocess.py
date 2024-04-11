@@ -1,6 +1,6 @@
 import pandas as pd
 
-from SynRBL.SynProcessor import RSMIProcessing
+from synrbl.SynProcessor import RSMIProcessing
 
 
 def preprocess(reactions, reaction_col, index_col, solved_col, n_jobs=1):

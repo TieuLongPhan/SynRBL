@@ -2,13 +2,13 @@ import joblib
 import pandas as pd
 import numpy as np
 import importlib.resources
-import SynRBL.SynAnalysis
+import synrbl.SynAnalysis
 
-from SynRBL.SynAnalysis.analysis_utils import (
+from synrbl.SynAnalysis.analysis_utils import (
     calculate_chemical_properties,
     count_boundary_atoms_products_and_calculate_changes,
 )
-from SynRBL.SynUtils.common import update_reactants_and_products
+from synrbl.SynUtils.common import update_reactants_and_products
 
 
 class ConfidencePredictor:
@@ -22,7 +22,7 @@ class ConfidencePredictor:
         mcs_col="mcs",
     ):
         self.model = joblib.load(
-            importlib.resources.files(SynRBL.SynAnalysis)
+            importlib.resources.files(synrbl.SynAnalysis)
             .joinpath("scoring_function.dump")
             .open("rb")
         )

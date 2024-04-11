@@ -1,5 +1,5 @@
-from SynRBL.SynProcessor import RSMIComparator, RSMIDecomposer, CheckCarbonBalance
-from SynRBL.SynUtils.common import update_reactants_and_products
+from synrbl.SynProcessor import RSMIComparator, RSMIDecomposer, CheckCarbonBalance
+from synrbl.SynUtils.common import update_reactants_and_products
 
 
 class Validator:

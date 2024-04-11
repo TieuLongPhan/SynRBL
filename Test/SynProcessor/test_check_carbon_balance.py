@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynProcessor.check_carbon_balance import CheckCarbonBalance
+from synrbl.SynProcessor.check_carbon_balance import CheckCarbonBalance
 
 
 class TestCheckCarbonBalance(unittest.TestCase):

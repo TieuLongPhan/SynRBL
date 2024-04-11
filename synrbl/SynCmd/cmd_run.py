@@ -2,7 +2,7 @@ import argparse
 import logging
 import pandas as pd
 
-from SynRBL import Balancer
+from synrbl import Balancer
 
 logger = logging.getLogger(__name__)
 

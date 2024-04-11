@@ -1,8 +1,8 @@
 import copy
 
 from rdkit import Chem
-from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
-from SynRBL.SynMCSImputer.MissingGraph.molcurator import MoleculeCurator
+from synrbl.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
+from synrbl.SynMCSImputer.MissingGraph.molcurator import MoleculeCurator
 from typing import List, Dict, Optional, Tuple
 
 

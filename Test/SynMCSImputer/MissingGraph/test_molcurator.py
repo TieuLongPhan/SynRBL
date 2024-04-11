@@ -1,7 +1,7 @@
 import unittest
 from rdkit import Chem
 
-from SynRBL.SynMCSImputer.MissingGraph.molcurator import MoleculeCurator
+from synrbl.SynMCSImputer.MissingGraph.molcurator import MoleculeCurator
 
 
 class TestMoleculeCurator(unittest.TestCase):

@@ -2,7 +2,7 @@ import unittest
 
 from rdkit import Chem
 
-from SynRBL.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
+from synrbl.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
 
 
 class TestMCSMissingGraphAnalyzer(unittest.TestCase):

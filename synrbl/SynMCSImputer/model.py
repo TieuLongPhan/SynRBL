@@ -1,6 +1,6 @@
-from SynRBL.SynMCSImputer.structure import CompoundSet
-from SynRBL.SynMCSImputer.utils import is_carbon_balanced
-from SynRBL.SynMCSImputer.merge import merge
+from synrbl.SynMCSImputer.structure import CompoundSet
+from synrbl.SynMCSImputer.utils import is_carbon_balanced
+from synrbl.SynMCSImputer.merge import merge
 from rdkit.rdBase import BlockLogs
 
 

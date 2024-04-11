@@ -2,7 +2,7 @@ import pandas as pd
 import rdkit.Chem as Chem
 
 from joblib import Parallel, delayed
-from SynRBL.rsmi_utils import save_database
+from synrbl.rsmi_utils import save_database
 
 from typing import Tuple
 

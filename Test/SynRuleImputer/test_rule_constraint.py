@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynRuleImputer import RuleConstraint
+from synrbl.SynRuleImputer import RuleConstraint
 
 
 class TestRuleConstraint(unittest.TestCase):

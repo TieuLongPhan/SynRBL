@@ -3,8 +3,8 @@ import glob
 import os
 import logging
 import traceback
-from SynRBL import Balancer
-from SynRBL.rsmi_utils import load_database, save_database
+from synrbl import Balancer
+from synrbl.rsmi_utils import load_database, save_database
 
 
 def setup_logging(log_file=None):

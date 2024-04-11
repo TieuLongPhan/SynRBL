@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
+from synrbl.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
 from rdkit import Chem
 
 

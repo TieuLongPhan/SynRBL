@@ -1,7 +1,7 @@
 import unittest
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
-from SynRBL.SynMCSImputer.utils import check_atom_dict, InvalidAtomDict
+from synrbl.SynMCSImputer.utils import check_atom_dict, InvalidAtomDict
 
 
 class TestCheckAtoms(unittest.TestCase):

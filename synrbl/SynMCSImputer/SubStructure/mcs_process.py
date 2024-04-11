@@ -3,7 +3,7 @@ import time
 import copy
 import logging
 
-from SynRBL.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
+from synrbl.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
 from rdkit import Chem
 from joblib import Parallel, delayed
 

@@ -1,6 +1,6 @@
 import unittest
 
-from SynRBL.SynRuleImputer import RuleImputeManager
+from synrbl.SynRuleImputer import RuleImputeManager
 
 
 class TestRuleImputeManager(unittest.TestCase):

@@ -1,7 +1,7 @@
 import copy
 
 from rdkit import Chem
-from SynRBL.SynRuleImputer.synthetic_rule_matcher import SyntheticRuleMatcher
+from synrbl.SynRuleImputer.synthetic_rule_matcher import SyntheticRuleMatcher
 from joblib import Parallel, delayed
 from typing import List, Dict, Any, Union, Optional
 from rdkit import RDLogger

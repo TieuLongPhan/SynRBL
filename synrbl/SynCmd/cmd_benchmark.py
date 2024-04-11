@@ -2,8 +2,8 @@ import argparse
 import logging
 import pandas as pd
 
-from SynRBL import Balancer
-from SynRBL.SynUtils.chem_utils import normalize_smiles
+from synrbl import Balancer
+from synrbl.SynUtils.chem_utils import normalize_smiles
 
 logger = logging.getLogger(__name__)
 

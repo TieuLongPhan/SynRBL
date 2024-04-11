@@ -1,6 +1,6 @@
 import unittest
 import itertools
-from SynRBL.SynUtils.chem_utils import remove_atom_mapping, normalize_smiles
+from synrbl.SynUtils.chem_utils import remove_atom_mapping, normalize_smiles
 
 
 class TestRemoveAtomMapping(unittest.TestCase):

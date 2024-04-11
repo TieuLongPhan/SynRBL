@@ -1,5 +1,5 @@
-from SynRBL.SynUtils.data_utils import find_shortest_sublists
-from SynRBL.SynUtils.chem_utils import calculate_net_charge
+from synrbl.SynUtils.data_utils import find_shortest_sublists
+from synrbl.SynUtils.chem_utils import calculate_net_charge
 from typing import List, Dict, Any
 from typing import Union
 

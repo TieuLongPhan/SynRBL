@@ -1,7 +1,7 @@
 import unittest
 
-from SynRBL.SynMCSImputer.structure import Compound
-from SynRBL.SynMCSImputer.rules import (
+from synrbl.SynMCSImputer.structure import Compound
+from synrbl.SynMCSImputer.rules import (
     Action,
     Property,
     FunctionalGroupProperty,

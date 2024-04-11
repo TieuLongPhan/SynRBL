@@ -4,21 +4,21 @@ import pandas as pd
 import importlib.resources
 
 
-import SynRBL.SynRuleImputer
-from SynRBL.SynRuleImputer import SyntheticRuleImputer
-from SynRBL.SynRuleImputer.synthetic_rule_constraint import RuleConstraint
-from SynRBL.SynProcessor import (
+import synrbl.SynRuleImputer
+from synrbl.SynRuleImputer import SyntheticRuleImputer
+from synrbl.SynRuleImputer.synthetic_rule_constraint import RuleConstraint
+from synrbl.SynProcessor import (
     RSMIDecomposer,
     RSMIComparator,
     BothSideReact,
 )
-from SynRBL.rsmi_utils import (
+from synrbl.rsmi_utils import (
     load_database,
     filter_data,
     extract_results_by_key,
 )
 
-from SynRBL.SynUtils.common import update_reactants_and_products
+from synrbl.SynUtils.common import update_reactants_and_products
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class RuleBasedMethod:
         self.id_col = id_col
         self.reaction_col = reaction_col
         if rules_path is None:
-            with importlib.resources.files(SynRBL.SynRuleImputer).joinpath(
+            with importlib.resources.files(synrbl.SynRuleImputer).joinpath(
                 "rules_manager.json.gz"
             ).open("r") as f:
                 self.rules = json.load(f)

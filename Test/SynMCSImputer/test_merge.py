@@ -1,8 +1,8 @@
 import unittest
 import unittest.mock as mock
 
-import SynRBL.SynMCSImputer.merge as merge
-from SynRBL.SynMCSImputer.structure import Compound, CompoundSet
+import synrbl.SynMCSImputer.merge as merge
+from synrbl.SynMCSImputer.structure import Compound, CompoundSet
 
 
 class DummyMergeRule:
@@ -28,7 +28,7 @@ class DummyExpandRule:
 
 
 class TestMergeBoundary(unittest.TestCase):
-    @mock.patch("SynRBL.SynMCSImputer.merge.MergeRule")
+    @mock.patch("synrbl.SynMCSImputer.merge.MergeRule")
     def test_no_rule_found(self, m_MergeRule):
         rule = mock.MagicMock()
         rule.can_apply.return_value = False
@@ -89,7 +89,7 @@ class TestMergeRule(unittest.TestCase):
 
 
 class TestExpansion(unittest.TestCase):
-    @mock.patch("SynRBL.SynMCSImputer.merge.ExpandRule")
+    @mock.patch("synrbl.SynMCSImputer.merge.ExpandRule")
     def test_simple_expansion(self, m_ExpandRule):
         m_ExpandRule.get_all = mock.MagicMock(return_value=[DummyExpandRule()])
         c = Compound("C")
@@ -98,7 +98,7 @@ class TestExpansion(unittest.TestCase):
         self.assertEqual("O", cm.smiles)  # type: ignore
         self.assertEqual(1, len(cm.boundaries))  # type: ignore
 
-    @mock.patch("SynRBL.SynMCSImputer.merge.ExpandRule")
+    @mock.patch("synrbl.SynMCSImputer.merge.ExpandRule")
     def test_rule_apply_check(self, m_ExpandRule):
         m_ExpandRule.get_all = mock.MagicMock(
             return_value=[

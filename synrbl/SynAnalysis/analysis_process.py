@@ -1,7 +1,7 @@
 import pandas as pd
 
-from SynRBL.rsmi_utils import load_database
-from SynRBL.SynAnalysis.analysis_utils import (
+from synrbl.rsmi_utils import load_database
+from synrbl.SynAnalysis.analysis_utils import (
     remove_atom_mapping_from_reaction_smiles,
     calculate_chemical_properties,
     count_boundary_atoms_products_and_calculate_changes,

@@ -1,7 +1,7 @@
 from rdkit import Chem
 from rdkit.Chem import rdFMCS
 from rdkit.Chem import rdRascalMCES
-from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
+from synrbl.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
 
 
 class MCSMissingGraphAnalyzer:
