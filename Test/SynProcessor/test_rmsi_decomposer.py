@@ -22,7 +22,7 @@ class TestRSMIDecomposer(unittest.TestCase):
         # Test decompose method with an invalid SMILES string
         smiles = 'InvalidString'
         composition = RSMIDecomposer.decompose(smiles)
-        self.assertIsNone(composition)
+        self.assertEqual({}, composition)
 
     def test_data_decomposer_valid(self):
         # Test data_decomposer method with valid data
@@ -39,8 +39,8 @@ class TestRSMIDecomposer(unittest.TestCase):
         reactants, products = decomposer.data_decomposer()
         self.assertEqual(len(reactants), 2)
         self.assertEqual(len(products), 2)
-        self.assertIsNone(reactants[0])
-        self.assertIsNone(products[1])
+        self.assertEqual({}, reactants[0])
+        self.assertEqual({}, products[1])
 
 if __name__ == '__main__':
     unittest.main()

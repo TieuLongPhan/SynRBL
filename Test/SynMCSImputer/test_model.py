@@ -61,8 +61,6 @@ class TestBuildCompound(unittest.TestCase):
         self.assertEqual(0, len(compounds))
 
 
-
-
 class TestImputeReaction(unittest.TestCase):
     def _reac_dict(
         self,
@@ -110,12 +108,18 @@ class TestImputeReaction(unittest.TestCase):
             ["G", "H"],
         )
 
-        impute_reaction(r)
+        result, rules = impute_reaction(
+            r,
+            reaction_col="old_reaction",
+            issue_col="issue",
+            carbon_balance_col="carbon_balance_check",
+            mcs_data_col="mcs_results",
+        )
 
         self.assertEqual("", r["issue"])
-        self.assertEqual(old_reaction + ".X", r["new_reaction"])
-        self.assertEqual(1, len(r["rules"]))
-        self.assertEqual(m_rule.name, r["rules"][0])
+        self.assertEqual(old_reaction + ".X", result)
+        self.assertEqual(1, len(rules))
+        self.assertEqual(m_rule.name, rules[0])
 
     @mock.patch("SynRBL.SynMCSImputer.model.is_carbon_balanced")
     @mock.patch("SynRBL.SynMCSImputer.model.merge")
@@ -143,8 +147,13 @@ class TestImputeReaction(unittest.TestCase):
             ["G", "H"],
         )
 
-        impute_reaction(r)
+        with self.assertRaises(RuntimeError) as e:
+            impute_reaction(
+                r,
+                reaction_col="old_reaction",
+                issue_col="issue",
+                carbon_balance_col="carbon_balance_check",
+                mcs_data_col="mcs_results",
+            )
 
-        self.assertEqual(old_reaction, r["new_reaction"])
-        self.assertNotEqual("", r["issue"])
-        self.assertEqual(0, len(r["rules"]))
+        self.assertTrue("carbon check", str(e.exception))

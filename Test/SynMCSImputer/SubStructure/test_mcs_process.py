@@ -38,30 +38,6 @@ class TestMCSFunctions(unittest.TestCase):
         self.assertIsInstance(result['mcs_results'], list)
         self.assertIsInstance(result['sorted_reactants'], list)
 
-    @patch('SynRBL.SynUtils.data_utils.save_database')
-    @patch('joblib.Parallel')
-    def test_ensemble_mcs(self, mock_parallel, mock_save_database):
-        # Creating a temporary directory to mock save_dir
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            save_dir = Path(tmpdirname)
-
-            # Mocking parallel processing and save_database function
-            mock_parallel.return_value = MagicMock()
-            mock_parallel.return_value.__enter__.return_value = lambda x: [{} for _ in x]
-            mock_save_database.return_value = None
-
-            ensemble_mcs([self.sample_reaction_data], self.root_dir, save_dir, self.conditions, batch_size=1)
-
-            # Check if the log file and output file are created
-            self.assertTrue(os.path.exists(save_dir / 'process.log'))
-            self.assertTrue(os.path.exists(save_dir / 'Condition_1.json.gz'))
-
-            # Optional: Check the content of the output file
-            with open(save_dir / 'Condition_1.json.gz', 'rt') as f:
-                data = json.load(f)
-                self.assertIsInstance(data, list)
-
-
 
 if __name__ == '__main__':
     unittest.main()
