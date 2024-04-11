@@ -60,7 +60,7 @@ class RSMIProcessing:
         drop_duplicates: bool = True,
         verbose: int = 1,
         parallel: bool = True,
-        save_json: bool = True,
+        save_json: bool = False,
         save_path_name: str = "reaction.json.gz",
         orient: str = "records",
         compression: str = "gzip",
