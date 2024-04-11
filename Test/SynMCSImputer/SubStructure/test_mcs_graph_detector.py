@@ -1,5 +1,4 @@
 import unittest
-import unittest
 
 from rdkit import Chem
 

@@ -1,5 +1,4 @@
 import unittest
-import pandas as pd
 
 from SynRBL.SynProcessor.check_carbon_balance import CheckCarbonBalance
 

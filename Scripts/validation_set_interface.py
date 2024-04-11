@@ -1,11 +1,13 @@
 import copy
 import json
 import pandas as pd
-from SynRBL.SynUtils.chem_utils import normalize_smiles, remove_atom_mapping
+
+from SynRBL.SynUtils.chem_utils import normalize_smiles
 
 _FILE_NAME = "dataset"
 
-_reaction_dict = None 
+_reaction_dict = None
+
 
 def _load():
     global _reaction_dict
@@ -14,8 +16,11 @@ def _load():
             reaction_list = json.load(f)
         _reaction_dict = {}
         for rdata in reaction_list:
-            rdata["wrong_reactions"] = set([normalize_smiles(r) for r in rdata["wrong_reactions"]])
+            rdata["wrong_reactions"] = set(
+                [normalize_smiles(r) for r in rdata["wrong_reactions"]]
+            )
             _reaction_dict[normalize_smiles(rdata["reaction"])] = rdata
+
 
 def flush():
     global _reaction_dict
@@ -33,6 +38,7 @@ def flush():
     df = pd.DataFrame(reaction_list)
     df.to_csv("{}.csv".format(_FILE_NAME))
 
+
 def update(reaction, correct_reaction=None, wrong_reaction=None):
     global _reaction_dict
     _load()
@@ -41,7 +47,10 @@ def update(reaction, correct_reaction=None, wrong_reaction=None):
     if correct_reaction is not None:
         _reaction_dict[r_key]["correct_reaction"] = correct_reaction
     if wrong_reaction is not None:
-        _reaction_dict[r_key]["wrong_reactions"].update([normalize_smiles(wrong_reaction)])
+        _reaction_dict[r_key]["wrong_reactions"].update(
+            [normalize_smiles(wrong_reaction)]
+        )
+
 
 def get(reaction):
     global _reaction_dict
@@ -49,4 +58,3 @@ def get(reaction):
     assert _reaction_dict is not None
     r = normalize_smiles(reaction)
     return _reaction_dict[r]
-        

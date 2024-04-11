@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-import rdkit.Chem.rdmolfiles as rdmolfiles
+
 from SynRBL.SynVis import ReactionVisualizer
-from SynRBL.rsmi_utils import load_database, save_database
+from SynRBL.rsmi_utils import load_database
 from SynRBL.SynUtils.chem_utils import remove_atom_mapping
 
 
@@ -28,13 +28,14 @@ clear_atom_nums(data)
 # |%%--%%| <qiP5pkTCwv|DUqrOw4SKU>
 
 
-def get_ids_by_rule(data, rule, l=None):
+def get_ids_by_rule(data, rule, n_rules=None):
     ids = []
     for i, e in enumerate(data):
         if rule in e["rules"]:
-            if l is None or len(e["rules"]) == l:
+            if n_rules is None or len(e["rules"]) == n_rules:
                 ids.append(i)
     return ids
+
 
 def get_reaction_by_id(data, id):
     for i, item in enumerate(data):
@@ -42,7 +43,8 @@ def get_reaction_by_id(data, id):
             return i, item
     return None
 
-rids = get_ids_by_rule(data, "phosphor double bond", l=1)
+
+rids = get_ids_by_rule(data, "phosphor double bond", n_rules=1)
 
 # |%%--%%| <DUqrOw4SKU|5Fdy81dKgB>
 
@@ -52,9 +54,9 @@ for idx in rids:
 
 ridl = sorted(ridl, key=lambda e: e[1])
 print(ridl[0:20])
-#idx, _ = get_reaction_by_id(data, "golden_dataset_568")
+# idx, _ = get_reaction_by_id(data, "golden_dataset_568")
 idx = 198
-print(idx, data[idx]["issue"], data[idx]['rules'])
+print(idx, data[idx]["issue"], data[idx]["rules"])
 rvis = ReactionVisualizer(figsize=(10, 8))
 rvis.plot_reactions(
     data[idx],
@@ -62,8 +64,8 @@ rvis.plot_reactions(
     "new_reaction",
     compare=True,
     show_atom_numbers=False,
-    #new_reaction_title="Balanced Reaction",
-    #old_reaction_title="Initial Reaction",
+    # new_reaction_title="Balanced Reaction",
+    # old_reaction_title="Initial Reaction",
 )
 
 # |%%--%%| <5Fdy81dKgB|w3XZRXxvhi>
@@ -97,13 +99,15 @@ for idx, fname in export_config:
         new_reaction_title="Balanced Reaction",
         old_reaction_title="Initial Reaction",
     )
-#|%%--%%| <w3XZRXxvhi|vk7u8hsFMR>
+# |%%--%%| <w3XZRXxvhi|vk7u8hsFMR>
 
-plt.rcParams.update({
-    #"figure.facecolor":  (1.0, 0.0, 0.0, 0.3),  # red   with alpha = 30%
-    "axes.facecolor":    (0.0, 1.0, 1.0, 1.0),  # green with alpha = 50%
-    #"savefig.facecolor": (0.0, 0.0, 1.0, 0.2),  # blue  with alpha = 20%
-})
+plt.rcParams.update(
+    {
+        # "figure.facecolor":  (1.0, 0.0, 0.0, 0.3),  # red   with alpha = 30%
+        "axes.facecolor": (0.0, 1.0, 1.0, 1.0),  # green with alpha = 50%
+        # "savefig.facecolor": (0.0, 0.0, 1.0, 0.2),  # blue  with alpha = 20%
+    }
+)
 
 export_config = [(140, "oxidation_reaction"), (172, "ring_formation")]
 
@@ -124,4 +128,3 @@ for idx, fname in export_config:
         new_reaction_title="",
         old_reaction_title="",
     )
-

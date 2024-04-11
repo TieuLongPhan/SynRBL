@@ -1,5 +1,4 @@
 import unittest
-import pandas as pd
 
 from SynRBL.SynProcessor import RSMIComparator
 
