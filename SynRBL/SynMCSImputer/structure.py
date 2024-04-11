@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import rdkit.Chem.rdchem as rdchem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
@@ -166,7 +167,7 @@ class Compound:
         src_mol = None
         try:
             src_mol = _to_mol("{}.{}".format(self.src_smiles, compound.src_smiles))
-        except:
+        except Exception:
             pass
         self.mol = _to_mol("{}.{}".format(self.smiles, compound.smiles))
         self.src_mol = src_mol

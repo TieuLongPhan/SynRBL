@@ -6,7 +6,6 @@
 .jukit/
 
 
-*.png
 venv/
 *.pdf
 .coverage
@@ -14,3 +13,5 @@ tmp/
 out/
 
 Data/Validation_set/validation_set_result.csv
+Data/Run/
+

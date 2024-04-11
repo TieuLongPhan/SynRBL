@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal
+
 import json
 import inspect
 import numpy as np
@@ -13,6 +13,7 @@ import SynRBL.SynMCSImputer
 import SynRBL.SynUtils.functional_group_utils as fgutils
 import SynRBL.SynMCSImputer.utils as utils
 
+from SynRBL.SynUtils.chem_utils import remove_atom_mapping
 from .structure import Boundary, Compound
 
 
@@ -355,10 +356,10 @@ class CountBoundariesCompoundProperty(CompoundProperty):
         self.use_set = use_set
 
     def check(self, value: Compound, check_value) -> bool:
-        l = len(value.boundaries)
+        value_l = len(value.boundaries)
         if self.use_set:
-            l = len(value.compound_set.boundaries)
-        return l == int(check_value)
+            value_l = len(value.compound_set.boundaries)
+        return value_l == int(check_value)
 
 
 class CountCompoundsCompoundProperty(CompoundProperty):
@@ -404,9 +405,11 @@ class SmilesCompoundProperty(CompoundProperty):
 
     def check(self, value: Compound, check_value) -> bool:
         if self.use_src_mol:
+            if value.src_smiles is not None:
+                return remove_atom_mapping(value.src_smiles) == check_value
             return value.src_smiles == check_value
         else:
-            return value.smiles == check_value
+            return remove_atom_mapping(value.smiles) == check_value
 
 
 class BoundaryCondition:

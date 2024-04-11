@@ -177,7 +177,7 @@ class TestFunctionalGroupCheck(unittest.TestCase):
         # Asparagine
         self.__test_fg("NC(=O)CC(N)C(=O)O", "amid", [0, 1, 2])
 
-    #def test_acyl(self):
+    # def test_acyl(self):
     #    # Acetyl cloride
     #    self.__test_fg("CC(=O)[Cl]", "acyl", [1, 2])
 

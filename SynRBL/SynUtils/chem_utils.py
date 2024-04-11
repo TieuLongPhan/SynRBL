@@ -1,13 +1,12 @@
-from typing import List, Dict, Set, Any
-from typing import Optional, Union, Callable, Tuple
-from rdkit import Chem
 import io
 import re
 import tempfile
 import matplotlib.pyplot as plt
-from PIL import Image
+
+from typing import List, Dict
+from typing import Union
 from rdkit import Chem
-from rdkit.Chem.Draw import rdMolDraw2D
+from PIL import Image
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape, letter
 from SynRBL.SynVis.reaction_visualizer import ReactionVisualizer
@@ -21,7 +20,8 @@ class CheckCarbonBalance:
         Initialize the CheckCarbonBalance class with reaction data.
 
         Parameters:
-        reactions_data (List[Dict[str, str]]): A list of dictionaries, each containing reaction information.
+        reactions_data (List[Dict[str, str]]): A list of dictionaries, each
+            containing reaction information.
         """
         self.reactions_data = reactions_data
         self.rsmi_col = rsmi_col
@@ -30,13 +30,15 @@ class CheckCarbonBalance:
     @staticmethod
     def count_carbon_atoms(smiles: str) -> int:
         """
-        Count the number of carbon atoms in a molecule represented by a SMILES string.
+        Count the number of carbon atoms in a molecule represented by a SMILES
+        string.
 
         Parameters:
         smiles (str): A SMILES string.
 
         Returns:
-        int: The number of carbon atoms in the molecule. Returns 0 if the SMILES string is invalid.
+        int: The number of carbon atoms in the molecule. Returns 0 if the
+            SMILES string is invalid.
         """
         mol = Chem.MolFromSmiles(smiles)
         return (
@@ -45,11 +47,13 @@ class CheckCarbonBalance:
 
     def check_carbon_balance(self) -> None:
         """
-        Check and update the carbon balance status for each reaction in the reactions data.
+        Check and update the carbon balance status for each reaction in the
+        reactions data.
 
-        The method updates each reaction dictionary in the reactions data with a new key 'carbon_balance_check'.
-        This key will have the value 'products' if the number of carbon atoms in the products is greater than or equal to the reactants,
-        and 'reactants' otherwise.
+        The method updates each reaction dictionary in the reactions data with
+        a new key 'carbon_balance_check'. This key will have the value
+        'products' if the number of carbon atoms in the products is greater
+        than or equal to the reactants, and 'reactants' otherwise.
         """
         for reaction in self.reactions_data:
             try:
@@ -76,11 +80,13 @@ class CheckCarbonBalance:
 
     def is_carbon_balance(self) -> None:
         """
-        Check and update the carbon balance status for each reaction in the reactions data.
+        Check and update the carbon balance status for each reaction in the
+        reactions data.
 
-        The method updates each reaction dictionary in the reactions data with a new key 'carbon_balance_check'.
-        This key will have the value 'products' if the number of carbon atoms in the products is greater than or equal to the reactants,
-        and 'reactants' otherwise.
+        The method updates each reaction dictionary in the reactions data with
+        a new key 'carbon_balance_check'. This key will have the value
+        'products' if the number of carbon atoms in the products is greater
+        than or equal to the reactants, and 'reactants' otherwise.
         """
         for reaction in self.reactions_data:
             try:
@@ -105,10 +111,12 @@ class CheckCarbonBalance:
 
 def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
     """
-    Calculate the net charge from a list of molecules represented as SMILES strings.
+    Calculate the net charge from a list of molecules represented as SMILES
+    strings.
 
     Args:
-        sublist: A list of dictionaries, each with a 'smiles' string and a 'Ratio' integer.
+        sublist: A list of dictionaries, each with a 'smiles' string and a
+            'Ratio' integer.
 
     Returns:
         The net charge of the sublist as an integer.
@@ -151,9 +159,11 @@ def save_reactions_to_pdf(
     compare : bool, optional
         If True, both the old and new reactions are plotted. Default is False.
     orientation : str, optional
-        The layout orientation of the plots ('vertical' or 'horizontal'). Default is 'vertical'.
+        The layout orientation of the plots ('vertical' or 'horizontal').
+        Default is 'vertical'.
     show_atom_numbers : bool, optional
-        Whether to show atom numbers in the reaction visualizations. Default is False.
+        Whether to show atom numbers in the reaction visualizations.
+        Default is False.
     scale_factor : float, optional
         Factor to scale the reaction image size in the PDF. Default is 1.0.
     title_font_size : int, optional
@@ -161,9 +171,10 @@ def save_reactions_to_pdf(
 
     Notes
     -----
-    The method plots each reaction using the plot_reactions method and saves it to a PDF file.
-    Each reaction is plotted on a separate page. The method also handles scaling of the reaction
-    image and includes a customizable title for each reaction page in the PDF.
+    The method plots each reaction using the plot_reactions method and saves
+    it to a PDF file. Each reaction is plotted on a separate page. The method
+    also handles scaling of the reaction image and includes a customizable
+    title for each reaction page in the PDF.
     """
     c = canvas.Canvas(pdf_filename, pagesize=landscape(letter))
     page_width, page_height = landscape(letter)
@@ -229,6 +240,7 @@ def remove_atom_mapping(smiles: str) -> str:
 
 
 def normalize_smiles(smiles: str) -> str:
+    smiles = smiles.replace("@", "")
     if ">>" in smiles:
         return ">>".join([normalize_smiles(t) for t in smiles.split(">>")])
     elif "." in smiles:
@@ -237,6 +249,11 @@ def normalize_smiles(smiles: str) -> str:
             key=lambda x: (sum(1 for c in x if c.isupper()), sum(ord(c) for c in x)),
             reverse=True,
         )
-        return ".".join([normalize_smiles(t) for t in token])
+        token = [normalize_smiles(t) for t in token]
+        token.sort(
+            key=lambda x: (sum(1 for c in x if c.isupper()), sum(ord(c) for c in x)),
+            reverse=True,
+        )
+        return ".".join(token)
     else:
         return Chem.CanonSmiles(remove_atom_mapping(smiles))

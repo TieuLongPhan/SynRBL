@@ -1,5 +1,6 @@
 from joblib import Parallel, delayed
 
+
 class BothSideReact:
     """
     Class to process chemical reactions on both sides (reactants and products).
@@ -8,18 +9,21 @@ class BothSideReact:
     react_dict (list): A list of dictionaries representing reactants.
     product_dict (list): A list of dictionaries representing products.
     unbalance (list): A list indicating the balance status of each reaction.
-    diff_formula (list): A list containing the differential formula for each reaction.
+    diff_formula (list): A list containing the differential formula for
+        each reaction.
     """
 
     def __init__(self, react_dict, product_dict, unbalance, diff_formula):
         """
-        Initializes the BothSideReact class with reaction dictionaries, unbalance, and differential formulas.
+        Initializes the BothSideReact class with reaction dictionaries,
+        unbalance, and differential formulas.
 
         Parameters:
         react_dict (list): List of dictionaries representing reactants.
         product_dict (list): List of dictionaries representing products.
         unbalance (list): List indicating the balance status of each reaction.
-        diff_formula (list): List containing the differential formula for each reaction.
+        diff_formula (list): List containing the differential formula for
+            each reaction.
         """
         self.react_dict = react_dict
         self.product_dict = product_dict
@@ -27,8 +31,8 @@ class BothSideReact:
         # Ensure 'Q' key is present in all reactant and product dictionaries
         for d in [self.react_dict, self.product_dict]:
             for value in d:
-                if 'Q' not in value:
-                    value['Q'] = 0
+                if "Q" not in value:
+                    value["Q"] = 0
 
         self.unbalance = unbalance
         self.diff_formula = diff_formula
@@ -36,14 +40,16 @@ class BothSideReact:
     @staticmethod
     def enforce_product_side(react_dict, product_dict):
         """
-        Enforces the product side of the reaction by calculating the difference between reactant and product counts.
+        Enforces the product side of the reaction by calculating the difference
+        between reactant and product counts.
 
         Parameters:
         react_dict (dict): Dictionary representing a single reactant.
         product_dict (dict): Dictionary representing a single product.
 
         Returns:
-        dict: Dictionary representing the differential count between reactant and product.
+        dict: Dictionary representing the differential count between reactant
+            and product.
         """
         diff_dict = {}
         # Calculate the difference between reactants and products
@@ -83,33 +89,35 @@ class BothSideReact:
         diff_dict (dict): The dictionary with potential negative values.
 
         Returns:
-        tuple: A tuple containing the updated dictionary and a string indicating the balance status.
+        tuple: A tuple containing the updated dictionary and a string
+            indicating the balance status.
         """
-        if len(diff_dict) == 2 and 'Q' in diff_dict.keys():
-            if any(value < 0 for key, value in diff_dict.items() if key != 'Q'):
+        if len(diff_dict) == 2 and "Q" in diff_dict.keys():
+            if any(value < 0 for key, value in diff_dict.items() if key != "Q"):
                 # Reverse all values except for 'Q'
-                return {key: -value for key, value in diff_dict.items()}, 'Reactants'
+                return {key: -value for key, value in diff_dict.items()}, "Reactants"
             else:
                 # Original dictionary if no negative values found
-                return diff_dict, 'Products'
+                return diff_dict, "Products"
         else:
             # Return as is if conditions not met
-            return diff_dict, 'Both'
+            return diff_dict, "Both"
 
-    def fit(self, n_jobs=-2):
+    def fit(self, n_jobs=4):
         """
-        Processes the reactions by balancing reactants and products and updating the unbalance status.
+        Processes the reactions by balancing reactants and products and
+        updating the unbalance status.
 
         Returns:
         tuple: A tuple containing the updated diff_formula and unbalance lists.
         """
         # Filter indices where balance status is 'Both'
-        both_index = [i for i, val in enumerate(self.unbalance) if val == 'Both']
+        both_index = [i for i, val in enumerate(self.unbalance) if val == "Both"]
         react_dict_both = self.filter_list_by_indices(self.react_dict, both_index)
         product_dict_both = self.filter_list_by_indices(self.product_dict, both_index)
 
         # Process reactions in parallel for efficiency
-        diff_dict = Parallel(n_jobs=n_jobs, verbose=1)(
+        diff_dict = Parallel(n_jobs=n_jobs, verbose=0)(
             delayed(self.enforce_product_side)(react, prod)
             for react, prod in zip(react_dict_both, product_dict_both)
         )
@@ -121,7 +129,9 @@ class BothSideReact:
             diff_dict_both, unbalance_both = zip(*results)
 
         # Update diff_formula and unbalance lists
-        for index, diff_new, unbalance_new in zip(both_index, diff_dict_both, unbalance_both):
+        for index, diff_new, unbalance_new in zip(
+            both_index, diff_dict_both, unbalance_both
+        ):
             self.diff_formula[index] = diff_new
             self.unbalance[index] = unbalance_new
 

@@ -1,6 +1,4 @@
 import unittest
-import unittest.mock as mock
-import rdkit.Chem.rdmolops as rdmolops
 import rdkit.Chem.rdmolfiles as rdmolfiles
 import SynRBL.SynMCSImputer.structure as structure
 
@@ -77,5 +75,3 @@ class TestCompound(unittest.TestCase):
         c = structure.Compound("CCC", src_mol="CC(=O)OCCC")
         with self.assertRaises(ValueError):
             c.add_boundary(0, "C", 3, "C")
-
-

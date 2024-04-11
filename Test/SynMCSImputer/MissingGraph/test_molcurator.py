@@ -1,14 +1,10 @@
 import unittest
 from rdkit import Chem
-import sys
-from pathlib import Path
-root_dir = Path(__file__).parents[3]
-sys.path.append(str(root_dir))
-import unittest
+
 from SynRBL.SynMCSImputer.MissingGraph.molcurator import MoleculeCurator
 
-class TestMoleculeCurator(unittest.TestCase):
 
+class TestMoleculeCurator(unittest.TestCase):
     def test_add_hydrogens_to_radicals(self):
         mol = Chem.MolFromSmiles("CC[O]")  # Ethanol with unpaired electron on oxygen
         curated_mol = MoleculeCurator.add_hydrogens_to_radicals(mol)
@@ -25,5 +21,6 @@ class TestMoleculeCurator(unittest.TestCase):
         self.assertIsNotNone(kekulized_mol)
         self.assertIn("c1cc[nH]c1", Chem.MolToSmiles(kekulized_mol))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -2,7 +2,7 @@
 
 SynRBL is a toolkit tailored for computational chemistry, aimed at correcting imbalances in chemical reactions. It employs a dual strategy: a rule-based method for adjusting non-carbon elements and an mcs-based (maximum common substructure) technique for carbon element adjustments.
 
-![screenshot](./Image/Flowchart.png)
+![screenshot](./Docs/Image/Flowchart.png)
 
 
 ## Table of Contents
@@ -35,13 +35,6 @@ SynRBL is organized into several key components, each dedicated to a specific as
   - `SynChemImputer/`: Tests for MCS-based imputation module
   - `SynVis/`: Tests for SynVis module
 
-### Pipeline
-
-- `Pipeline/`: Main scripts
-  - `Notebook/`: Jupyter notebook examples
-  - `Validation/`: Validation scripts
-
-
 ### Additional Resources
 
 - `License`: License document
@@ -56,8 +49,13 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
 ### Prerequisites
 
 - Python 3.11
-- RDKit == 2023.9.5
-- jobib
+- RDKit == 2023.9.4
+- joblib==1.3.2
+- seaborn==0.13.2
+- xgoost==2.0.3
+- scikit_learn==1.4.1.post1
+- imbalanced_learn==0.12.0
+- reportlab==4.1.0
 
 
 ### Step-by-Step Installation Guide
@@ -97,6 +95,11 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
 
 ## Usage
 
+  ```python
+  from SynRBL import SynRBL
+  ```
+
+
 TODO
 
 ## Contributing
@@ -109,4 +112,4 @@ This project is licensed under MIT License - see the [License](LICENSE) file for
 
 ## Acknowledgments
 
-This project has received funding from the European Union’s Horizon 2021 research and innovation program under the Marie Sklodowska-Curie grant agreement No 101072930 (TACsy – Training Alliance for Computational systems chemistry).
+This project has received funding from the European Unions Horizon Europe Doctoral Network programme under the Marie-Skłodowska-Curie grant agreement No 101072930 (TACsy -- Training Alliance for Computational)

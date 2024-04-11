@@ -1,11 +1,12 @@
-from collections import defaultdict
 from joblib import Parallel, delayed
 from typing import List, Dict, Tuple
 
+
 class RSMIComparator:
     """
-    A class to compare two lists of dictionaries representing reactants and products. 
-    It determines if the reaction is balanced and calculates the difference in atomic compositions.
+    A class to compare two lists of dictionaries representing reactants
+    and products. It determines if the reaction is balanced and calculates the
+    difference in atomic compositions.
 
     Parameters
     ----------
@@ -17,7 +18,7 @@ class RSMIComparator:
         Number of jobs to run in parallel.
     verbose : int
         Verbosity level.
-    
+
     Example
     -------
     # Example usage of RSMIComparator
@@ -29,11 +30,12 @@ class RSMIComparator:
     """
 
     def __init__(
-        self, 
-        reactants: List[str], 
-        products: List[str], 
-        n_jobs: int = 10, 
-        verbose: int = 1) -> None:
+        self,
+        reactants: List[str],
+        products: List[str],
+        n_jobs: int = 4,
+        verbose: int = 1,
+    ) -> None:
         """
         Initialize the RSMIComparator object.
 
@@ -51,14 +53,16 @@ class RSMIComparator:
     @staticmethod
     def check_keys(dict1: dict, dict2: dict) -> bool:
         """
-        Check if all keys in the second dictionary are present in the first dictionary.
+        Check if all keys in the second dictionary are present in the
+        first dictionary.
 
         Args:
         dict1 (dict): The first dictionary to compare.
         dict2 (dict): The second dictionary to compare.
 
         Returns:
-        bool: Returns True if all keys in dict2 are present in dict1, otherwise False.
+        bool: Returns True if all keys in dict2 are present in dict1,
+            otherwise False.
 
         Example:
         >>> RSMIComparator.check_keys({'C': 2, 'H': 6}, {'C': 1})
@@ -69,24 +73,30 @@ class RSMIComparator:
     @staticmethod
     def compare_dicts(reactant: dict, product: dict) -> str:
         """
-        Compare two dictionaries representing atomic compositions of reactants and products.
+        Compare two dictionaries representing atomic compositions of reactants
+        and products.
 
         Args:
         - reactant (dict): Dictionary representing atomic composition of reactants.
         - product (dict): Dictionary representing atomic composition of products.
 
         Returns:
-        - str: A string indicating whether the reaction is balanced, reactant-heavy, product-heavy, or both.
+        - str: A string indicating whether the reaction is balanced,
+            reactant-heavy, product-heavy, or both.
         """
 
         # Check if the keys in both dictionaries are the same
         if reactant.keys() != product.keys():
-            if RSMIComparator.check_keys(reactant, product) and not RSMIComparator.check_keys(product, reactant):
+            if RSMIComparator.check_keys(
+                reactant, product
+            ) and not RSMIComparator.check_keys(product, reactant):
                 if all(reactant[key] >= product[key] for key in product.keys()):
                     return "Products"
                 else:
                     return "Both"
-            elif RSMIComparator.check_keys(product, reactant) and not RSMIComparator.check_keys(reactant, product):
+            elif RSMIComparator.check_keys(
+                product, reactant
+            ) and not RSMIComparator.check_keys(reactant, product):
                 if all(reactant[key] <= product[key] for key in reactant.keys()):
                     return "Reactants"
                 else:
@@ -105,7 +115,6 @@ class RSMIComparator:
                 return "Reactants"
             else:
                 return "Both"
-                
 
     @staticmethod
     def diff_dicts(reactant: dict, product: dict) -> dict:
@@ -117,7 +126,8 @@ class RSMIComparator:
         - product (dict): Dictionary representing atomic composition of products.
 
         Returns:
-        - diff_dict (dict): Dictionary with absolute differences in atomic counts between reactants and products.
+        - diff_dict (dict): Dictionary with absolute differences in atomic
+            counts between reactants and products.
 
         Example:
         >>> RSMIComparator.diff_dicts({'C': 2, 'H': 6}, {'C': 2, 'H': 4})
@@ -143,9 +153,12 @@ class RSMIComparator:
 
         return diff_dict
 
-    def run_parallel(self, reactants: List[Dict], products: List[Dict]) -> Tuple[List, List]:
+    def run_parallel(
+        self, reactants: List[Dict], products: List[Dict]
+    ) -> Tuple[List, List]:
         """
-        Run comparison and difference calculation in parallel for reactants and products.
+        Run comparison and difference calculation in parallel for reactants
+        and products.
 
         Parameters
         ----------
@@ -157,15 +170,18 @@ class RSMIComparator:
         Returns
         -------
         Tuple[List, List]
-            A tuple containing two lists: one for comparison results, and one for differences in compositions.
+            A tuple containing two lists: one for comparison results, and one
+            for differences in compositions.
         """
         # Run comparisons and difference calculations in parallel using joblib
         comparison_results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
-            delayed(self.compare_dicts)(reactant, product) for reactant, product in zip(reactants, products)
+            delayed(self.compare_dicts)(reactant, product)
+            for reactant, product in zip(reactants, products)
         )
 
         difference_results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
-            delayed(self.diff_dicts)(reactant, product) for reactant, product in zip(reactants, products)
+            delayed(self.diff_dicts)(reactant, product)
+            for reactant, product in zip(reactants, products)
         )
 
         return comparison_results, difference_results

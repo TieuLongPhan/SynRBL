@@ -1,7 +1,20 @@
 import unittest
-import rdkit.Chem as Chem
+
 from SynRBL.SynMCSImputer.structure import Compound
-from SynRBL.SynMCSImputer.rules import *
+from SynRBL.SynMCSImputer.rules import (
+    Action,
+    Property,
+    FunctionalGroupProperty,
+    FunctionalGroupCompoundProperty,
+    BoundarySymbolProperty,
+    NeighborSymbolProperty,
+    BoundaryCondition,
+    PatternProperty,
+    ChangeBondAction,
+    CountBoundariesCompoundProperty,
+    AddBoundaryAction,
+    SmilesCompoundProperty,
+)
 
 
 class TestProperty(unittest.TestCase):
@@ -55,7 +68,7 @@ class TestProperty(unittest.TestCase):
 
     def test_invalid_config_type(self):
         with self.assertRaises(ValueError):
-            Property({'test': 0})  # type: ignore
+            Property({"test": 0})  # type: ignore
 
 
 class TestFunctionalGroupProperty(unittest.TestCase):
@@ -285,11 +298,19 @@ class TestFunctionalGroupCompoundProperty(unittest.TestCase):
         self.assertTrue(prop1(comp))
         self.assertTrue(prop2(comp))
 
+
+class TestSmilesCompoundProperty(unittest.TestCase):
+    def test_atom_mapped_smiles(self):
+        prop = SmilesCompoundProperty("O")
+        comp = Compound("[OH2:1]")
+        self.assertTrue(prop(comp))
+
+
 class TestAddBoundaryAction(unittest.TestCase):
     def test_1(self):
         action = AddBoundaryAction("alcohol", "CO", "1")
         comp = Compound("COCCO")
         action(comp)
-        self.assertEqual(1, len(comp.boundaries)) # type: ignore
-        self.assertEqual(4, comp.boundaries[0].index) # type: ignore
-        self.assertEqual("O", comp.boundaries[0].symbol) # type: ignorte
+        self.assertEqual(1, len(comp.boundaries))  # type: ignore
+        self.assertEqual(4, comp.boundaries[0].index)  # type: ignore
+        self.assertEqual("O", comp.boundaries[0].symbol)  # type: ignorte
