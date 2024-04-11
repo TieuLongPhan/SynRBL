@@ -30,7 +30,10 @@ class AnalysisProcess:
             merge_data_path = (
                 f"{self.data_path}/Validation_set/{data_name}/MCS/MCS_Impute.json.gz"
             )
-            mcs_data_path = f"{self.data_path}/Validation_set/{data_name}/mcs_based_reactions.json.gz"
+            mcs_data_path = (
+                f"{self.data_path}/Validation_set/{data_name}"
+                + "/mcs_based_reactions.json.gz"
+            )
 
             merge_data = load_database(merge_data_path)
             merge_data = count_boundary_atoms_products_and_calculate_changes(merge_data)

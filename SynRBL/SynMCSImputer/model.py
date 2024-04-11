@@ -42,9 +42,10 @@ def build_compounds(data_dict) -> CompoundSet:
             c = cset.add_compound(s, src_mol=ss)
             if len(b) != len(n):
                 raise ValueError(
-                    "Boundary and neighbor missmatch. (boundary={}, neighbor={})".format(
-                        b, n
-                    )
+                    (
+                        "Boundary and neighbor missmatch. "
+                        + "(boundary={}, neighbor={})"
+                    ).format(b, n)
                 )
             for bi, ni in zip(b, n):
                 bi_s, bi_i = list(bi.items())[0]
@@ -55,7 +56,9 @@ def build_compounds(data_dict) -> CompoundSet:
     return cset
 
 
-def impute_reaction(reaction_dict, reaction_col, issue_col, carbon_balance_col, mcs_data_col):
+def impute_reaction(
+    reaction_dict, reaction_col, issue_col, carbon_balance_col, mcs_data_col
+):
     issue = reaction_dict[issue_col] if issue_col in reaction_dict.keys() else ""
     if issue != "":
         raise ValueError("Skip reaction because of previous issue.\n" + issue)

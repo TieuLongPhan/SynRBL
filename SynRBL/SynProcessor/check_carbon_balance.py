@@ -13,7 +13,8 @@ class InvalidSmilesException(Exception):
 
 class CheckCarbonBalance:
     """
-    A class to check the atom balance in chemical reactions using parallel processing.
+    A class to check the atom balance in chemical reactions using
+    parallel processing.
 
     Class Variables
     ---------------
@@ -29,11 +30,13 @@ class CheckCarbonBalance:
     Methods
     -------
     count_atoms(smiles: str, atom_type: str) -> int:
-        Count the number of specified atoms in a molecule represented by a SMILES string.
+        Count the number of specified atoms in a molecule represented by a
+        SMILES string.
     process_reaction(reaction: Dict[str, str]) -> Dict[str, str]:
         Process a single reaction to check atom balance.
     check_atom_balance() -> List[Dict[str, str]]:
-        Check and return the atom balance status for each reaction using parallel processing.
+        Check and return the atom balance status for each reaction using
+        parallel processing.
     """
 
     def __init__(

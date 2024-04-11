@@ -29,7 +29,8 @@ class AutomaticRulesExtraction:
         Constructor for the class.
 
         Args:
-            existing_database (list): A list representing an existing database. Default is an empty list.
+            existing_database (list): A list representing an existing database.
+                Default is an empty list.
             n_jobs (int): The number of jobs. Default is -5.
             verbose (int): The verbosity level. Default is 1.
         """
@@ -69,7 +70,8 @@ class AutomaticRulesExtraction:
             for smi in filtered_fragments["smiles"]
         )
 
-        # Create a DataFrame with 'smiles' and 'formula' and convert to a list of records
+        # Create a DataFrame with 'smiles' and 'formula' and convert to a list
+        # of records
         self.new_smiles_dict = pd.DataFrame(
             {"formula": molecular_formula, "smiles": filtered_fragments["smiles"]}
         ).to_dict("records")

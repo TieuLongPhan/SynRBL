@@ -29,7 +29,8 @@ class TestRSMIProcessing(unittest.TestCase):
         # Initialize the RSMIProcessing object with the RSMI string and symbol
         processor = RSMIProcessing(reaction_smiles=rsmi, symbol=">>")
 
-        # Call the smi_splitter method to split the RSMI string into reactants and products
+        # Call the smi_splitter method to split the RSMI string into reactants
+        # and products
         reactants, products = processor.smi_splitter(rsmi)
 
         # Assert that the reactants and products are correct

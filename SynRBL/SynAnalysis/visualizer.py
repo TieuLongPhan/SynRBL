@@ -27,14 +27,19 @@ def barplot_accuracy_comparison(
     save_path: Optional[str] = None,
 ) -> None:
     """
-    Generates bar plots comparing accuracy and success rates from given DataFrames.
+    Generates bar plots comparing accuracy and success rates from
+    given DataFrames.
 
     Parameters:
-    - dfs: List of pandas DataFrames with columns ['Dataset', 'Success Rate', 'Accuracy', 'Unbalance'].
-    - layout: Plot layout, either 'vertical' or 'horizontal'. Default is 'vertical'.
+    - dfs: List of pandas DataFrames with columns ['Dataset', 'Success Rate',
+        'Accuracy', 'Unbalance'].
+    - layout: Plot layout, either 'vertical' or 'horizontal'.
+        Default is 'vertical'.
     - show_values: Flag to show values on top of bars. Default is False.
-    - title_names: List of titles for each subplot. Default is ['Rule-based', 'MCS-based', 'Overall'].
-    - save_path: Path to save the figure. If None, the figure is not saved. Default is None.
+    - title_names: List of titles for each subplot.
+        Default is ['Rule-based', 'MCS-based', 'Overall'].
+    - save_path: Path to save the figure. If None, the figure is not saved.
+        Default is None.
 
     Returns:
     None
@@ -152,7 +157,8 @@ def mcs_comparsion(
     - list_of_dicts (List[dict]): List of dictionaries containing data.
     - df (pd.DataFrame): DataFrame containing configuration data.
     - index (int): Index to access data within dictionaries.
-    - save_path (Optional[str]): Path to save the figure. If None, the figure is not saved. Default is None.
+    - save_path (Optional[str]): Path to save the figure. If None, the figure
+        is not saved. Default is None.
 
     Returns:
     None
@@ -266,13 +272,15 @@ def classification_visualization(
     figsize: tuple = (14, 14),
 ):
     """
-    Visualize classification metrics including Confusion Matrix, Classification Report, ROC Curve, and Precision-Recall Curve.
+    Visualize classification metrics including Confusion Matrix, Classification
+    Report, ROC Curve, and Precision-Recall Curve.
 
     Parameters:
     y_true (np.ndarray): True labels.
     y_pred (np.ndarray): Predicted labels.
     y_proba (np.ndarray): Predicted probabilities.
-    save_path (str, optional): Path to save the figure. If None, the figure is not saved. Default is None.
+    save_path (str, optional): Path to save the figure. If None, the figure is
+        not saved. Default is None.
     figsize (tuple, optional): Figure size (width, height). Default is (14, 14).
 
     Returns:
@@ -371,13 +379,16 @@ def barplot_accuracy_comparison_2x2(
     save_path: Optional[str] = None,
 ) -> None:
     """
-    Generates bar plots comparing accuracy and success rates from given DataFrames in a 2x2 layout.
+    Generates bar plots comparing accuracy and success rates from given
+    DataFrames in a 2x2 layout.
 
     Parameters:
-    - dfs: List of pandas DataFrames with columns ['Dataset', 'Success Rate', 'Accuracy', 'Unbalance'].
+    - dfs: List of pandas DataFrames with columns ['Dataset', 'Success Rate',
+        'Accuracy', 'Unbalance'].
     - show_values: Flag to show values on top of bars. Default is False.
     - title_names: List of titles for each subplot. Adjusted for a 2x2 layout.
-    - save_path: Path to save the figure. If None, the figure is not saved. Default is None.
+    - save_path: Path to save the figure. If None, the figure is not saved.
+        Default is None.
 
     Returns:
     None

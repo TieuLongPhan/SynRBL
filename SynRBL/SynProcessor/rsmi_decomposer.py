@@ -136,9 +136,12 @@ class RSMIDecomposer:
 
         Args:
             smiles (str): The SMILES string to decompose.
-            data (list or DataFrame): The data containing the SMILES strings to decompose.
-            reactant_col (str): The column or key name in the data for reactant SMILES strings.
-            product_col (str): The column or key name in the data for product SMILES strings.
+            data (list or DataFrame): The data containing the SMILES strings
+                to decompose.
+            reactant_col (str): The column or key name in the data for reactant
+                SMILES strings.
+            product_col (str): The column or key name in the data for product
+                SMILES strings.
             parallel (bool): Whether to use parallel processing.
             n_jobs (int): The number of jobs to run in parallel.
             verbose (int): The verbosity level.
@@ -153,13 +156,15 @@ class RSMIDecomposer:
 
     def calculate_mol_weight(self, smiles: str) -> float:
         """
-        Calculates the molecular weight of a molecule represented by a SMILES string.
+        Calculates the molecular weight of a molecule represented by a
+        SMILES string.
 
         Args:
             smiles: The SMILES string of the molecule.
 
         Returns:
-            The molecular weight of the molecule, or None if the SMILES string is invalid.
+            The molecular weight of the molecule, or None if the SMILES string
+            is invalid.
 
         Example:
         >>> decomposer = RSMIDecomposer()
@@ -180,7 +185,9 @@ class RSMIDecomposer:
             compositions for reactants and products.
 
         Example:
-        >>> data = pd.DataFrame({'reactants': ['CCO', 'CC'], 'products': ['C=O', 'C=C']})
+        >>> data = pd.DataFrame(
+            {"reactants": ["CCO", "CC"], "products": ["C=O", "C=C"]}
+        )
         >>> decomposer = RSMIDecomposer(data=data, parallel=False)
         >>> reactants, products = decomposer.data_decomposer()
         >>> reactants  # Outputs [{'C': 2, 'O': 1, 'H': 6}, {'C': 2, 'H': 6}]

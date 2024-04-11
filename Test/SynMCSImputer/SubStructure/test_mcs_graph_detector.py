@@ -19,7 +19,8 @@ class TestMCSMissingGraphAnalyzer(unittest.TestCase):
         }
         self.reaction_dict_unbalanced_reactants = {
             "reactants": "O=Cc1ccccc1",  # Example reactant SMILES
-            "products": "O=C(c1ccccc1)C(O)c2ccccc2 c1ccc(cc1)C(C(=O)c2ccccc2)O",  # Example product SMILES with imbalance
+            # Example product SMILES with imbalance
+            "products": "O=C(c1ccccc1)C(O)c2ccccc2 c1ccc(cc1)C(C(=O)c2ccccc2)O",
             "carbon_balance_check": "reactants",
         }
         self.params_MCIS = Chem.rdFMCS.MCSParameters()

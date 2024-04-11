@@ -54,7 +54,8 @@ def main(input_dir, output_dir, log_file):
         except Exception as e:
             # Capture the traceback and log it
             logging.error(
-                f"An error occurred while processing {file_path}: {e}\n{traceback.format_exc()}"
+                f"An error occurred while processing {file_path}: {e}\n"
+                + f"{traceback.format_exc()}"
             )
 
     logging.info("Processing complete.")

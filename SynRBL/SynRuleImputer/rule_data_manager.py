@@ -82,7 +82,8 @@ class RuleImputeManager(RSMIDecomposer):
         )
 
         print(
-            f"Entry with formula '{formula}' and smiles '{smiles}' added to the database."
+            f"Entry with formula '{formula}' and smiles '{smiles}' added "
+            + "to the database."
         )
 
     def add_entries(self, entries: List[Dict[str, str]]) -> List[Dict[str, str]]:

@@ -59,7 +59,8 @@ class AppelReaction:
     @staticmethod
     def check_missing_products(products: str) -> bool:
         """
-        Check if the expected product (Triphenylphosphine oxide) is missing in the products.
+        Check if the expected product (Triphenylphosphine oxide) is missing in
+        the products.
 
         Args:
         products (str): SMILES string of the products.
@@ -73,7 +74,8 @@ class AppelReaction:
         self, reaction_dict: Dict[str, str], rmsi_col: str, symbol: str = ">>"
     ) -> Dict[str, str]:
         """
-        Modify the reaction dictionary to include missing reactants or products for Appel reaction.
+        Modify the reaction dictionary to include missing reactants or products
+        for Appel reaction.
 
         Args:
         reaction_dict (Dict[str, str]): Dictionary containing reaction information.

@@ -20,7 +20,8 @@ class RSMIProcessing:
     rsmi_col : str, optional
         The column name in the DataFrame that contains the RSMI data.
     symbol : str, optional
-        The symbol that separates reactants and products in the RSMI string (default is '>>').
+        The symbol that separates reactants and products in the RSMI string
+        (default is '>>').
     n_jobs : int, optional
         The number of jobs to run in parallel (default is 10).
     verbose : int, optional
@@ -87,7 +88,8 @@ class RSMIProcessing:
         Returns
         -------
         tuple
-            The reactants and products as separate strings, if the RSMI string can be parsed.
+            The reactants and products as separate strings, if the RSMI string
+            can be parsed.
         str
             A message indicating the RSMI string can't be parsed, if applicable.
         """
@@ -118,8 +120,9 @@ class RSMIProcessing:
         """
         # Check if parallel processing is enabled
         if self.parallel:
-            # Use joblib's Parallel to concurrently process each RSMI string in the DataFrame
-            # 'can_parse' function is applied to each RSMI string to check if it's parsable
+            # Use joblib's Parallel to concurrently process each RSMI string in
+            # the DataFrame 'can_parse' function is applied to each RSMI string
+            # to check if it's parsable
             parsable = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
                 delayed(RSMIProcessing.can_parse)(rsmi)
                 for rsmi in self.data[self.rsmi_col].values
@@ -127,8 +130,9 @@ class RSMIProcessing:
             # Filter the data to include only parsable RSMI strings
             self.data = self.data[parsable]
         else:
-            # If parallel processing is not enabled, apply 'can_parse' function sequentially
-            # to each RSMI string in the DataFrame and filter parsable ones
+            # If parallel processing is not enabled, apply 'can_parse'
+            # function sequentially to each RSMI string in the DataFrame and
+            # filter parsable ones
             self.data = self.data[
                 self.data[self.rsmi_col].apply(RSMIProcessing.can_parse)
             ]
@@ -137,7 +141,8 @@ class RSMIProcessing:
         # 'expand=True' splits the string into separate columns
         split_smiles = self.data[self.rsmi_col].str.split(self.symbol, expand=True)
 
-        # Assign the first part of the split (reactants) to a new column in the DataFrame
+        # Assign the first part of the split (reactants) to a new column in
+        # the DataFrame
         self.data["reactants"] = split_smiles[0]
         # Assign the second part of the split (products) to another new column
         self.data["products"] = split_smiles[1]
@@ -153,10 +158,11 @@ class RSMIProcessing:
         if self.save_json:
             data = self.data.to_dict(orient=self.orient)
             save_database(data, self.save_path_name)
-            # Save the DataFrame to a JSON file with specified format and compression
-            # self.data.to_json(self.save_path_name, orient=self.orient, compression=self.compression)
+            # Save the DataFrame to a JSON file with specified format
+            # and compression
 
-        # Return the processed DataFrame with separate columns for reactants and products
+        # Return the processed DataFrame with separate columns for reactants
+        # and products
         return self.data
 
     @staticmethod
@@ -169,18 +175,22 @@ class RSMIProcessing:
         rsmi : str
             The reaction smiles (RSMI) string to be checked for parsability.
         symbol : str, optional
-            The symbol used to separate reactants and products in the RSMI string (default is '>>').
+            The symbol used to separate reactants and products in the RSMI
+            string (default is '>>').
 
         Returns
         -------
         bool
-            True if the RSMI string can be parsed into valid reactant and product SMILES, False otherwise.
+            True if the RSMI string can be parsed into valid reactant and
+            product SMILES, False otherwise.
         """
 
-        # Split the RSMI string into reactants and products using the provided symbol
+        # Split the RSMI string into reactants and products using the
+        # provided symbol
         react, prod = rsmi.split(symbol)
 
-        # Check if both reactants and products can be converted into RDKit molecule objects
+        # Check if both reactants and products can be converted into RDKit
+        # molecule objects
         return (
             Chem.MolFromSmiles(prod) is not None
             and Chem.MolFromSmiles(react) is not None

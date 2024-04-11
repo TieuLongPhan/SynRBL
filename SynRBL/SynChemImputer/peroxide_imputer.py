@@ -30,7 +30,8 @@ class PeroxidGroupImputer:
 
     @staticmethod
     def impute_peroxide(reactant_smiles: str, product_smiles: str) -> tuple:
-        """Impute a peroxide functional group in the reactant SMILES string and update the product SMILES accordingly."""
+        """Impute a peroxide functional group in the reactant SMILES string and
+        update the product SMILES accordingly."""
         updated = False
         reactant_components = reactant_smiles.split(".")
         for smiles in reactant_components:
@@ -48,7 +49,8 @@ class PeroxidGroupImputer:
 
     @staticmethod
     def impute_peracid(reactant_smiles: str, product_smiles: str) -> tuple:
-        """Impute a peracid functional group in the reactant SMILES string and update the product SMILES accordingly."""
+        """Impute a peracid functional group in the reactant SMILES string and
+        update the product SMILES accordingly."""
         updated = False
         reactant_components = reactant_smiles.split(".")
         for smiles in reactant_components:

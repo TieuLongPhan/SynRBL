@@ -132,12 +132,14 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--col",
         default="reaction",
-        help="The reactions column name for in the input .csv file. (Default: 'reaction')",
+        help="The reactions column name for in the input .csv file. "
+        + "(Default: 'reaction')",
     )
     test_parser.add_argument(
         "--result-col",
         default="expected_reaction",
-        help="The reactions column name for in the expected output. (Default: 'expected_reaction')",
+        help="The reactions column name for in the expected output. "
+        + "(Default: 'expected_reaction')",
     )
     test_parser.add_argument(
         "--min-confidence",

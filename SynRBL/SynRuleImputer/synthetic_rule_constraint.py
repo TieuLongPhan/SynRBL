@@ -55,7 +55,6 @@ class RuleConstraint:
         self.ban_atoms = [Chem.CanonSmiles(atom) for atom in self.ban_atoms]
         self.ban_pattern = re.compile("|".join(map(re.escape, self.ban_atoms)))
         self.ban_atoms_reactants = ban_atoms_reactants or [".[H]"]
-        # self.ban_atoms_reactants = [Chem.CanonSmiles(atom) for atom in self.ban_atoms_reactants]
         self.ban_pattern_reactants = re.compile(
             "|".join(map(re.escape, self.ban_atoms_reactants))
         )
@@ -224,7 +223,8 @@ class RuleConstraint:
         Returns:
             str: A SMILES string without atom mappings.
         """
-        # Regular expression to find and remove atom mappings (numbers following a colon)
+        # Regular expression to find and remove atom mappings
+        # (numbers following a colon)
         mapping_pattern = re.compile(r":\d+")
         return mapping_pattern.sub("", smiles)
 

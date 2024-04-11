@@ -11,7 +11,8 @@ class FGConfig:
         pattern = pattern if isinstance(pattern, list) else [pattern]
         for p in pattern:
             if p != Chem.CanonSmiles(p):
-                # We don't fix the pattern smiles because group_atoms might rely on the pattern
+                # We don't fix the pattern smiles because group_atoms might
+                # rely on the pattern
                 raise ValueError(
                     (
                         "Pattern must be canonical smiles. (value: {}, expected: {})"

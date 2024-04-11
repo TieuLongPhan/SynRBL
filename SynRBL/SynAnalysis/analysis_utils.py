@@ -23,10 +23,12 @@ def remove_atom_mapping_from_reaction_smiles(reaction_smiles):
 
 def calculate_chemical_properties(dictionary_list):
     """
-    Calculate chemical properties from a list of dictionaries containing reaction information.
+    Calculate chemical properties from a list of dictionaries containing
+    reaction information.
 
     Parameters:
-    - dictionary_list (list of dict): A list of dictionaries with reaction information.
+    - dictionary_list (list of dict): A list of dictionaries with
+        reaction information.
 
     Returns:
     - list of dict: Updated list with added chemical properties.

@@ -126,7 +126,8 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--col",
         default="reaction",
-        help="The reactions column name for in the input .csv file. (Default: 'reaction')",
+        help="The reactions column name for in the input .csv file. "
+        + "(Default: 'reaction')",
     )
     test_parser.add_argument(
         "--columns",

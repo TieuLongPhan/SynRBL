@@ -10,19 +10,25 @@ from SynRBL.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUnce
 
 def find_single_graph(mcs_mol_list, sorted_reactants_mol_list):
     """
-    Find missing parts, boundary atoms, and nearest neighbors for a list of reactant molecules
-    using a corresponding list of MCS (Maximum Common Substructure) molecules.
+    Find missing parts, boundary atoms, and nearest neighbors for a list of
+    reactant molecules using a corresponding list of MCS (Maximum Common
+    Substructure) molecules.
 
     Parameters:
-    - mcs_mol_list (list of rdkit.Chem.Mol): List of RDKit molecule objects representing the MCS,
-    corresponding to each molecule in sorted_reactants_mol_list.
-    - sorted_reactants_mol_list (list of rdkit.Chem.Mol): The list of RDKit molecule objects to analyze.
+    - mcs_mol_list (list of rdkit.Chem.Mol): List of RDKit molecule objects
+        representing the MCS, corresponding to each molecule in
+        sorted_reactants_mol_list.
+    - sorted_reactants_mol_list (list of rdkit.Chem.Mol): The list of RDKit
+        molecule objects to analyze.
 
     Returns:
     - Dictionary containing:
-    - 'smiles' (list of list of str): SMILES representations of the missing parts for each molecule.
-    - 'boundary_atoms_products' (list of list of dict): Lists of boundary atoms for each molecule.
-    - 'nearest_neighbor_products' (list of list of dict): Lists of nearest neighbors for each molecule.
+    - 'smiles' (list of list of str): SMILES representations of the missing
+        parts for each molecule.
+    - 'boundary_atoms_products' (list of list of dict): Lists of boundary atoms
+        for each molecule.
+    - 'nearest_neighbor_products' (list of list of dict): Lists of nearest
+        neighbors for each molecule.
     - 'issue' (list): Any issues encountered during processing.
     """
     missing_results = {
@@ -56,20 +62,27 @@ def find_single_graph(mcs_mol_list, sorted_reactants_mol_list):
 
 def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4):
     """
-    Find missing parts, boundary atoms, and nearest neighbors for a list of reactant molecules
-    using a corresponding list of MCS (Maximum Common Substructure) molecules in parallel.
+    Find missing parts, boundary atoms, and nearest neighbors for a list of
+    reactant molecules using a corresponding list of MCS (Maximum Common
+    Substructure) molecules in parallel.
 
     Parameters:
-    - mcs_mol_list (list of rdkit.Chem.Mol): List of RDKit molecule objects representing the MCS,
-    corresponding to each molecule in sorted_reactants_mol_list.
-    - sorted_reactants_mol_list (list of rdkit.Chem.Mol): The list of RDKit molecule objects to analyze.
-    - n_jobs (int): The number of parallel jobs to run. Default is -1, which uses all available CPU cores.
+    - mcs_mol_list (list of rdkit.Chem.Mol): List of RDKit molecule objects
+        representing the MCS, corresponding to each molecule in
+        sorted_reactants_mol_list.
+    - sorted_reactants_mol_list (list of rdkit.Chem.Mol): The list of RDKit
+        molecule objects to analyze.
+    - n_jobs (int): The number of parallel jobs to run. Default is -1, which
+        uses all available CPU cores.
 
     Returns:
     - List of dictionaries, where each dictionary contains:
-    - 'smiles' (list of str): SMILES representations of the missing parts for each molecule.
-    - 'boundary_atoms_products' (list of dict): Lists of boundary atoms for each molecule.
-    - 'nearest_neighbor_products' (list of dict): Lists of nearest neighbors for each molecule.
+    - 'smiles' (list of str): SMILES representations of the missing parts for
+        each molecule.
+    - 'boundary_atoms_products' (list of dict): Lists of boundary atoms for
+        each molecule.
+    - 'nearest_neighbor_products' (list of dict): Lists of nearest neighbors
+        for each molecule.
     - 'issue' (str): Any issues encountered during processing.
     """
 
@@ -155,10 +168,12 @@ def smiles_to_mol_parallel(
     smiles_lists: List[List[str]], n_jobs: int = 4, useSmiles: bool = True
 ) -> List[List[Chem.Mol]]:
     """
-    Convert a list of lists of SMILES strings to a list of lists of RDKit molecule objects using parallel processing.
+    Convert a list of lists of SMILES strings to a list of lists of RDKit
+    molecule objects using parallel processing.
 
     :param smiles_lists: List of lists containing SMILES strings.
-    :param n_jobs: The number of jobs to run in parallel. -1 means using all processors.
+    :param n_jobs: The number of jobs to run in parallel. -1 means using
+        all processors.
     :return: A list of lists containing RDKit molecule objects.
     """
     mol_lists = Parallel(n_jobs=n_jobs)(

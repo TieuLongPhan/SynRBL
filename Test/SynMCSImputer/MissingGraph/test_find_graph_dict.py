@@ -37,12 +37,6 @@ class TestFindGraphFunctions(unittest.TestCase):
             self.assertIn("nearest_neighbor_products", item)
             self.assertIn("issue", item)
 
-    # def test_find_graph_dict(self):
-    #     # This function requires mocking the I/O operations
-    #     # Assume we have a MagicMock that simulates load_database and save_database
-    #     with self.assertRaises(Exception):  # Adjust based on the expected exception or result
-    #         find_graph_dict("test_path", "save_path", save=False, n_jobs=2, use_findMCS=True)
-
     def test_convert_smiles_to_mols(self):
         smiles_list = ["CC", "C"]
         result = convert_smiles_to_mols(smiles_list)

@@ -9,18 +9,21 @@ class BothSideReact:
     react_dict (list): A list of dictionaries representing reactants.
     product_dict (list): A list of dictionaries representing products.
     unbalance (list): A list indicating the balance status of each reaction.
-    diff_formula (list): A list containing the differential formula for each reaction.
+    diff_formula (list): A list containing the differential formula for
+        each reaction.
     """
 
     def __init__(self, react_dict, product_dict, unbalance, diff_formula):
         """
-        Initializes the BothSideReact class with reaction dictionaries, unbalance, and differential formulas.
+        Initializes the BothSideReact class with reaction dictionaries,
+        unbalance, and differential formulas.
 
         Parameters:
         react_dict (list): List of dictionaries representing reactants.
         product_dict (list): List of dictionaries representing products.
         unbalance (list): List indicating the balance status of each reaction.
-        diff_formula (list): List containing the differential formula for each reaction.
+        diff_formula (list): List containing the differential formula for
+            each reaction.
         """
         self.react_dict = react_dict
         self.product_dict = product_dict
@@ -37,14 +40,16 @@ class BothSideReact:
     @staticmethod
     def enforce_product_side(react_dict, product_dict):
         """
-        Enforces the product side of the reaction by calculating the difference between reactant and product counts.
+        Enforces the product side of the reaction by calculating the difference
+        between reactant and product counts.
 
         Parameters:
         react_dict (dict): Dictionary representing a single reactant.
         product_dict (dict): Dictionary representing a single product.
 
         Returns:
-        dict: Dictionary representing the differential count between reactant and product.
+        dict: Dictionary representing the differential count between reactant
+            and product.
         """
         diff_dict = {}
         # Calculate the difference between reactants and products
@@ -84,7 +89,8 @@ class BothSideReact:
         diff_dict (dict): The dictionary with potential negative values.
 
         Returns:
-        tuple: A tuple containing the updated dictionary and a string indicating the balance status.
+        tuple: A tuple containing the updated dictionary and a string
+            indicating the balance status.
         """
         if len(diff_dict) == 2 and "Q" in diff_dict.keys():
             if any(value < 0 for key, value in diff_dict.items() if key != "Q"):
@@ -99,7 +105,8 @@ class BothSideReact:
 
     def fit(self, n_jobs=4):
         """
-        Processes the reactions by balancing reactants and products and updating the unbalance status.
+        Processes the reactions by balancing reactants and products and
+        updating the unbalance status.
 
         Returns:
         tuple: A tuple containing the updated diff_formula and unbalance lists.
