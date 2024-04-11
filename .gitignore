@@ -11,6 +11,7 @@ venv/
 .coverage
 tmp/
 out/
+dist/
 
 Data/Validation_set/validation_set_result.csv
 Data/Run/
