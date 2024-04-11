@@ -1,9 +1,9 @@
+import json
+import random
+
 from typing import List, Dict, Set, Any
 from typing import Optional, Union, Callable, Tuple
 from rdkit import Chem
-from rdkit.Chem import Draw
-import json
-import random
 from collections import defaultdict
 
 
@@ -13,7 +13,8 @@ def save_database(database: list[dict], pathname: str = "./Data/database.json") 
 
     Args:
         database: The database to be saved.
-        pathname: The path where the database will be saved. Defaults to './Data/database.json'.
+        pathname: The path where the database will be saved.
+            Defaults to './Data/database.json'.
 
     Raises:
         TypeError: If the database is not a list of dictionaries.
@@ -34,7 +35,8 @@ def load_database(pathname: str = "./Data/database.json") -> List[Dict]:
     Load a database (a list of dictionaries) from a JSON file.
 
     Args:
-        pathname: The path from where the database will be loaded. Defaults to './Data/database.json'.
+        pathname: The path from where the database will be loaded.
+            Defaults to './Data/database.json'.
 
     Returns:
         The loaded database.
@@ -63,7 +65,10 @@ def extract_atomic_elements(rules: List[Dict[str, Dict[str, int]]]) -> Set[str]:
 
     Example:
         ```python
-        rules = [{"Composition": {"A": 1, "B": 1}}, {"Composition": {"C": 1, "D": 1, "E": 1}}]
+        rules = [
+            {"Composition": {"A": 1, "B": 1}},
+            {"Composition": {"C": 1, "D": 1, "E": 1}},
+        ]
         atomic_elements = extract_atomic_elements(rules)
         print(atomic_elements)  # Output: {'A', 'B', 'C', 'D', 'E'}
         ```
@@ -115,16 +120,18 @@ def _get_max_comp_len(database: List[Dict]) -> int:
 
 def build_lookups(atomic_elements: set, database: list) -> list:
     """
-    Constructs lookup dictionaries for atomic elements in the database, removing empty lists from the lookup.
+    Constructs lookup dictionaries for atomic elements in the database,
+    removing empty lists from the lookup.
 
     Args:
         atomic_elements (set): A set of unique atomic elements.
-        database (list): A list of database entries, where each entry is a dictionary
-                        containing a "Composition" key.
+        database (list): A list of database entries, where each entry is a
+            dictionary containing a "Composition" key.
 
     Returns:
-        list: A list of lookup dictionaries, where each dictionary maps atomic elements to
-                their corresponding database indices for molecules with different composition lengths.
+        list: A list of lookup dictionaries, where each dictionary maps atomic
+            elements to their corresponding database indices for molecules with
+            different composition lengths.
 
     Example:
         ```python
@@ -140,8 +147,9 @@ def build_lookups(atomic_elements: set, database: list) -> list:
         print(lookup)
 
 
-        This example demonstrates how to use the `build_lookups` function to construct lookup dictionaries
-        for the provided atomic elements and database. The resulting lookup dictionaries are optimized by
+        This example demonstrates how to use the `build_lookups` function to
+        construct lookup dictionaries for the provided atomic elements and
+        database. The resulting lookup dictionaries are optimized by
         removing empty lists, making them more compact and efficient.
     """
 
@@ -174,10 +182,12 @@ def build_lookups(atomic_elements: set, database: list) -> list:
 
 def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
     """
-    Calculate the net charge from a list of molecules represented as SMILES strings.
+    Calculate the net charge from a list of molecules represented as SMILES
+    strings.
 
     Args:
-        sublist: A list of dictionaries, each with a 'smiles' string and a 'Ratio' integer.
+        sublist: A list of dictionaries, each with a 'smiles' string and a
+            'Ratio' integer.
 
     Returns:
         The net charge of the sublist as an integer.
@@ -223,19 +233,25 @@ def filter_data(
     max_count: int = 3,
 ) -> List[Dict[str, any]]:
     """
-    Filter dictionaries based on a list of unbalance values and element count in a specified formula key.
+    Filter dictionaries based on a list of unbalance values and element count
+    in a specified formula key.
 
-    This function filters the input list of dictionaries based on the specified list of unbalance values and
-    the count of a specific element within a given formula key. It returns dictionaries that match any of the
-    unbalance criteria and where the element count falls within the specified range.
+    This function filters the input list of dictionaries based on the specified
+    list of unbalance values and the count of a specific element within a given
+    formula key. It returns dictionaries that match any of the unbalance
+    criteria and where the element count falls within the specified range.
 
     Args:
         data: A list of dictionaries to be filtered.
-        unbalance_values: The values to filter by in the 'Unbalance' key. If None, this criterion is ignored.
-        formula_key: The key in the dictionaries that contains the element counts. Defaults to 'Diff_formula'.
-        element_key: The element to filter by in the formula key. If None, this criterion is ignored.
+        unbalance_values: The values to filter by in the 'Unbalance' key.
+            If None, this criterion is ignored.
+        formula_key: The key in the dictionaries that contains the element
+            counts. Defaults to 'Diff_formula'.
+        element_key: The element to filter by in the formula key. If None, this
+            criterion is ignored.
         min_count: The minimum allowed count of the element. Defaults to 0.
-        max_count: The maximum allowed count of the element. Defaults to infinity.
+        max_count: The maximum allowed count of the element.
+            Defaults to infinity.
 
     Returns:
         A list of dictionaries filtered based on the criteria.
@@ -266,14 +282,19 @@ def remove_duplicates_by_key(
 
     Parameters:
     - `data` (List[dict]): A list of data entries (dictionaries, objects, etc.).
-    - `key_function` (Callable[..., Any]): A function that takes an entry from `data` and returns a key for duplicate check.
+    - `key_function` (Callable[..., Any]): A function that takes an entry from
+        `data` and returns a key for duplicate check.
 
     Returns:
     - `List[dict]`: A list of unique entries, based on the unique keys generated.
 
     Example:
-    >>> data = [{'name': 'Alice', 'age': 30}, {'name': 'Bob', 'age': 25}, {'name': 'Alice', 'age': 30}]
-    >>> remove_duplicates_by_key(data, lambda x: (x['name'], x['age']))
+    >>> data = [
+        {"name": "Alice", "age": 30},
+        {"name": "Bob", "age": 25},
+        {"name": "Alice", "age": 30},
+    ]
+    >>> remove_duplicates_by_key(data, lambda x: (x["name"], x["age"]))
     [{'name': 'Alice', 'age': 30}, {'name': 'Bob', 'age': 25}]
     """
 
@@ -297,7 +318,8 @@ def sort_by_key_length(
 
     Args:
     - data (List[Any]): A list of data entries.
-    - key_function (Callable[[Any], Any]): A function that takes an entry from `data` and returns a key
+    - key_function (Callable[[Any], Any]): A function that takes an entry from
+        `data` and returns a key
       whose length is to be used for sorting.
 
     Returns:
@@ -314,13 +336,16 @@ def add_missing_key_to_dicts(
     default_value: Any,
 ) -> List[Dict[str, Dict[str, Any]]]:
     """
-    Iterates through a list of dictionaries and adds a specified key with a default value to a specified
-    dictionary within each main dictionary, if the key is not already present. Returns a new list with the updates.
+    Iterates through a list of dictionaries and adds a specified key with a
+    default value to a specified dictionary within each main dictionary, if the
+    key is not already present. Returns a new list with the updates.
 
     Args:
         data: A list of dictionaries.
-        dict_key: The key in the main dictionaries that points to another dictionary where the check should be done.
-        missing_key: The key to add if it's not present in the nested dictionary.
+        dict_key: The key in the main dictionaries that points to another
+            dictionary where the check should be done.
+        missing_key: The key to add if it's not present in the nested
+            dictionary.
         default_value: The default value to assign to the missing key.
 
     Returns:
@@ -357,16 +382,19 @@ def extract_results_by_key(
     data: List[Dict[str, any]], key: str = "new_reaction"
 ) -> Tuple[List[Dict[str, any]], List[Dict[str, any]]]:
     """
-    Separate dictionaries from a list into two lists based on the presence of a specific key.
+    Separate dictionaries from a list into two lists based on the presence of a
+    specific key.
 
     Args:
         data: A list of dictionaries to be separated.
-        key: The key to check for in each dictionary. Defaults to 'new_reaction'.
+        key: The key to check for in each dictionary.
+            Defaults to 'new_reaction'.
 
     Returns:
         A tuple of two lists:
             - The first list contains dictionaries that have the specified key.
-            - The second list contains dictionaries that do not have the specified key.
+            - The second list contains dictionaries that do not have the
+              specified key.
     """
 
     with_key: List[Dict[str, any]] = []
@@ -394,11 +422,13 @@ def get_random_samples_by_key(
     Parameters:
     - data: List of dictionaries containing various keys.
     - stratify_key: The key used for stratifying the data.
-    - num_samples_per_group: Number of random samples to draw from each unique group.
+    - num_samples_per_group: Number of random samples to draw from each
+        unique group.
     - random_seed: Seed for the random number generator for reproducibility.
 
     Returns:
-    - A list of randomly selected samples from each unique group based on the stratify_key.
+    - A list of randomly selected samples from each unique group based on the
+        stratify_key.
     """
     if random_seed is not None:
         random.seed(random_seed)

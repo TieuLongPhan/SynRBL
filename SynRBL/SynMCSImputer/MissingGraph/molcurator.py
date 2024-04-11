@@ -10,7 +10,8 @@ class MoleculeCurator:
 
     Methods:
     - add_hydrogens_to_radicals: Adds hydrogens to radical sites in a molecule.
-    - standardize_diazo_charge: Converts a diazo compound with charged atoms to its neutral form.
+    - standardize_diazo_charge: Converts a diazo compound with charged atoms to
+        its neutral form.
     - manual_kekulize: Manually kekulizes a molecule to ensure valid structure.
     """
 
@@ -46,7 +47,8 @@ class MoleculeCurator:
         - mol (Chem.Mol): A RDKit molecule object representing a diazo compound.
 
         Returns:
-        - Chem.Mol: The neutralized molecule, or the original molecule if the reaction doesn't occur.
+        - Chem.Mol: The neutralized molecule, or the original molecule if the
+            reaction doesn't occur.
         """
         neutral_mol = AllChem.ReactionFromSmarts(
             "[N-]=[NH2+]>>[N:1]#[N:2]"
@@ -79,7 +81,7 @@ class MoleculeCurator:
                     test_mol = add_hydrogen(component, atom_index)
                     rdmolops.SanitizeMol(test_mol)
                     return test_mol
-                except:
+                except Exception:
                     continue
             return None
 

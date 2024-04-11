@@ -15,7 +15,7 @@ class PeroxidGroupImputer:
                 if mol and not PeroxidGroupImputer.check_peracid(smiles)
                 else False
             )
-        except:
+        except Exception:
             return False
 
     @staticmethod
@@ -25,7 +25,7 @@ class PeroxidGroupImputer:
             peracid_pattern = Chem.MolFromSmarts("C(OO)=O")
             mol = Chem.MolFromSmiles(smiles)
             return mol.HasSubstructMatch(peracid_pattern) if mol else False
-        except:
+        except Exception:
             return False
 
     @staticmethod

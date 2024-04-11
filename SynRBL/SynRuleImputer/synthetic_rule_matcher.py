@@ -159,7 +159,9 @@ class SyntheticRuleMatcher:
             True if the rule can be matched, False otherwise.
         """
         # Iterate over each key-value pair in the rule dictionary
-        # Check if the key is in the data dictionary and if the corresponding value in the data dictionary is greater than or equal to the value in the rule dictionary
+        # Check if the key is in the data dictionary and if the corresponding
+        # value in the data dictionary is greater than or equal to the value in
+        # the rule dictionary
         # Exclude the key 'Q' from the check
         # Return True if all the conditions are met, False otherwise
         return all(k in data and data[k] >= v for k, v in rule.items() if k != "Q")

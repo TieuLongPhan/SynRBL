@@ -146,7 +146,7 @@ def convert_smiles_to_mols(
             else:
                 mol = Chem.MolFromSmarts(smiles)
             mol_list.append(mol)
-        except:
+        except Exception:
             mol_list.append(None)
     return mol_list
 

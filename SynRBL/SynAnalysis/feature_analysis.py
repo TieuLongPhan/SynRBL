@@ -61,8 +61,6 @@ class FeatureAnalysis:
         )
         importance_df = importance_df.sort_values(by="Importance", ascending=False)
 
-        colors = ["gray" for i in range(len(importance_df))]
-
         ax.set_xlabel("Importance", color="black")
         ax.invert_yaxis()
 

@@ -8,11 +8,13 @@ from typing import List, Dict, Optional, Tuple
 
 class FindMissingGraphs:
     """
-    A class for finding missing parts, boundary atoms, and nearest neighbors in a list of reactant molecules.
+    A class for finding missing parts, boundary atoms, and nearest neighbors in
+    a list of reactant molecules.
 
     Usage:
     1. Create an instance of the class.
-    2. Use the class methods to find missing parts, boundary atoms, and nearest neighbors for a list of molecules.
+    2. Use the class methods to find missing parts, boundary atoms, and nearest
+    neighbors for a list of molecules.
 
     Example:
     ```
@@ -26,9 +28,12 @@ class FindMissingGraphs:
     None
 
     Methods:
-    - find_missing_parts_pairs: Analyze a list of molecules and identify missing parts, boundary atoms, and nearest neighbors.
-    - find_single_graph: Find missing parts, boundary atoms, and nearest neighbors for a list of reactant molecules.
-    - find_single_graph_parallel: Find missing parts, boundary atoms, and nearest neighbors in parallel for a list of reactant molecules.
+    - find_missing_parts_pairs: Analyze a list of molecules and identify
+        missing parts, boundary atoms, and nearest neighbors.
+    - find_single_graph: Find missing parts, boundary atoms, and nearest
+        neighbors for a list of reactant molecules.
+    - find_single_graph_parallel: Find missing parts, boundary atoms, and
+        nearest neighbors in parallel for a list of reactant molecules.
     """
 
     def __init__(self):
@@ -41,23 +46,31 @@ class FindMissingGraphs:
         Optional[List[Chem.Mol]], List[List[Dict[str, int]]], List[List[Dict[str, int]]]
     ]:
         """
-        This function analyzes each molecule in a given list and identifies the parts that are not
-        present in the corresponding Maximum Common Substructure (MCS). It also finds the boundary
-        atoms and nearest neighbors for each molecule.
+        This function analyzes each molecule in a given list and identifies the
+        parts that are not present in the corresponding Maximum Common
+        Substructure (MCS). It also finds the boundary atoms and nearest
+        neighbors for each molecule.
 
         Parameters:
-        - mol_list (list of rdkit.Chem.Mol): The list of RDKit molecule objects to analyze.
-        - mcs_list (list of rdkit.Chem.Mol or None): List of RDKit molecule objects representing MCS,
-        corresponding to each molecule in mol_list. If None, MCS will be calculated using RDKit's rdFMCS.
-        - use_findMCS (bool): Whether to use RDKit's rdFMCS to find MCS and remove it from mol_list.
+        - mol_list (list of rdkit.Chem.Mol): The list of RDKit molecule objects
+            to analyze.
+        - mcs_list (list of rdkit.Chem.Mol or None): List of RDKit molecule
+            objects representing MCS,
+        corresponding to each molecule in mol_list. If None, MCS will be
+            calculated using RDKit's rdFMCS.
+        - use_findMCS (bool): Whether to use RDKit's rdFMCS to find MCS and
+            remove it from mol_list.
         - params (rdkit.Chem.rdFMCS.MCSParameters): Parameters for RDKit's rdFMCS.
 
         Returns:
         Tuple containing:
-        - list of rdkit.Chem.Mol or None: RDKit molecule objects representing the missing parts
-        of each molecule, or None if no missing parts are found.
-        - list of lists: Each sublist contains the boundary atoms of the corresponding molecule.
-        - list of lists: Each sublist contains the nearest neighbors of the corresponding molecule.
+        - list of rdkit.Chem.Mol or None: RDKit molecule objects representing
+            the missing parts of each molecule, or None if no missing parts
+            are found.
+        - list of lists: Each sublist contains the boundary atoms of the
+            corresponding molecule.
+        - list of lists: Each sublist contains the nearest neighbors of the
+            corresponding molecule.
         """
         missing_parts_list = []
         boundary_atoms_lists = []
@@ -75,7 +88,8 @@ class FindMissingGraphs:
                     smarts_pattern = "[OH]"
                     smarts_mol = Chem.MolFromSmarts(smarts_pattern)
                     substructure_match = mol.GetSubstructMatch(smarts_mol)
-                    # if no substructure match is found, use rdkit's substructure matching for mcs_mol, this not special case
+                    # if no substructure match is found, use rdkit's
+                    # substructure matching for mcs_mol, this not special case
                     if not substructure_match:
                         substructure_match = mol.GetSubstructMatch(mcs_mol)
                 else:
@@ -107,7 +121,7 @@ class FindMissingGraphs:
                         )
                         Chem.SanitizeMol(missing_part)
 
-                    except:
+                    except Exception:
                         missing_part = MoleculeCurator.manual_kekulize(
                             missing_part_smiles
                         )
@@ -136,13 +150,12 @@ class FindMissingGraphs:
                     if atom_idx < mol.GetNumAtoms():
                         atom_symbol = mol.GetAtomWithIdx(atom_idx).GetSymbol()
                         neighbors = mol.GetAtomWithIdx(atom_idx).GetNeighbors()
-                        # Loop through neighbors to find boundary atoms and nearest neighbors
+                        # Loop through neighbors to find boundary atoms
+                        # and nearest neighbors
                         for neighbor in neighbors:
                             if neighbor.GetIdx() not in substructure_match:
                                 nearest_atoms.append({atom_symbol: atom_idx})
 
-                                # boundary_atoms.append({neighbor.GetSymbol(): atom_mapping[neighbor.GetIdx()]})
-                                # renumerate_idx = atom_mapping.get(neighbor.GetIdx(), -1)
                                 if missing_part:
                                     renumerate_idx = atom_mapping.get(
                                         neighbor.GetIdx(), -1

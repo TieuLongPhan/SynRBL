@@ -5,7 +5,8 @@ from SynRBL.SynMCSImputer.SubStructure.substructure_analyzer import Substructure
 
 
 class MCSMissingGraphAnalyzer:
-    """A class for detecting missing graph in reactants and products using MCS and RDKit."""
+    """A class for detecting missing graph in reactants and products using MCS
+    and RDKit."""
 
     def __init__(self):
         """Initialize the MolecularOperations class."""
@@ -51,8 +52,9 @@ class MCSMissingGraphAnalyzer:
         remove_substructure=True,
     ):
         """
-        Find the MCS for each reactant fragment with the product, updating the product after each step.
-        Reactants are processed based on the size of their MCS with the product at each iteration.
+        Find the MCS for each reactant fragment with the product, updating the
+        product after each step. Reactants are processed based on the size of
+        their MCS with the product at each iteration.
 
         Parameters:
         - reactant_mol_list: list of rdkit.Chem.Mol
@@ -63,18 +65,20 @@ class MCSMissingGraphAnalyzer:
             Method of sorting reactants, either 'MCS' or 'Fragments'.
         - remove_substructure (bool):
             If True, update the product by removing the MCS substructure.
-         - params (rdkit.Chem.rdFMCS.MCSParameters): Parameters for RDKit's rdFMCS.
+        - params (rdkit.Chem.rdFMCS.MCSParameters):
+            Parameters for RDKit's rdFMCS.
 
         Returns:
         - list of rdkit.Chem.Mol
-            List of RDKit molecule objects representing the MCS for each reactant-product pair.
+            List of RDKit molecule objects representing the MCS for each
+            reactant-product pair.
         - list of rdkit.Chem.Mol
             Sorted list of reactant molecule objects.
         """
 
         # Sort reactants based on the specified method
         if sort == "MCIS":
-            if params == None:
+            if params is None:
                 params = rdFMCS.MCSParameters()
             mcs_results = [
                 (reactant, rdFMCS.FindMCS([reactant, product_mol], params))
@@ -179,7 +183,8 @@ class MCSMissingGraphAnalyzer:
         ignore_bond_order=False,
     ):
         """
-        Process a reaction dictionary to find MCS, missing parts in reactants and products.
+        Process a reaction dictionary to find MCS, missing parts in reactants
+        and products.
 
         Parameters:
         - reaction_dict: dict
@@ -187,8 +192,9 @@ class MCSMissingGraphAnalyzer:
 
         Returns:
         - tuple
-            A tuple containing lists of MCS, missing parts in reactants, missing parts in products,
-            reactant molecules, and product molecules.
+            A tuple containing lists of MCS, missing parts in reactants,
+            missing parts in products, reactant molecules, and product
+            molecules.
         """
 
         # define parameters
