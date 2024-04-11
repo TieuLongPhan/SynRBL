@@ -2,7 +2,7 @@
 
 SynRBL is a toolkit tailored for computational chemistry, aimed at correcting imbalances in chemical reactions. It employs a dual strategy: a rule-based method for adjusting non-carbon elements and an mcs-based (maximum common substructure) technique for carbon element adjustments.
 
-![screenshot](./Docs/Image/Flowchart.png)
+![screenshot](./Docs/Images/Flowchart.png)
 
 
 ## Table of Contents
