@@ -41,7 +41,6 @@ class TestMergeBoundary(unittest.TestCase):
         self.assertIs(None, cm)
 
 
-
 class TestMergeRule(unittest.TestCase):
     def test_default_single_bond(self):
         c1 = Compound("CC1(C)OBOC1(C)C")
@@ -75,7 +74,7 @@ class TestMergeRule(unittest.TestCase):
         self.assertEqual("O=[PH](Br)Br", cm.smiles)  # type: ignore
 
     def test_phosphor_bond3(self):
-        # If Oxygen comes from C=O and P has P=O merge with double bond 
+        # If Oxygen comes from C=O and P has P=O merge with double bond
         # and change old P=O double bond to single bond
         c1 = Compound("[O:3]", src_mol="[CH3:0][C:1]([CH3:2])=[O:3]")
         c2 = Compound(
@@ -116,9 +115,7 @@ class TestExpansion(unittest.TestCase):
 
 class TestExpandRule(unittest.TestCase):
     def test_expand_O_next_to_O_or_N(self):
-        c = Compound(
-            "O=COCc1ccccc1", src_mol="O=C(NCCOc1ccc(-c2cnoc2)cc1)OCc1ccccc1"
-        )
+        c = Compound("O=COCc1ccccc1", src_mol="O=C(NCCOc1ccc(-c2cnoc2)cc1)OCc1ccccc1")
         b = c.add_boundary(1, neighbor_index=2, neighbor_symbol="N")
         cm = merge.expand_boundary(b)
         self.assertEqual("O", cm.smiles)  # type: ignore
@@ -305,8 +302,7 @@ class TestCompounds(unittest.TestCase):
         compound1.add_boundary(0, symbol="C")
         compound2 = cset.add_compound("O", src_mol="O")
         compound2.add_boundary(0, symbol="O")
-        compound3 = cset.add_compound("O", src_mol="O")
+        cset.add_compound("O", src_mol="O")
         cm = merge.merge(cset)
         self.assertEqual("remove_water_catalyst", cm.rules[0].name)
         self.assertEqual("CO", cm.smiles)
-

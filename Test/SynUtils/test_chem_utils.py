@@ -2,6 +2,7 @@ import unittest
 import itertools
 from SynRBL.SynUtils.chem_utils import remove_atom_mapping, normalize_smiles
 
+
 class TestRemoveAtomMapping(unittest.TestCase):
     def test_single_simple_smiles(self):
         smiles = "[O:0][CH:1][CH3:2][Br:13][OH:101]"
@@ -39,23 +40,24 @@ class TestRemoveAtomMapping(unittest.TestCase):
         result = remove_atom_mapping(smiles)
         self.assertEqual(exp_smiles, result)
 
+
 class TestNormalizeReaction(unittest.TestCase):
     def test_remove_mappings(self):
         smiles = "[CH3:1][CH:2]=[O:3]>>[CH3:1][C:2](=[O:3])[OH:4]"
         exp_smiles = "CC=O>>CC(=O)O"
         result = normalize_smiles(smiles)
         self.assertEqual(exp_smiles, result)
-    
+
     def test_order_compounds(self):
         smiles = "[C:0][O:1].OCO.O>>CO.O.OCO"
         exp_smiles = "OCO.CO.O>>OCO.CO.O"
         result = normalize_smiles(smiles)
         self.assertEqual(exp_smiles, result)
-    
+
     def test_order_equal_len_compounds(self):
         smiles = ["CCO", "CC=O", "CCN", "CCCO", "CCS"]
         exp_smiles = "CCCO.CC=O.CCS.CCO.CCN"
-        for s in itertools.permutations(smiles): 
+        for s in itertools.permutations(smiles):
             result = normalize_smiles(".".join(s))
             self.assertEqual(exp_smiles, result)
 
@@ -76,5 +78,3 @@ class TestNormalizeReaction(unittest.TestCase):
         smiles = "C[C@H][C@@H]"
         result = normalize_smiles(smiles)
         self.assertEqual("CCC", result)
-
-
