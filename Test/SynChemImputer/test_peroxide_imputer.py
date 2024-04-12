@@ -2,7 +2,7 @@ import unittest
 
 from synrbl.SynChemImputer.peroxide_imputer import (
     PeroxidGroupImputer,
-)  
+)
 
 
 class TestPeroxidGroupImputer(unittest.TestCase):
