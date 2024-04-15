@@ -15,4 +15,5 @@ from .chem_utils import (
     calculate_net_charge,
     remove_atom_mapping,
     normalize_smiles,
+    wc_similarity,
 )
