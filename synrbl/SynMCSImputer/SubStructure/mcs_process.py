@@ -9,7 +9,7 @@ from joblib import Parallel, delayed
 
 from rdkit.rdBase import BlockLogs
 
-logger = logging.getLogger("SynRBL")
+logger = logging.getLogger("synrbl")
 
 
 def single_mcs(

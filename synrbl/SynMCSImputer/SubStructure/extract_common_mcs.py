@@ -5,7 +5,7 @@ from rdkit import Chem
 from joblib import Parallel, delayed
 from typing import List, Dict, Tuple
 
-logger = logging.getLogger("SynRBL")
+logger = logging.getLogger("synrbl")
 
 
 class ExtractMCS:

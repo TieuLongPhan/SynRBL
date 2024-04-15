@@ -113,6 +113,7 @@ class MCSBasedMethod:
         block_logs = BlockLogs()
         for reaction in reactions:
             if self.mcs_data_col not in reaction.keys():
+                reaction[self.issue_col] = "No MCS identified."
                 continue
             mcs_applied += 1
             try:

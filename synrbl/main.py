@@ -9,7 +9,7 @@ from synrbl.mcs import MCS
 from synrbl.SynMCSImputer.model import MCSBasedMethod
 from synrbl.confidence_prediction import ConfidencePredictor
 
-logger = logging.getLogger("SynRBL")
+logger = logging.getLogger("synrbl")
 
 
 class Balancer:
