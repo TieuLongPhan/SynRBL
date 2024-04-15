@@ -47,8 +47,8 @@ class MCSSearch:
         ]
 
     def find(self, reactions):
-        mcs_reactions = [
-            reactions[key]
+        mcs_keys = [
+            key
             for key, value in enumerate(reactions)
             if value["carbon_balance_check"] != "balanced"
             or (
@@ -56,8 +56,11 @@ class MCSSearch:
                 and not value[self.solved_col]
             )
         ]
+        mcs_reactions = [reactions[k] for k in mcs_keys]
+
         if len(mcs_reactions) == 0:
             return reactions
+
         logger.info(
             "Find maximum-common-substructure for {} reactions.".format(
                 len(mcs_reactions)
@@ -68,23 +71,24 @@ class MCSSearch:
             mcs_reactions, self.conditions, n_jobs=self.n_jobs, Timeout=60
         )
 
-        
-        print("### Condition ###")
-        print(condition_results)
-        analysis = ExtractMCS()
-        mcs_dict, _ = analysis.extract_matching_conditions(*condition_results)
-        if len(mcs_dict) == 0:
-            return reactions
+        assert len(self.conditions) == len(condition_results)
+        assert len(mcs_keys) == len(condition_results[0])
 
-        missing_results_largest = find_graph_dict(mcs_dict)
+        for i, k in enumerate(mcs_keys):
+            max_atom_cnt = 0
+            max_cond = None
+            for cond_col in condition_results:
+                mcs_atom_cnt = sum(
+                    ExtractMCS.get_num_atoms(mcs) for mcs in cond_col[i]["mcs_results"]
+                )
+                if mcs_atom_cnt > max_atom_cnt:
+                    max_atom_cnt = mcs_atom_cnt
+                    max_cond = cond_col[i]
+            assert max_cond is not None
+            reactions[k][self.mcs_data_col] = find_graph_dict([max_cond])[0]
+            reactions[k][self.mcs_data_col]["sorted_reactants"] = max_cond[
+                "sorted_reactants"
+            ]
+            reactions[k][self.mcs_data_col]["mcs_results"] = max_cond["mcs_results"]
 
-        assert len(mcs_dict) == len(missing_results_largest)
-        for i, r in enumerate(missing_results_largest):
-            _id = int(mcs_reactions[i][self.id_col])
-            r["sorted_reactants"] = mcs_dict[i]["sorted_reactants"]
-            r["mcs_results"] = mcs_dict[i]["mcs_results"]
-            reactions[_id][self.mcs_data_col] = r
-
-        print("### Result ###")
-        print(reactions)
         return reactions
