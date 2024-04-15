@@ -7,6 +7,7 @@ import rdkit.Chem.rdFingerprintGenerator as rdFingerprintGenerator
 import rdkit.Chem.AllChem as AllChem
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
+
 from typing import List, Dict
 from typing import Union
 
@@ -202,7 +203,7 @@ def similarity(expected_smiles, result_smiles, method="pathway"):
             fp2 = ffpgen.GetSparseCountFingerprint(mol2)
             sim = DataStructs.DiceSimilarity(fp1, fp2)
         else:
-            raise ArgumentError("'{}' is not a valid similarity method.".format(method))
+            raise ValueError("'{}' is not a valid similarity method.".format(method))
         return sim
 
     exp = normalize_smiles(expected_smiles)

@@ -8,6 +8,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape, letter
 from synrbl.SynVis.reaction_visualizer import ReactionVisualizer
 
+
 def save_reactions_to_pdf(
     data: List[Dict[str, str]],
     old_reaction_col: str,

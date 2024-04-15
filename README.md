@@ -6,41 +6,12 @@ SynRBL is a toolkit tailored for computational chemistry, aimed at correcting im
 
 
 ## Table of Contents
-- [Repository Structure](#repository-structure)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
-## Repository Structure
-
-SynRBL is organized into several key components, each dedicated to a specific aspect of chemical data processing:
-
-### Main Components
-
-- `SynRBL/`: Main package directory
-  - `SynProcessor/`: Data processing module
-  - `SynRuleImputer/`: Rule-based imputation module
-  - `SynMCSImputer/`: MCS-based imputation module
-  - `SynChemImputer/`: MCS-based imputation module
-  - `SynVis/`: Data visualization module
-
-### Test Suite
-
-- `tests/`: Test scripts and related files
-  - `SynProcessor/`: Tests for SynExtract module
-  - `SynRuleImputer/`: Tests for SynRuleImpute module
-  - `SynMCSImputer/`: Tests for MCS-based imputation module
-  - `SynChemImputer/`: Tests for MCS-based imputation module
-  - `SynVis/`: Tests for SynVis module
-
-### Additional Resources
-
-- `License`: License document
-- `README.md`: Overview and documentation
-- `setup.py`: Installation
-- `.gitignore`: Configuration for ignoring certain files and directories
 
 ## Installation
 
@@ -77,13 +48,11 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   conda activate synrbl-env
   ```
 
-3. **Cloning and Installing SynRBL:**
+3. **Install with pip:**
   Clone the SynRBL repository from GitHub and install it:
 
   ```bash
-  git clone https://github.com/TieuLongPhan/SynRBL.git
-  cd SynRBL
-  pip install .
+  pip install synrbl
   ```
 
 4. **Verify Installation:**
@@ -94,13 +63,19 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   ```
 
 ## Usage
-
+1. **Jupyter Notebook:**
   ```python
   from synrbl import Balancer
   ```
+2. **Command line**
+  ```bash
+  python -m synrbl run --help
+  ```
 
-
-TODO
+3. **Reproduce the experiment**
+  ```bash
+  python -m synrbl run -o validation_results.csv -p 4 ./Data/Validation_set/validation_set.csv
+  ```
 
 ## Contributing
 - [Tieu-Long Phan](https://tieulongphan.github.io/)
