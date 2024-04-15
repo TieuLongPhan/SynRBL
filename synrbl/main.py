@@ -59,7 +59,7 @@ class Balancer:
 
         logger.info("Run rule-based method.")
         self.rb_method.run(reactions, stats=stats)
-        self.rb_validator.check(reactions)
+        self.rb_validator.check(reactions, override_unsolved=True)
 
         self.mcs.find(reactions)
 
@@ -70,7 +70,7 @@ class Balancer:
             "Run rule-based method again to fix remaining non-carbon imbalance."
         )
         self.rb_method.run(reactions)
-        self.mcs_validator.check(reactions)
+        self.mcs_validator.check(reactions, override_unsolved=True)
 
         self.conf_predictor.predict(
             reactions, stats=stats, threshold=self.confidence_threshold

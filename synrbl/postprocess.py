@@ -23,7 +23,7 @@ class Validator:
         self.carbon_balance_col = carbon_balance_col
         self.n_jobs = n_jobs
 
-    def check(self, reactions):
+    def check(self, reactions, override_unsolved=False):
         update_reactants_and_products(reactions, self.reaction_col)
         decompose = RSMIDecomposer(
             smiles=None,  # type: ignore
@@ -61,5 +61,6 @@ class Validator:
             ):
                 reaction[self.solved_col] = True
                 reaction[self.solved_method_col] = self.method
-
+            if override_unsolved and not reaction[self.solved_col]:
+                reaction[self.reaction_col] = reaction["input_reaction"]
         return reactions
