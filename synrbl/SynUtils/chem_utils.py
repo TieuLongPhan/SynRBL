@@ -183,19 +183,20 @@ def _get_diff_mol(smiles1, smiles2):
 
 def wc_similarity(expected_smiles, result_smiles, method="pathway"):
     """
-    Compute the worst case similarity between two SMILES. The method compares 
-    the molecules that are only present on one sie of the reaction to not bias 
-    the similarity by the size of the compounds. The similarity is the lower 
-    value from educt and product similarity. 
+    Compute the worst case similarity between two SMILES. The method compares
+    the molecules that are only present on one sie of the reaction to not bias
+    the similarity by the size of the compounds. The similarity is the lower
+    value from educt and product similarity.
 
     Args:
         expected_smiles (str): The expected reaction SMILES.
         result_smiles (str): The actual reaction SMILES.
-        method (str): The method used to compute similarity. 
+        method (str): The method used to compute similarity.
             Possible values are: ['pathway', 'ecfp', 'ecfp_inv']
     Returns:
         float: The similarity value between 0 and 1
     """
+
     def _fp(mol1, mol2):
         sim = 0
         if method == "pathway":
