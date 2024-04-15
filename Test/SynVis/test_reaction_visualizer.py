@@ -1,5 +1,4 @@
 import unittest
-
 from synrbl.SynVis import ReactionVisualizer
 from PIL import Image
 
