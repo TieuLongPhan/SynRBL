@@ -13,7 +13,6 @@ from .data_utils import (
 from .chem_utils import (
     CheckCarbonBalance,
     calculate_net_charge,
-    save_reactions_to_pdf,
     remove_atom_mapping,
     normalize_smiles,
 )

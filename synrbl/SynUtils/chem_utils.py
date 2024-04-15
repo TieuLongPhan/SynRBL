@@ -1,15 +1,14 @@
-import io
 import re
-import tempfile
-import matplotlib.pyplot as plt
+import numpy as np
+
+import rdkit.Chem as Chem
+import rdkit.DataStructs as DataStructs
+import rdkit.Chem.rdFingerprintGenerator as rdFingerprintGenerator
+import rdkit.Chem.AllChem as AllChem
+import rdkit.Chem.rdmolfiles as rdmolfiles
 
 from typing import List, Dict
 from typing import Union
-from rdkit import Chem
-from PIL import Image
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import landscape, letter
-from synrbl.SynVis.reaction_visualizer import ReactionVisualizer
 
 
 class CheckCarbonBalance:
@@ -134,103 +133,6 @@ def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
     return total_charge
 
 
-def save_reactions_to_pdf(
-    data: List[Dict[str, str]],
-    old_reaction_col: str,
-    new_reaction_col: str,
-    pdf_filename: str,
-    compare: bool = False,
-    orientation: str = "vertical",
-    show_atom_numbers: bool = False,
-):
-    """
-    Save a list of reaction visualizations to a PDF file.
-
-    Parameters
-    ----------
-    data : List[Dict[str, str]]
-        A list of dictionaries containing reaction data.
-    old_reaction_col : str
-        The column name containing the string representation of the old reaction.
-    new_reaction_col : str
-        The column name containing the string representation of the new reaction.
-    pdf_filename : str
-        The filename of the PDF to be saved.
-    compare : bool, optional
-        If True, both the old and new reactions are plotted. Default is False.
-    orientation : str, optional
-        The layout orientation of the plots ('vertical' or 'horizontal').
-        Default is 'vertical'.
-    show_atom_numbers : bool, optional
-        Whether to show atom numbers in the reaction visualizations.
-        Default is False.
-    scale_factor : float, optional
-        Factor to scale the reaction image size in the PDF. Default is 1.0.
-    title_font_size : int, optional
-        Font size for the title. Default is 14.
-
-    Notes
-    -----
-    The method plots each reaction using the plot_reactions method and saves
-    it to a PDF file. Each reaction is plotted on a separate page. The method
-    also handles scaling of the reaction image and includes a customizable
-    title for each reaction page in the PDF.
-    """
-    c = canvas.Canvas(pdf_filename, pagesize=landscape(letter))
-    page_width, page_height = landscape(letter)
-
-    for reaction_data in data:
-        # Create a figure using plot_reactions method
-        fig = ReactionVisualizer(figsize=(10, 5)).plot_reactions(
-            reaction_data,
-            old_reaction_col,
-            new_reaction_col,
-            compare,
-            orientation,
-            show_atom_numbers,
-        )
-
-        # Save figure to a temporary buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png")
-        plt.close(fig)
-        buf.seek(0)
-        img = Image.open(buf)
-
-        # Save the image to a temporary file
-        with tempfile.NamedTemporaryFile(suffix=".png") as img_temp:
-            img.save(img_temp, format="PNG")
-            img_temp.flush()
-
-            # Image dimensions
-            img_width, img_height = img.size
-            scale_factor = min(
-                (page_width - 100) / img_width, (page_height - 100) / img_height
-            )
-            scaled_width, scaled_height = (
-                img_width * scale_factor,
-                img_height * scale_factor,
-            )
-
-            # Calculate coordinates to center the image
-            x = (page_width - scaled_width) / 2
-            y = (page_height - scaled_height) / 2
-
-            # Draw the centered image
-            c.drawImage(
-                img_temp.name,
-                x,
-                y,
-                width=scaled_width,
-                height=scaled_height,
-                mask="auto",
-            )
-            c.showPage()
-
-    c.save()
-    print(f"Saved reactions to {pdf_filename}")
-
-
 def remove_atom_mapping(smiles: str) -> str:
     pattern = re.compile(r":\d+")
     smiles = pattern.sub("", smiles)
@@ -257,3 +159,58 @@ def normalize_smiles(smiles: str) -> str:
         return ".".join(token)
     else:
         return Chem.CanonSmiles(remove_atom_mapping(smiles))
+
+
+def _get_diff_mol(smiles1, smiles2):
+    smiles1 = normalize_smiles(smiles1)
+    smiles2 = normalize_smiles(smiles2)
+    diff_1 = []
+    diff_2 = []
+    for s1, s2 in zip(smiles1.split("."), smiles2.split(".")):
+        if s1 != s2:
+            diff_1.append(s1)
+            diff_2.append(s2)
+    mol_1, mol_2 = Chem.RWMol(), Chem.RWMol()
+    if len(diff_1) > 0:
+        s_1 = ".".join(diff_1)
+        mol_1 = rdmolfiles.MolFromSmiles(s_1)
+    if len(diff_2) > 0:
+        s_2 = ".".join(diff_2)
+        mol_2 = rdmolfiles.MolFromSmiles(s_2)
+    return mol_1, mol_2
+
+
+def similarity(expected_smiles, result_smiles, method="pathway"):
+    def _fp(mol1, mol2):
+        sim = 0
+        if method == "pathway":
+            fpgen = AllChem.GetRDKitFPGenerator(maxPath=5, minPath=1)
+            fp1 = fpgen.GetFingerprint(mol1)
+            fp2 = fpgen.GetFingerprint(mol2)
+            sim = DataStructs.TanimotoSimilarity(fp1, fp2)
+        elif method == "ecfp":
+            fpgen = rdFingerprintGenerator.GetMorganGenerator(radius=2)
+            fp1 = fpgen.GetSparseCountFingerprint(mol1)
+            fp2 = fpgen.GetSparseCountFingerprint(mol2)
+            sim = DataStructs.DiceSimilarity(fp1, fp2)
+        elif method == "ecfp_inv":
+            invgen = rdFingerprintGenerator.GetMorganFeatureAtomInvGen()
+            ffpgen = rdFingerprintGenerator.GetMorganGenerator(
+                radius=2, atomInvariantsGenerator=invgen
+            )
+            fp1 = ffpgen.GetSparseCountFingerprint(mol1)
+            fp2 = ffpgen.GetSparseCountFingerprint(mol2)
+            sim = DataStructs.DiceSimilarity(fp1, fp2)
+        else:
+            raise ArgumentError("'{}' is not a valid similarity method.".format(method))
+        return sim
+
+    exp = normalize_smiles(expected_smiles)
+    res = normalize_smiles(result_smiles)
+    if exp == res:
+        return 1
+    exp_e, exp_p = exp.split(">>")
+    res_e, res_p = res.split(">>")
+    exp_ed, res_ed = _get_diff_mol(exp_e, res_e)
+    exp_pd, res_pd = _get_diff_mol(exp_p, res_p)
+    return np.min([_fp(exp_ed, res_ed), _fp(exp_pd, res_pd)])
