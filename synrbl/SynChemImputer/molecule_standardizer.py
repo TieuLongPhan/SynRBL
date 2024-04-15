@@ -1,5 +1,5 @@
 from rdkit import Chem
-from typing import List, Union
+from typing import List
 from fgutils import FGQuery
 
 
@@ -10,8 +10,7 @@ class MoleculeStandardizer:
 
     Parameters:
         smiles (str): SMILES representation of the molecule.
-        query (FGQuery): An instance of FGQuery to handle functional group identification and queries.
-
+        query (FGQuery): An instance of FGQuery.
     Methods:
         fit() -> str: Standardizes the molecule by iteratively converting identified functional groups.
         standardize_enol(smiles: str, atom_indices: List[int]) -> str: Converts ketones or aldehydes to enols.

@@ -1,14 +1,12 @@
 import unittest
-from rdkit import Chem
 from synrbl.SynChemImputer.molecule_standardizer import (
     MoleculeStandardizer,
-)  # Assuming the class is in this module
+)
 
 
 class TestMoleculeStandardizer(unittest.TestCase):
 
     def test_enol_transformation(self):
-        # Assuming the structure is a simple ketone that should correctly transform to an enol
         smiles = "C=C(O)CC"  # But-1-en-2-ol
         atom_indices = [0, 1, 2]  # Indices of C=O and adjacent C
         standardizer = MoleculeStandardizer(smiles)
@@ -25,7 +23,13 @@ class TestMoleculeStandardizer(unittest.TestCase):
         expected = "C=O.O"  # Expected hemiketal cyclic structure
         self.assertEqual(
             result, expected, "Hemiketal transformation failed or incorrect"
-        )
+         )
+    def test_MoleculeStandardizer(self):
+        smiles = "C(O)(O)C=CO"
+        standardizer = MoleculeStandardizer(smiles)
+        result = standardizer.fit()
+        expected = "O.O=CCC=O"
+        self.assertEqual(result, expected, "MoleculeStandardizer failed or incorrect")
 
 
 # If the script is executed directly, run the tests
