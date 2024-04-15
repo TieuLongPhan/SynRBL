@@ -2,6 +2,7 @@ from rdkit import Chem
 from typing import List, Union
 from fgutils import FGQuery
 
+
 class MoleculeStandardizer:
     """
     A class to standardize molecules by converting specific functional groups to their more
@@ -37,31 +38,30 @@ class MoleculeStandardizer:
         """
         self.fg = self.query.get(self.smiles)
         for dict in self.fg:
-            if 'hemiketal' in dict:
+            if "hemiketal" in dict:
                 atom_indices = dict[1]
                 self.smiles = self.standardize_hemiketal(self.smiles, atom_indices)
                 self.fg = self.query.get(self.smiles)
-            elif 'enol' in dict:
+            elif "enol" in dict:
                 atom_indices = dict[1]
                 self.smiles = self.standardize_enol(self.smiles, atom_indices)
                 self.fg = self.query.get(self.smiles)
         return Chem.CanonSmiles(self.smiles)
 
-
     @staticmethod
     def standardize_enol(smiles: str, atom_indices: List[int] = [0, 1, 2]) -> str:
         """
         Converts a given ketone (or aldehyde) to its enol form based on specified atom indices.
-        
+
         Args:
         smiles (str): The SMILES string of the molecule.
-        atom_indices (List[int]): List containing indices of two carbons and one oxygen atom 
+        atom_indices (List[int]): List containing indices of two carbons and one oxygen atom
                                 involved in the enol formation. Order does not initially matter.
-                                
+
         Returns:
         str: The SMILES string of the molecule after conversion to the enol form. If the indices are invalid,
             a string message indicating an error is returned.
-        
+
         Raises:
         Exception: If an error occurs in bond manipulation or molecule sanitization, it prints an error message.
 
@@ -72,25 +72,25 @@ class MoleculeStandardizer:
         # Initialize molecule and editable molecule
         mol = Chem.MolFromSmiles(smiles)
         emol = Chem.EditableMol(mol)
-        
+
         c1_idx, c2_idx, o_idx = None, None, None
         # Identify the oxygen index and remove it from atom_indices to simplify carbon handling
         for i in atom_indices[:]:
-            if mol.GetAtomWithIdx(i).GetSymbol() == 'O':
+            if mol.GetAtomWithIdx(i).GetSymbol() == "O":
                 o_idx = i
                 atom_indices.remove(i)
-        
+
         # Distinguish between the two carbons based on their proximity to the oxygen
         for i in atom_indices:
             if abs(i - o_idx) == 1:
                 c2_idx = i
             else:
                 c1_idx = i
-        
+
         # Check if indices are correctly assigned
         if None in [c1_idx, c2_idx, o_idx]:
             return "Invalid atom indices provided. Please check the input."
-        
+
         # Try to modify the bonds to create the enol form
         try:
             emol.RemoveBond(c1_idx, c2_idx)
@@ -99,17 +99,17 @@ class MoleculeStandardizer:
             emol.AddBond(c2_idx, o_idx, order=Chem.rdchem.BondType.DOUBLE)
         except Exception as e:
             return f"Error in modifying molecule: {str(e)}"
-        
+
         # Generate the new molecule and sanitize it
         new_mol = emol.GetMol()
         try:
             Chem.SanitizeMol(new_mol)
         except Exception as e:
             return f"Error in sanitizing molecule: {str(e)}"
-        
+
         # Return the new SMILES representation
         return Chem.MolToSmiles(new_mol)
-    
+
     @staticmethod
     def standardize_hemiketal(smiles: str, atom_indices: List[int]) -> str:
         """
@@ -141,9 +141,9 @@ class MoleculeStandardizer:
         # Determine the indices for carbon and oxygens
         for i in atom_indices:
             atom_symbol = mol.GetAtomWithIdx(i).GetSymbol()
-            if atom_symbol == 'C':
+            if atom_symbol == "C":
                 c_idx = i
-            elif atom_symbol == 'O':
+            elif atom_symbol == "O":
                 if o1_idx is None:
                     o1_idx = i  # Assume the first oxygen encountered is O1
                 else:
