@@ -23,7 +23,8 @@ class TestMoleculeStandardizer(unittest.TestCase):
         expected = "C=O.O"  # Expected hemiketal cyclic structure
         self.assertEqual(
             result, expected, "Hemiketal transformation failed or incorrect"
-         )
+        )
+
     def test_MoleculeStandardizer(self):
         smiles = "C(O)(O)C=CO"
         standardizer = MoleculeStandardizer(smiles)
