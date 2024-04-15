@@ -20,8 +20,9 @@ class Balancer:
         self.__id_col = id_col
         self.solved_col = "solved"
         self.mcs_data_col = "mcs"
+        self.__input_col = "input_reaction"
         self.columns = [
-            "input_reaction",
+            self.__input_col,
             reaction_col,
             "solved",
             "solved_by",
@@ -47,7 +48,11 @@ class Balancer:
         if stats is not None:
             stats["reaction_cnt"] = len(reactions)
         reactions = preprocess(
-            reactions, self.__reaction_col, self.__id_col, self.solved_col
+            reactions,
+            self.__reaction_col,
+            self.__id_col,
+            self.solved_col,
+            self.__input_col,
         )
         rxn_cnt = len(reactions)
         self.input_validator.check(reactions)
