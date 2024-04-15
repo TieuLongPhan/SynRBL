@@ -7,7 +7,7 @@ from synrbl.SynMCSImputer.MissingGraph.find_graph_dict import find_graph_dict
 logger = logging.getLogger(__name__)
 
 
-class MCS:
+class MCSSearch:
     def __init__(self, id_col, solved_col="solved", mcs_data_col="mcs", n_jobs=-1):
         self.id_col = id_col
         self.solved_col = solved_col
@@ -68,14 +68,11 @@ class MCS:
             mcs_reactions, self.conditions, n_jobs=self.n_jobs, Timeout=60
         )
 
+        
+        print("### Condition ###")
+        print(condition_results)
         analysis = ExtractMCS()
-        mcs_dict, _ = analysis.extract_matching_conditions(
-            0,
-            100,
-            *condition_results,
-            extraction_method="largest_mcs",
-            using_threshold=True,
-        )
+        mcs_dict, _ = analysis.extract_matching_conditions(*condition_results)
         if len(mcs_dict) == 0:
             return reactions
 
@@ -88,4 +85,6 @@ class MCS:
             r["mcs_results"] = mcs_dict[i]["mcs_results"]
             reactions[_id][self.mcs_data_col] = r
 
+        print("### Result ###")
+        print(reactions)
         return reactions

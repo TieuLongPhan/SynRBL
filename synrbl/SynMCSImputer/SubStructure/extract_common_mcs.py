@@ -237,9 +237,9 @@ class ExtractMCS:
 
     def extract_matching_conditions(
         self,
-        lower_threshold,
-        upper_threshold,
         *conditions,
+        lower_threshold=0,
+        upper_threshold=100,
         extraction_method="ensemble",
         using_threshold=False,
     ):

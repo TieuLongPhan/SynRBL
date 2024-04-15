@@ -5,7 +5,7 @@ import pandas as pd
 from synrbl.preprocess import preprocess
 from synrbl.postprocess import Validator
 from synrbl.rule_based import RuleBasedMethod
-from synrbl.mcs import MCS
+from synrbl.mcs_search import MCSSearch
 from synrbl.SynMCSImputer.model import MCSBasedMethod
 from synrbl.confidence_prediction import ConfidencePredictor
 
@@ -38,7 +38,7 @@ class Balancer:
         self.rb_method = RuleBasedMethod(
             id_col, reaction_col, reaction_col, n_jobs=n_jobs
         )
-        self.mcs = MCS(id_col, mcs_data_col=self.mcs_data_col, n_jobs=n_jobs)
+        self.mcs_search = MCSSearch(id_col, mcs_data_col=self.mcs_data_col, n_jobs=n_jobs)
         self.mcs_method = MCSBasedMethod(
             reaction_col, reaction_col, mcs_data_col=self.mcs_data_col
         )
@@ -61,7 +61,7 @@ class Balancer:
         self.rb_method.run(reactions, stats=stats)
         self.rb_validator.check(reactions, override_unsolved=True)
 
-        self.mcs.find(reactions)
+        self.mcs_search.find(reactions)
 
         logger.info("Impute missing compounds from MCS.")
         self.mcs_method.run(reactions, stats=stats)
