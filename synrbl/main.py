@@ -78,6 +78,8 @@ class Balancer:
         return reactions
 
     def rebalance(self, reactions, output_dict=False, stats=None):
+        if isinstance(reactions, str):
+            reactions = [reactions]
         if not isinstance(reactions, list):
             raise ValueError("Expected a list of reactions.")
         if len(reactions) == 0:
