@@ -22,7 +22,7 @@ class Balancer:
         self.mcs_data_col = "mcs"
         self.columns = [
             "input_reaction",
-            "reaction",
+            reaction_col,
             "solved",
             "solved_by",
             "confidence",
