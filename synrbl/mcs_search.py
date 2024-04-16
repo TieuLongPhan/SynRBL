@@ -50,13 +50,11 @@ class MCSSearch:
         id2idx_map = {}
         mcs_reactions = []
         for idx, reaction in enumerate(reactions):
-            if reaction["carbon_balance_check"] != "balanced" or (
-                reaction["carbon_balance_check"] == "balanced"
-                and not reaction[self.solved_col]
-                ):
-                id2idx_map[reaction[self.id_col]] = idx
-                reaction[self.mcs_data_col] = None
-                mcs_reactions.append(reaction)
+            if reaction[self.solved_col]:
+                continue
+            id2idx_map[reaction[self.id_col]] = idx
+            reaction[self.mcs_data_col] = None
+            mcs_reactions.append(reaction)
 
         if len(mcs_reactions) == 0:
             return reactions

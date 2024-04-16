@@ -18,29 +18,45 @@ class Balancer:
     ):
         self.__reaction_col = reaction_col
         self.__id_col = id_col
-        self.solved_col = "solved"
-        self.mcs_data_col = "mcs"
+        self.__solved_col = "solved"
+        self.__solved_by_col = "solved_by"
+        self.__mcs_data_col = "mcs"
         self.__input_col = "input_reaction"
+        self.__confidence_col = "confidence"
+        self.__rules_col = "rules"
+        self.__issue_col = "issue"
         self.columns = [
             self.__input_col,
             reaction_col,
-            "solved",
-            "solved_by",
-            "confidence",
-            "rules",
+            self.__solved_col,
+            self.__solved_by_col,
+            self.__confidence_col,
+            self.__rules_col,
+            self.__issue_col,
         ]
+
         self.confidence_threshold = confidence_threshold
         self.input_validator = Validator(reaction_col, "input-balanced", n_jobs=n_jobs)
         self.rb_validator = Validator(
             reaction_col, "rule-based", check_carbon_balance=False, n_jobs=n_jobs
         )
         self.mcs_validator = Validator(reaction_col, "mcs-based", n_jobs=n_jobs)
+
         self.rb_method = RuleBasedMethod(
             id_col, reaction_col, reaction_col, n_jobs=n_jobs
         )
-        self.mcs_search = MCSSearch(id_col, mcs_data_col=self.mcs_data_col, n_jobs=n_jobs)
+        self.mcs_search = MCSSearch(
+            id_col,
+            solved_col=self.__solved_col,
+            mcs_data_col=self.__mcs_data_col,
+            n_jobs=n_jobs,
+        )
         self.mcs_method = MCSBasedMethod(
-            reaction_col, reaction_col, mcs_data_col=self.mcs_data_col
+            reaction_col,
+            reaction_col,
+            mcs_data_col=self.__mcs_data_col,
+            issue_col=self.__issue_col,
+            rules_col=self.__rules_col,
         )
         self.conf_predictor = ConfidencePredictor(reaction_col=reaction_col)
 
@@ -51,7 +67,7 @@ class Balancer:
             reactions,
             self.__reaction_col,
             self.__id_col,
-            self.solved_col,
+            self.__solved_col,
             self.__input_col,
         )
         rxn_cnt = len(reactions)
