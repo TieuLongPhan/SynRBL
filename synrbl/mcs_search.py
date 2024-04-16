@@ -47,16 +47,16 @@ class MCSSearch:
         ]
 
     def find(self, reactions):
-        mcs_keys = [
-            key
-            for key, value in enumerate(reactions)
-            if value["carbon_balance_check"] != "balanced"
-            or (
-                value["carbon_balance_check"] == "balanced"
-                and not value[self.solved_col]
-            )
-        ]
-        mcs_reactions = [reactions[k] for k in mcs_keys]
+        id2idx_map = {}
+        mcs_reactions = []
+        for idx, reaction in enumerate(reactions):
+            if reaction["carbon_balance_check"] != "balanced" or (
+                reaction["carbon_balance_check"] == "balanced"
+                and not reaction[self.solved_col]
+                ):
+                id2idx_map[reaction[self.id_col]] = idx
+                reaction[self.mcs_data_col] = None
+                mcs_reactions.append(reaction)
 
         if len(mcs_reactions) == 0:
             return reactions
@@ -68,27 +68,19 @@ class MCSSearch:
         )
 
         condition_results = ensemble_mcs(
-            mcs_reactions, self.conditions, n_jobs=self.n_jobs, Timeout=60
+            mcs_reactions, self.id_col, self.conditions, n_jobs=self.n_jobs, Timeout=60
         )
 
-        assert len(self.conditions) == len(condition_results)
-        assert len(mcs_keys) == len(condition_results[0])
+        largest_conditions = ExtractMCS.get_largest_condition(*condition_results)
 
-        for i, k in enumerate(mcs_keys):
-            max_atom_cnt = 0
-            max_cond = None
-            for cond_col in condition_results:
-                mcs_atom_cnt = sum(
-                    ExtractMCS.get_num_atoms(mcs) for mcs in cond_col[i]["mcs_results"]
-                )
-                if mcs_atom_cnt > max_atom_cnt:
-                    max_atom_cnt = mcs_atom_cnt
-                    max_cond = cond_col[i]
-            assert max_cond is not None
-            reactions[k][self.mcs_data_col] = find_graph_dict([max_cond])[0]
-            reactions[k][self.mcs_data_col]["sorted_reactants"] = max_cond[
-                "sorted_reactants"
-            ]
-            reactions[k][self.mcs_data_col]["mcs_results"] = max_cond["mcs_results"]
+        mcs_results = find_graph_dict(largest_conditions)
+
+        assert len(largest_conditions) == len(mcs_results)
+        for largest_condition, mcs_result in zip(largest_conditions, mcs_results):
+            _id = largest_condition[self.id_col]
+            _idx = id2idx_map[_id]
+            for k, v in largest_condition.items():
+                mcs_result[k] = v
+            reactions[_idx][self.mcs_data_col] = mcs_result
 
         return reactions
