@@ -1,0 +1,42 @@
+{
+    "template_1": {
+        "neutral": {
+            "reactants": ["[HH]"],
+            "products": []
+        },
+        "ion": {
+            "reactants": ["[HH]"],
+            "products": []
+        }
+    },
+    "template_2": {
+        "neutral": {
+            "reactants": ["[BH4-]", "[Na+]", "Cl"],
+            "products": ["[BH3]", "[Na][Cl]"]
+        },
+        "ion": {
+            "reactants": ["[BH4-]", "[Na+]", "[H+]"],
+            "products": ["[BH3]", "[Na+]"]
+        }
+    },
+    "template_3": {
+        "neutral": {
+            "reactants": ["[BH3-]C#N", "[Na+]", "Cl"],
+            "products": ["[BH2]C#N", "[Na][Cl]"]
+        },
+        "ion": {
+            "reactants": ["[BH3-]C#N", "[Na+]", "[H+]"],
+            "products": ["[BH2]C#N", "[Na+]"]
+        }
+    },
+    "template_4": {
+        "neutral": {
+            "reactants": ["[AlH4-]", "[Li+]", "Cl"],
+            "products": ["[AlH3]", "[Li][Cl]"] 
+        },
+        "ion": {
+            "reactants": ["[AlH4-]", "[Na+]", "[H+]"],
+            "products": ["[AlH3]", "[Na+]"]
+        }
+    }
+}
