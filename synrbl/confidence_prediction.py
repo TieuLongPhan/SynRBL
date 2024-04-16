@@ -17,8 +17,10 @@ class ConfidencePredictor:
         reaction_col="reaction",
         input_reaction_col="input_reaction",
         confidence_col="confidence",
+        solved_col="solved",
         solved_by_col="solved_by",
         solved_by_method="mcs-based",
+        issue_col="issue",
         mcs_col="mcs",
     ):
         self.model = joblib.load(
@@ -29,8 +31,10 @@ class ConfidencePredictor:
         self.reaction_col = reaction_col
         self.input_reaction_col = input_reaction_col
         self.confidence_col = confidence_col
+        self.solved_col = solved_col
         self.solved_by_col = solved_by_col
         self.solved_by_method = solved_by_method
+        self.issue_col = issue_col
         self.mcs_col = mcs_col
 
     def predict(self, reactions, stats=None, threshold=0):
@@ -69,6 +73,14 @@ class ConfidencePredictor:
                 r[self.confidence_col] = c
                 if c >= threshold:
                     conf_success += 1
+                else:
+                    assert (
+                        r[self.issue_col] == ""
+                    ), "Issue column has value for a solved reaction?"
+                    r[self.solved_col] = False
+                    r[
+                        self.issue_col
+                    ] = "Confidence is below the threshold of {:.2%}.".format(threshold)
         if stats is not None:
             stats["confident_cnt"] = conf_success
         return reactions

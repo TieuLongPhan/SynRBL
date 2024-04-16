@@ -87,7 +87,16 @@ class Balancer:
             issue_col=self.__issue_col,
             rules_col=self.__rules_col,
         )
-        self.conf_predictor = ConfidencePredictor(reaction_col=reaction_col)
+        self.conf_predictor = ConfidencePredictor(
+            reaction_col=reaction_col,
+            solved_by_method="mcs-based",
+            input_reaction_col=self.__input_col,
+            confidence_col=self.__confidence_col,
+            solved_col=self.__solved_col,
+            solved_by_col=self.__solved_by_col,
+            issue_col=self.__issue_col,
+            mcs_col=self.__mcs_data_col,
+        )
 
     def __run_pipeline(self, reactions, stats=None):
         if stats is not None:
