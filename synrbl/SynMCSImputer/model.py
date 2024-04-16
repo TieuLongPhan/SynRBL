@@ -84,7 +84,7 @@ def impute_reaction(
         raise RuntimeError(
             (
                 "Failed to impute the correct structure. "
-                + "Carbon atom count in reactants and products does not match. "
+                + "Carbon atom count in reactants and products does not match."
             )
         )
     return imputed_reaction, rules
@@ -113,9 +113,10 @@ class MCSBasedMethod:
         block_logs = BlockLogs()
         for reaction in reactions:
             if self.mcs_data_col not in reaction.keys():
-                reaction[self.issue_col] = "No MCS identified."
                 continue
             mcs_applied += 1
+            if reaction[self.mcs_data_col] is None:
+                continue
             try:
                 result, rules = impute_reaction(
                     reaction,

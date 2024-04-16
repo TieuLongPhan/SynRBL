@@ -11,6 +11,7 @@ class Validator:
         solved_method_col="solved_by",
         unbalance_col="unbalance",
         carbon_balance_col="carbon_balance_check",
+        issue_col="issue",
         check_carbon_balance=True,
         n_jobs=1,
     ):
@@ -21,6 +22,7 @@ class Validator:
         self.unbalance_col = unbalance_col
         self.check_carbon_balance = check_carbon_balance
         self.carbon_balance_col = carbon_balance_col
+        self.issue_col = issue_col
         self.n_jobs = n_jobs
 
     def check(self, reactions, override_unsolved=False):

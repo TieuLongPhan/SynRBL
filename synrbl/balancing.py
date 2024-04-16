@@ -23,6 +23,8 @@ class Balancer:
         self.__mcs_data_col = "mcs"
         self.__input_col = "input_reaction"
         self.__confidence_col = "confidence"
+        self.__unbalance_col = "unbalance_col"
+        self.__carbon_balance_col = "carbon_balance_check"
         self.__rules_col = "rules"
         self.__issue_col = "issue"
         self.columns = [
@@ -36,11 +38,37 @@ class Balancer:
         ]
 
         self.confidence_threshold = confidence_threshold
-        self.input_validator = Validator(reaction_col, "input-balanced", n_jobs=n_jobs)
-        self.rb_validator = Validator(
-            reaction_col, "rule-based", check_carbon_balance=False, n_jobs=n_jobs
+        self.input_validator = Validator(
+            reaction_col,
+            "input-balanced",
+            n_jobs=n_jobs,
+            solved_col=self.__solved_col,
+            solved_method_col=self.__solved_by_col,
+            unbalance_col=self.__unbalance_col,
+            carbon_balance_col=self.__carbon_balance_col,
+            issue_col=self.__issue_col,
         )
-        self.mcs_validator = Validator(reaction_col, "mcs-based", n_jobs=n_jobs)
+        self.rb_validator = Validator(
+            reaction_col,
+            "rule-based",
+            check_carbon_balance=False,
+            n_jobs=n_jobs,
+            solved_col=self.__solved_col,
+            solved_method_col=self.__solved_by_col,
+            unbalance_col=self.__unbalance_col,
+            carbon_balance_col=self.__carbon_balance_col,
+            issue_col=self.__issue_col,
+        )
+        self.mcs_validator = Validator(
+            reaction_col,
+            "mcs-based",
+            n_jobs=n_jobs,
+            solved_col=self.__solved_col,
+            solved_method_col=self.__solved_by_col,
+            unbalance_col=self.__unbalance_col,
+            carbon_balance_col=self.__carbon_balance_col,
+            issue_col=self.__issue_col,
+        )
 
         self.rb_method = RuleBasedMethod(
             id_col, reaction_col, reaction_col, n_jobs=n_jobs
@@ -49,6 +77,7 @@ class Balancer:
             id_col,
             solved_col=self.__solved_col,
             mcs_data_col=self.__mcs_data_col,
+            issue_col=self.__issue_col,
             n_jobs=n_jobs,
         )
         self.mcs_method = MCSBasedMethod(

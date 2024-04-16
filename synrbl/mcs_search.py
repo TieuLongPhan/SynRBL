@@ -8,10 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class MCSSearch:
-    def __init__(self, id_col, solved_col="solved", mcs_data_col="mcs", n_jobs=-1):
+    def __init__(self, id_col, solved_col="solved", mcs_data_col="mcs", issue_col="issue", n_jobs=-1):
         self.id_col = id_col
         self.solved_col = solved_col
         self.mcs_data_col = mcs_data_col
+        self.issue_col = issue_col
         self.n_jobs = n_jobs
 
         self.conditions = [
@@ -54,6 +55,7 @@ class MCSSearch:
                 continue
             id2idx_map[reaction[self.id_col]] = idx
             reaction[self.mcs_data_col] = None
+            reaction[self.issue_col] = "No MCS identified."
             mcs_reactions.append(reaction)
 
         if len(mcs_reactions) == 0:
@@ -66,7 +68,7 @@ class MCSSearch:
         )
 
         condition_results = ensemble_mcs(
-            mcs_reactions, self.id_col, self.conditions, n_jobs=self.n_jobs, Timeout=60
+            mcs_reactions, self.conditions, id_col=self.id_col, issue_col=self.issue_col, n_jobs=self.n_jobs, Timeout=60
         )
 
         largest_conditions = ExtractMCS.get_largest_condition(*condition_results)
@@ -80,5 +82,6 @@ class MCSSearch:
             for k, v in largest_condition.items():
                 mcs_result[k] = v
             reactions[_idx][self.mcs_data_col] = mcs_result
+            reactions[_idx][self.issue_col] = mcs_result[self.issue_col]
 
         return reactions

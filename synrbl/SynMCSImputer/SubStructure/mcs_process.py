@@ -16,7 +16,8 @@ logger = logging.getLogger("synrbl")
 
 def single_mcs(
     data_dict,
-    id_col,
+    id_col="id",
+    issue_col="issue",
     RingMatchesRingOnly=True,
     CompleteRingsOnly=True,
     Timeout=60,
@@ -37,7 +38,12 @@ def single_mcs(
     - dict: A dictionary containing MCS results and any sorted reactants encountered.
     """
     block_logs = BlockLogs()
-    mcs_data = {id_col: data_dict[id_col], "mcs_results": [], "sorted_reactants": [], "issue": ""}
+    mcs_data = {
+        id_col: data_dict[id_col],
+        "mcs_results": [],
+        "sorted_reactants": [],
+        issue_col: "",
+    }
 
     try:
         analyzer = MCSMissingGraphAnalyzer()
@@ -61,13 +67,15 @@ def single_mcs(
                 rdmolfiles.MolToSmiles(mol) for mol in sorted_reactants
             ]
     except Exception as e:
-        mcs_data["issue"] = "MCS identification failed. {}".format(str(e))
+        mcs_data[issue_col] = "MCS identification failed. {}".format(str(e))
 
     del block_logs
     return mcs_data
 
 
-def ensemble_mcs(data, id_col, conditions, n_jobs=-1, Timeout=60):
+def ensemble_mcs(
+    data, conditions, id_col="id", issue_col="issue", n_jobs=-1, Timeout=60
+):
     condition_results = []
     start_time = time.time()
     last_tsmp = start_time
@@ -75,7 +83,13 @@ def ensemble_mcs(data, id_col, conditions, n_jobs=-1, Timeout=60):
         all_results = []  # Accumulate results for each condition
 
         p_generator = Parallel(n_jobs=n_jobs, verbose=0, return_as="generator")(
-            delayed(single_mcs)(data_dict, id_col, **condition, Timeout=Timeout)
+            delayed(single_mcs)(
+                data_dict,
+                id_col=id_col,
+                issue_col=issue_col,
+                **condition,
+                Timeout=Timeout,
+            )
             for data_dict in data
         )
         for result in p_generator:
