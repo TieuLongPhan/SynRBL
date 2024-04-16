@@ -1,1 +1,1 @@
-from .main import Balancer
+from .balancing import Balancer
