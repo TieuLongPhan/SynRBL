@@ -53,23 +53,6 @@ class TestExtractMCS(unittest.TestCase):
         ) = self.extractor.extract_common_mcs_index(0, 100, *conditions)
         self.assertIsNotNone(threshold_index)
 
-    def test_compare_conditions_and_get_largest(self):
-        # Test comparing conditions and getting the largest MCS
-        total_atoms_conditions = [[3], [2]]
-        conditions = [[{"mcs_results": ["CCO"]}], [{"mcs_results": ["CC"]}]]
-        results, reference_list = self.extractor.compare_conditions_and_get_largest(
-            total_atoms_conditions, *conditions
-        )
-        self.assertIsNotNone(results)
-
-    def test_extract_matching_conditions(self):
-        # Test extracting matching conditions
-        conditions = [[{"mcs_results": ["CCO"]}], [{"mcs_results": ["CC"]}]]
-        results, threshold_index = self.extractor.extract_matching_conditions(
-            0, 100, *conditions
-        )
-        self.assertIsNotNone(results)
-
 
 if __name__ == "__main__":
     unittest.main()

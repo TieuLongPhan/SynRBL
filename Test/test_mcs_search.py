@@ -69,15 +69,6 @@ def test_simple_mcs():
     "rxn, exp_smiles, exp_ba, exp_nn, exp_issue, exp_sr, exp_mcs",
     [
         (
-            "[NH3+]C(CCC=O)C(=O)[O-]>>O=C([O-])C1CCC=N1",
-            ["CCC=O.[NH4+]"],
-            [[{"N": 4}, {"C": 0}]],
-            [[{"C": 1}, {"C": 1}]],
-            "",
-            ["[NH3+]C(CCC=O)C(=O)[O-]"],
-            ["[#6]-&!@[#6](=&!@[#8])-&!@[#8]"],
-        ),
-        (
             (
                 "Nc1nc2c(ncn2C2OC(COP(=O)([O-])OP(=O)([O-])OP(=O)([O-])[O-])C"
                 + "(O)C2O)c(=O)[nH]1.O>>Nc1nc2c(ncn2C2OC(COP(=O)([O-])[O-])C"

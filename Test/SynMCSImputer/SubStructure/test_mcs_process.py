@@ -32,7 +32,7 @@ class TestMCSFunctions(unittest.TestCase):
         # Mocking MCSMissingGraphAnalyzer.fit to return predefined values
         mock_fit.return_value = ([], [], [], None)
 
-        result = single_mcs(self.sample_reaction_data)
+        result = single_mcs(self.sample_reaction_data, id_col="R-id")
         self.assertEqual(result["R-id"], "example_id")
         self.assertIsInstance(result["mcs_results"], list)
         self.assertIsInstance(result["sorted_reactants"], list)

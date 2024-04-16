@@ -1,12 +1,10 @@
 import datetime
 import time
-import copy
 import logging
 
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
 from synrbl.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
-from rdkit import Chem
 from joblib import Parallel, delayed
 
 from rdkit.rdBase import BlockLogs

@@ -3,7 +3,7 @@ import logging
 from collections import Counter
 from rdkit import Chem
 from joblib import Parallel, delayed
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 logger = logging.getLogger("synrbl")
 
@@ -173,8 +173,8 @@ class ExtractMCS:
             a condition.
 
         Returns:
-            list[dict]: A list of conditions. Each row contains the condition 
-                with the largest maximum-common-substructure or None if no 
+            list[dict]: A list of conditions. Each row contains the condition
+                with the largest maximum-common-substructure or None if no
                 suitable result was found.
         """
 
