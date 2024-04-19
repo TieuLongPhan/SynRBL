@@ -1,19 +1,21 @@
 import datetime
 import time
-import copy
 import logging
 
+import rdkit.Chem.rdmolfiles as rdmolfiles
+
 from synrbl.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
-from rdkit import Chem
 from joblib import Parallel, delayed
 
 from rdkit.rdBase import BlockLogs
 
-logger = logging.getLogger("SynRBL")
+logger = logging.getLogger("synrbl")
 
 
 def single_mcs(
     data_dict,
+    id_col="id",
+    issue_col="issue",
     RingMatchesRingOnly=True,
     CompleteRingsOnly=True,
     Timeout=60,
@@ -34,10 +36,12 @@ def single_mcs(
     - dict: A dictionary containing MCS results and any sorted reactants encountered.
     """
     block_logs = BlockLogs()
-    mcs_results_dict = copy.deepcopy(data_dict)
-    mcs_results_dict["mcs_results"] = []
-    mcs_results_dict["sorted_reactants"] = []
-    mcs_results_dict["issue"] = []
+    mcs_data = {
+        id_col: data_dict[id_col],
+        "mcs_results": [],
+        "sorted_reactants": [],
+        issue_col: "",
+    }
 
     try:
         analyzer = MCSMissingGraphAnalyzer()
@@ -52,21 +56,24 @@ def single_mcs(
             similarityThreshold=similarityThreshold,
             ignore_bond_order=ignore_bond_order,
         )
-        mcs_list_smiles = [Chem.MolToSmarts(mol) for mol in mcs_list]
-        sorted_reactants_smiles = [Chem.MolToSmiles(mol) for mol in sorted_reactants]
-        mcs_results_dict["mcs_results"] = mcs_list_smiles
-        mcs_results_dict["sorted_reactants"] = sorted_reactants_smiles
 
         if len(reactant_mol_list) != len(sorted_reactants):
-            mcs_results_dict["issue"] = "MCS_Uncertainty"
+            mcs_data["issue"] = "Uncertian MCS."
+        else:
+            mcs_data["mcs_results"] = [rdmolfiles.MolToSmarts(mol) for mol in mcs_list]
+            mcs_data["sorted_reactants"] = [
+                rdmolfiles.MolToSmiles(mol) for mol in sorted_reactants
+            ]
+    except Exception as e:
+        mcs_data[issue_col] = "MCS identification failed. {}".format(str(e))
 
-    except Exception:
-        mcs_results_dict["issue"] = "Single MCS identification failed."
     del block_logs
-    return mcs_results_dict
+    return mcs_data
 
 
-def ensemble_mcs(data, conditions, n_jobs=-1, Timeout=60):
+def ensemble_mcs(
+    data, conditions, id_col="id", issue_col="issue", n_jobs=-1, Timeout=60
+):
     condition_results = []
     start_time = time.time()
     last_tsmp = start_time
@@ -74,7 +81,13 @@ def ensemble_mcs(data, conditions, n_jobs=-1, Timeout=60):
         all_results = []  # Accumulate results for each condition
 
         p_generator = Parallel(n_jobs=n_jobs, verbose=0, return_as="generator")(
-            delayed(single_mcs)(data_dict, **condition, Timeout=Timeout)
+            delayed(single_mcs)(
+                data_dict,
+                id_col=id_col,
+                issue_col=issue_col,
+                **condition,
+                Timeout=Timeout,
+            )
             for data_dict in data
         )
         for result in p_generator:

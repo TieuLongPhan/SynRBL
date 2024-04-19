@@ -3,9 +3,9 @@ import logging
 from collections import Counter
 from rdkit import Chem
 from joblib import Parallel, delayed
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
-logger = logging.getLogger("SynRBL")
+logger = logging.getLogger("synrbl")
 
 
 class ExtractMCS:
@@ -44,7 +44,7 @@ class ExtractMCS:
             return 0
 
     @staticmethod
-    def calculate_total_number_atoms_mcs_parallel(condition, n_jobs=4):
+    def calculate_total_number_atoms_mcs_parallel(condition, n_jobs=4) -> list[int]:
         """
         Calculate the total number of atoms in the MCS results for each
         dictionary in a condition using parallel processing.
@@ -66,7 +66,7 @@ class ExtractMCS:
         total_number_atoms = Parallel(n_jobs=n_jobs, verbose=0)(
             delayed(calculate_atoms_for_dict)(d) for d in condition
         )
-        return total_number_atoms
+        return total_number_atoms  # type: ignore
 
     def get_popular_elements_from_list(self, elements_list):
         """
@@ -160,9 +160,7 @@ class ExtractMCS:
         return threshold_index, reference_results_list
 
     @staticmethod
-    def compare_conditions_and_get_largest(
-        total_atoms_conditions: List[List[int]], *conditions: List[List[Dict]]
-    ) -> Tuple[List[Dict], List[List[str]]]:
+    def get_largest_condition(*conditions: List[List[Dict]]) -> List[Dict]:
         """
         Compare the total number of atoms across different conditions and find
         the condition with the largest MCS for each index.
@@ -171,23 +169,28 @@ class ExtractMCS:
 
         Args:
         - total_atoms_conditions (list): A list of lists, where each sublist
-            contains the total number of atoms for each MCS result in a condition.
+            contains the total number of atoms for each MCS result in
+            a condition.
 
         Returns:
-        - Tuple:
-            - A list of dictionaries, each representing the condition with the
-                largest MCS for a given index.
-            - A reference list of the biggest MCS for each index across the
-                conditions.
+            list[dict]: A list of conditions. Each row contains the condition
+                with the largest maximum-common-substructure or None if no
+                suitable result was found.
         """
-        results = []
-        reference_list = []
+
+        total_atoms_conditions = [
+            ExtractMCS.calculate_total_number_atoms_mcs_parallel(condition, n_jobs=4)
+            for condition in conditions
+        ]
+
+        result = []
         min_length = min(len(total) for total in total_atoms_conditions)
 
         for idx in range(min_length):
             tied_conditions = []
             max_atoms = 0
-            max_condition = -1
+            max_condition_idx = -1
+            max_condition = None
 
             # First pass: Find conditions with the largest total atom counts
             for condition_idx, total in enumerate(total_atoms_conditions):
@@ -201,7 +204,7 @@ class ExtractMCS:
             # Second pass: In case of a tie, compare the first SMILES/SMARTS
             if len(tied_conditions) > 1:
                 max_first_smarts_atoms = 0
-                winning_condition = -1
+                winning_condition_idx = -1
                 for condition_idx, _ in tied_conditions:
                     first_smarts = (
                         conditions[condition_idx][idx]["mcs_results"][0]
@@ -211,91 +214,21 @@ class ExtractMCS:
                     first_smarts_atoms = ExtractMCS.get_num_atoms(first_smarts)
                     if first_smarts_atoms > max_first_smarts_atoms:
                         max_first_smarts_atoms = first_smarts_atoms
-                        winning_condition = condition_idx
+                        winning_condition_idx = condition_idx
 
                 # Finalize the winning condition
-                if winning_condition != -1:
-                    max_condition = winning_condition
-                    max_mcs = conditions[max_condition][idx]["mcs_results"]
+                if winning_condition_idx != -1:
+                    max_condition_idx = winning_condition_idx
+                    max_condition = conditions[max_condition_idx][idx]
             else:
-                max_condition = tied_conditions[0][0] if tied_conditions else -1
-                max_mcs = (
-                    conditions[max_condition][idx]["mcs_results"]
-                    if max_condition != -1
-                    else []
+                max_condition_idx = tied_conditions[0][0] if tied_conditions else -1
+                max_condition = (
+                    conditions[max_condition_idx][idx]
+                    if max_condition_idx != -1
+                    else None
                 )
 
-            if max_condition != -1:
-                result_entry = {
-                    "name": f"Condition {max_condition + 1}",
-                    "biggest_mcs": max_mcs,
-                }
-                results.append(result_entry)
-                reference_list.append(max_mcs)
+            if max_condition is not None:
+                result.append(max_condition)
 
-        return results, reference_list
-
-    def extract_matching_conditions(
-        self,
-        lower_threshold,
-        upper_threshold,
-        *conditions,
-        extraction_method="ensemble",
-        using_threshold=False,
-    ):
-        """
-        Extract and return the first matching condition for each index that
-        meets the threshold.
-
-        :param threshold_index: A list of boolean values indicating whether
-            each condition meets the threshold.
-        :param conditions: A list of conditions, each a list of dictionaries
-            containing 'mcs_results'.
-        :param reference_results_list: A list of reference results to match
-            against the conditions.
-        :return: A list of dictionaries representing the matching condition
-            for each index that meets the threshold.
-        """
-
-        threshold_index = (
-            []
-        )  # Initialize threshold_index to an empty list or a suitable default value
-
-        if extraction_method == "ensemble":
-            threshold_index, reference_results_list = self.extract_common_mcs_index(
-                lower_threshold, upper_threshold, *conditions
-            )
-        elif extraction_method == "largest_mcs":
-            total_atoms_conditions = [
-                ExtractMCS.calculate_total_number_atoms_mcs_parallel(
-                    condition, n_jobs=4
-                )
-                for condition in conditions
-            ]
-            _, reference_results_list = ExtractMCS.compare_conditions_and_get_largest(
-                total_atoms_conditions, *conditions
-            )
-            if using_threshold:
-                threshold_index, _ = self.extract_common_mcs_index(
-                    lower_threshold, upper_threshold, *conditions
-                )
-            else:
-                threshold_index = [True] * len(
-                    conditions[0]
-                )  # Make sure to set threshold_index in this branch
-
-        results = []
-        for key, value in enumerate(threshold_index):
-            if value:
-                try:
-                    for condition in conditions:
-                        if sorted(reference_results_list[key]) == sorted(
-                            condition[key]["mcs_results"]
-                        ):
-                            results.append(condition[key])
-                            break
-
-                except Exception as e:
-                    logger.error(f"Error processing condition at index {key}: {e}")
-                    continue
-        return results, threshold_index
+        return result

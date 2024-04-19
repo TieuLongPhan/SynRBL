@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from synrbl import Balancer
-from synrbl.SynUtils.chem_utils import normalize_smiles
+from synrbl.SynUtils import normalize_smiles, wc_similarity
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,11 @@ def check_columns(reactions, reaction_col, result_col):
 
 def run(args):
     input_reactions = pd.read_csv(args.inputfile).to_dict("records")
+    logger.info(
+        "Run benchmark on {} containing {} reactions.".format(
+            args.inputfile, len(input_reactions)
+        )
+    )
     check_columns(input_reactions, args.col, args.result_col)
 
     stats = {}
@@ -83,7 +88,10 @@ def run(args):
             continue
         exp_reaction = normalize_smiles(exp)
         act_reaction = normalize_smiles(out_r[args.col])
-        if exp_reaction == act_reaction:
+        if (
+            wc_similarity(exp_reaction, act_reaction, args.similarity_method)
+            >= args.similarity_threshold
+        ):
             if out_r["solved_by"] == "rule-based":
                 rb_correct += 1
             elif out_r["solved_by"] == "mcs-based":
@@ -110,6 +118,13 @@ class Range(object):
 
 
 def configure_argparser(argparser: argparse._SubParsersAction):
+    default_similarity_method = "pathway"
+    default_similarity_threshold = 0.85
+    default_p = -1
+    default_col = "reaction"
+    default_result_col = "expected_reaction"
+    default_min_confidence = 0.5
+
     test_parser = argparser.add_parser(
         "benchmark", description="Benchmark SynRBL on your own dataset."
     )
@@ -125,30 +140,52 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     )
     test_parser.add_argument(
         "-p",
-        default=-1,
+        default=default_p,
         type=int,
-        help="The number of parallel process. (Default -1 => # of processors)",
+        help="The number of parallel process. (Default {})".format(default_p),
     )
     test_parser.add_argument(
         "--col",
-        default="reaction",
+        default=default_col,
         help="The reactions column name for in the input .csv file. "
-        + "(Default: 'reaction')",
+        + "(Default: {})".format(default_col),
     )
     test_parser.add_argument(
         "--result-col",
-        default="expected_reaction",
+        default=default_result_col,
         help="The reactions column name for in the expected output. "
-        + "(Default: 'expected_reaction')",
+        + "(Default: {})".format(default_result_col),
     )
     test_parser.add_argument(
         "--min-confidence",
         type=float,
-        default=0,
+        default=default_min_confidence,
         choices=[Range(0.0, 1.0)],
         help=(
             "Set a confidence threshold for the results "
-            + "from the MCS-based method. (Default: 0.5)"
+            + "from the MCS-based method. (Default: {})".format(default_min_confidence)
+        ),
+    )
+    test_parser.add_argument(
+        "--similarity-method",
+        type=str,
+        choices=["pathway", "ecfp", "ecfp_inv"],
+        default=default_similarity_method,
+        help=(
+            "The method used to compute similarity between the SynRBL "
+            + "solution and the expected result. (Default: {})".format(
+                default_similarity_method
+            )
+        ),
+    )
+    test_parser.add_argument(
+        "--similarity-threshold",
+        type=float,
+        default=default_similarity_threshold,
+        choices=[Range(0.0, 1.0)],
+        help=(
+            "The similarity value above which a solution is considered correct. "
+            + "(Default: {})".format(default_similarity_threshold)
         ),
     )
 

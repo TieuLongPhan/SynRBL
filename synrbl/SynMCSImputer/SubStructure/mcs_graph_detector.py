@@ -216,6 +216,9 @@ class MCSMissingGraphAnalyzer:
             params.timeout = Timeout
             params.similarityThreshold = similarityThreshold
 
+        else:
+            raise ValueError("Method '{}' is not implemented.".format(method))
+
         if reaction_dict["carbon_balance_check"] in ["products", "balanced"]:
             # Calculate the MCS for each reactant with the product
             reactant_smiles, product_smiles = MCSMissingGraphAnalyzer.get_smiles(
@@ -269,3 +272,9 @@ class MCSMissingGraphAnalyzer:
             )
 
             return mcs_list, sorted_parents, product_mol_list, reactant_mol
+        else:
+            raise RuntimeError(
+                "Invalid carbon_balance_check value: '{}'".format(
+                    reaction_dict["carbon_balance_check"]
+                )
+            )

@@ -1,0 +1,9 @@
+{
+    "aldehyde": ["template_1", "template_2", "template_3", "template_4"],
+    "ketone": ["template_1", "template_2", "template_3", "template_4"],
+    "ester": ["template_2", "template_3", "template_4"],
+    "acyl_chloride": ["template_2", "template_3", "template_4"],
+    "amid": ["template_4"],
+    "carboxylic_acid": ["template_4"],
+    "other": ["template_1"]
+}

@@ -2,7 +2,7 @@ import logging
 import synrbl.SynCmd as cmd
 
 if __name__ == "__main__":
-    logger = logging.getLogger("SynRBL")
+    logger = logging.getLogger("synrbl")
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     formatter = logging.Formatter(

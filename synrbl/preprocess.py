@@ -3,7 +3,7 @@ import pandas as pd
 from synrbl.SynProcessor import RSMIProcessing
 
 
-def preprocess(reactions, reaction_col, index_col, solved_col, n_jobs=1):
+def preprocess(reactions, reaction_col, index_col, solved_col, input_col, n_jobs=1):
     df = pd.DataFrame(reactions)
     df[solved_col] = False
 
@@ -23,6 +23,6 @@ def preprocess(reactions, reaction_col, index_col, solved_col, n_jobs=1):
         verbose=0,
     )
     reactions = process.data_splitter()
-    reactions["input_reaction"] = reactions[reaction_col]
+    reactions[input_col] = reactions[reaction_col]
 
     return reactions.to_dict("records")
