@@ -1,5 +1,6 @@
 from rdkit import Chem
 
+
 class PeroxidGroupImputer:
     """A class for imputing peroxide and peracid groups in chemical reactions."""
 
