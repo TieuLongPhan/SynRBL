@@ -59,7 +59,18 @@ class PostProcess:
 
         return new_dict
 
-    def fit(self, n_jobs=4, verbose=1):
+    def fit(self, n_jobs: int = 4, verbose: int = 1) -> List[Dict]:
+        """
+        Label reactions and curate data by reaction type.
+
+        Parameters:
+        - n_jobs (int): Number of CPUs to use for parallel processing.
+        - verbose (int): Level of verbosity.
+
+        Returns:
+        - List[Dict]: List of dictionaries, each representing a reaction and with
+          keys 'R-id', 'new_reaction', 'label', 'reactants', and 'products'.
+        """
         label_data = Parallel(n_jobs=n_jobs, verbose=verbose)(
             delayed(PostProcess.label_reactions)(d) for d in self.data
         )
@@ -70,13 +81,16 @@ class PostProcess:
         oxidation_data = [
             value for value in label_data if value["label"] == "Oxidation"
         ]
+        other_data = [value for value in label_data if value["label"] == "unspecified"]
 
         curate_reduction = CurationReduction()
         curate_oxidation = CurationOxidation()
         result_reduction = curate_reduction.parallel_curate(
-            reduction_data, n_jobs=n_jobs, verbose=verbose
+            reduction_data, n_jobs=n_jobs, verbose=verbose, return_all=False
         )
         result_oxidation = curate_oxidation.parallel_curate(
-            oxidation_data, n_jobs=n_jobs, verbose=verbose
+            oxidation_data, n_jobs=n_jobs, verbose=verbose, return_all=False
         )
-        return result_reduction, result_oxidation
+        other_data.extend(result_reduction)
+        other_data.extend(result_oxidation)
+        return other_data
