@@ -1,6 +1,7 @@
 import argparse
 import logging
 import pandas as pd
+import rdkit.Chem.rdChemReactions as rdChemReactions
 
 from synrbl import Balancer
 from synrbl.SynUtils import normalize_smiles, wc_similarity
@@ -56,6 +57,25 @@ def check_columns(reactions, reaction_col, result_col):
     cols = reactions[0].keys()
     if reaction_col not in cols:
         raise KeyError("No column '{}' found in input.".format(reaction_col))
+    if not isinstance(reactions[0][reaction_col], str):
+        raise TypeError(
+            "Reaction column '{}' must be of type string not '{}'.".format(
+                reaction_col, type(reactions[0][reaction_col])
+            )
+        )
+    mol = None
+    try:
+        mol = rdChemReactions.ReactionFromSmarts(
+            reactions[0][reaction_col], useSmiles=True
+        )
+    except Exception:
+        pass
+    if mol is None:
+        raise ValueError(
+            "Value '{}...' in reaction column '{}' is not a valid SMILES.".format(
+                reactions[0][reaction_col][0:30], reaction_col
+            )
+        )
     if result_col not in cols:
         raise KeyError("No column '{}' found in input.".format(result_col))
 
