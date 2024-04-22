@@ -56,16 +56,35 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   ```
 
 4. **Verify Installation:**
-  After installation, you can verify that SynRBL is correctly installed by running a simple test or checking the package version.
+  After installation, you can verify that SynRBL is correctly installed by running a simple test.
 
   ```python
-  python -c "import synrbl; print(synrbl.__version__)"
+  python -c "from synrbl import Balancer; bal = Balancer(reaction_col='reactions', id_col='id'); print(bal.rebalance(reactions='CCO>>CC=O', output_dict=True))"
   ```
 
 ## Usage
 1. **Jupyter Notebook:**
   ```python
   from synrbl import Balancer
+
+  test = (
+      "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
+      + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O"
+  )
+  synrbl = Balancer(reaction_col="reactions", id_col="id")
+
+  results = synrbl.rebalance(reactions=test, output_dict=True)
+  >> [{
+          "reactions": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O>>"
+          + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O=C(O)OCc1ccccc1",
+          "solved": True,
+          "input_reaction": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
+          + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O",
+          "issue": "",
+          "rules": ["append O when next to O or N", "default single bond"],
+          "solved_by": "mcs-based",
+          "confidence": 0.999,
+      }]
   ```
 2. **Command line**
   ```bash
