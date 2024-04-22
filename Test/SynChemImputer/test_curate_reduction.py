@@ -79,7 +79,7 @@ class TestCurationReduction(unittest.TestCase):
             result_ion["curated_reaction"][0],
             (
                 "CC(=O)O.[AlH4-].[Li+].[H+].[AlH4-].[Li+].[H+]>>"
-                + "CCO.O.[AlH3].[Li+].[AlH3].[Li+]",
+                + "CCO.O.[AlH3].[Li+].[AlH3].[Li+]"
             ),
         )
 
@@ -149,14 +149,14 @@ class TestCurationReduction(unittest.TestCase):
             result[2]["curated_reaction"][0],
             (
                 "CC(=O)O.[AlH4-].[Li+].[H+].[AlH4-].[Li+].[H+]>>"
-                + "CCO.O.[AlH3].[Li+].[AlH3].[Li+]",
+                + "CCO.O.[AlH3].[Li+].[AlH3].[Li+]"
             ),
         )
         self.assertEqual(
             result[3]["curated_reaction"][0],
             (
                 "CC(=O)OC.[BH4-].[Na+].[H+].[BH4-].[Na+].[H+]>>"
-                + "CCO.CO.[BH3].[Na+].[BH3].[Na+]",
+                + "CCO.CO.[BH3].[Na+].[BH3].[Na+]"
             ),
         )
 

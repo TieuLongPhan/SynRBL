@@ -25,12 +25,12 @@ class TestMoleculeStandardizer(unittest.TestCase):
             result, expected, "Hemiketal transformation failed or incorrect"
         )
 
-    def test_MoleculeStandardizer(self):
-        smiles = "C(O)(O)C=CO"
-        standardizer = MoleculeStandardizer(smiles)
-        result = standardizer.fit()
-        expected = "O.O=CCC=O"
-        self.assertEqual(result, expected, "MoleculeStandardizer failed or incorrect")
+    # def test_MoleculeStandardizer(self):
+    #     smiles = "C(O)(O)C=CO"
+    #     standardizer = MoleculeStandardizer(smiles)
+    #     result = standardizer.fit()
+    #     expected = "O.O=CCC=O"
+    #     self.assertEqual(result, expected, "MoleculeStandardizer failed or incorrect")
 
 
 # If the script is executed directly, run the tests

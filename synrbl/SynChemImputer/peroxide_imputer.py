@@ -1,5 +1,5 @@
 from rdkit import Chem
-
+from fgutils import FGQuery
 
 class PeroxidGroupImputer:
     """A class for imputing peroxide and peracid groups in chemical reactions."""
