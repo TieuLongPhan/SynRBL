@@ -1,0 +1,70 @@
+{
+    "reduction":{
+        "template_1": {
+            "neutral": {
+                "reactants": ["[HH]"],
+                "products": [],
+                "stoichiometric": [1]
+            },
+            "ion": {
+                "reactants": ["[HH]"],
+                "products": [],
+                "stoichiometric": [1]
+            }
+        },
+        "template_2": {
+            "neutral": {
+                "reactants": ["[BH4-]", "[Na+]", "Cl"],
+                "products": ["[BH3]", "[Na][Cl]"],
+                "stoichiometric": [1]
+            },
+            "ion": {
+                "reactants": ["[BH4-]", "[Na+]", "[H+]"],
+                "products": ["[BH3]", "[Na+]"],
+                "stoichiometric": [1]
+            }
+        },
+        "template_3": {
+            "neutral": {
+                "reactants": ["[BH3-]C#N", "[Na+]", "Cl"],
+                "products": ["[BH2]C#N", "[Na][Cl]"],
+                "stoichiometric": [1]
+            },
+            "ion": {
+                "reactants": ["[BH3-]C#N", "[Na+]", "[H+]"],
+                "products": ["[BH2]C#N", "[Na+]"],
+                "stoichiometric": [1]
+            }
+        },
+        "template_4": {
+            "neutral": {
+                "reactants": ["[AlH4-]", "[Li+]", "Cl"],
+                "products": ["[AlH3]", "[Li][Cl]"],
+                "stoichiometric": [1] 
+            },
+            "ion": {
+                "reactants": ["[AlH4-]", "[Li+]", "[H+]"],
+                "products": ["[AlH3]", "[Li+]"],
+                "stoichiometric": [1]
+            }
+        }
+    },
+    "oxidation": {
+        "template_1": {
+            "reactants": ["O=[Cr](Cl)(-[O-])=O", "c1cc[nH+]cc1"],
+            "products": ["O=[Cr](O)O", "c1cc[nH+]cc1","[Cl-]"],
+            "stoichiometric": [1]
+        },
+        "template_2": {
+            "reactants": ["[K][O][Mn](=O)(=O)=O", "OS(=O)(=O)O"],
+            "products": ["[K][O]S(=O)(=O)[O][K]", "[Mn]1[O]S(=O)(=O)[O]1"],
+             "stoichiometric": [5,4,6,5,11,2,4]
+    },
+        "template_3": {
+            "reactants": ["O=[Mn](=O)(=O)O[K]", "O"],
+            "products": ["O=[Mn]=O", "O[K]"],
+             "stoichiometric": [5,4,6,5,4,1]
+    }
+    
+}
+}

@@ -1,4 +1,3 @@
-
 def update_reactants_and_products(
     reactions,
     reaction_col,

@@ -117,7 +117,7 @@ class RSMIDecomposer:
         83: "Bi",
         84: "Po",
         85: "At",
-        86: "Rn"
+        86: "Rn",
         # This covers elements up to Radon (Rn). Extend further if needed.
     }
 

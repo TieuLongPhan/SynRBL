@@ -78,9 +78,9 @@ class ConfidencePredictor:
                         r[self.issue_col] == ""
                     ), "Issue column has value for a solved reaction?"
                     r[self.solved_col] = False
-                    r[
-                        self.issue_col
-                    ] = "Confidence is below the threshold of {:.2%}.".format(threshold)
+                    r[self.issue_col] = (
+                        "Confidence is below the threshold of {:.2%}.".format(threshold)
+                    )
         if stats is not None:
             stats["confident_cnt"] = conf_success
         return reactions

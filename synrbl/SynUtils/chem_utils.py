@@ -6,10 +6,9 @@ import rdkit.DataStructs as DataStructs
 import rdkit.Chem.rdFingerprintGenerator as rdFingerprintGenerator
 import rdkit.Chem.AllChem as AllChem
 import rdkit.Chem.rdmolfiles as rdmolfiles
-
-
-from typing import List, Dict
-from typing import Union
+from collections import Counter
+from typing import List, Dict, Tuple, Optional, Union
+from fgutils import FGQuery
 
 
 class CheckCarbonBalance:
@@ -230,3 +229,85 @@ def wc_similarity(expected_smiles, result_smiles, method="pathway"):
     exp_ed, res_ed = _get_diff_mol(exp_e, res_e)
     exp_pd, res_pd = _get_diff_mol(exp_p, res_p)
     return np.min([_fp(exp_ed, res_ed), _fp(exp_pd, res_pd)])
+
+
+def check_for_isolated_atom(smiles: str, atom: Optional[str] = "H") -> bool:
+    """
+    Checks if a specified type of isolated atom (hydrogen by default, or oxygen)
+    exists in a SMILES string.
+    """
+    # Pattern to find isolated atoms; not connected to any other atoms
+    pattern = rf"\[{atom}\](?![^[]*\])"
+    return bool(re.search(pattern, smiles))
+
+
+def count_radical_atoms(smiles: str, atomic_num: int) -> int:
+    """
+    Counts isolated radical atoms in SMILES string.
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    radical_count = 0
+
+    # Iterate over all atoms in the molecule
+    for atom in mol.GetAtoms():
+
+        if atom.GetAtomicNum() == atomic_num and atom.GetNumRadicalElectrons() > 0:
+            # Further check if the atom is isolated (has no neighbors)
+            if len(atom.GetNeighbors()) == 0:
+                radical_count += 1
+
+    return radical_count
+
+
+def list_difference(
+    list1: List[str], list2: List[str]
+) -> Tuple[Dict[str, int], Dict[str, int]]:
+    """
+    Compares two lists and returns dictionaries that count unique occurrences
+    Parameters:
+    list1 (List[str]): First list of items for comparison.
+    list2 (List[str]): Second list of items for comparison.
+
+    Returns:
+    Tuple[Dict[str, int], Dict[str, int]]: A tuple of two dictionaries:
+        - First dictionary: Items unique to the first list with their counts.
+        - Second dictionary: Items unique to the second list with their counts.
+    """
+    count1 = Counter(list1)
+    count2 = Counter(list2)
+    unique_to_list1 = {}
+    unique_to_list2 = {}
+
+    for key, count in count1.items():
+        if key not in count2:
+            unique_to_list1[key] = count
+        elif count > count2[key]:
+            unique_to_list1[key] = count - count2[key]
+
+    for key, count in count2.items():
+        if key not in count1:
+            unique_to_list2[key] = count
+        elif count > count1[key]:
+            unique_to_list2[key] = count - count1[key]
+
+    return unique_to_list1, unique_to_list2
+
+
+def find_functional_reactivity(reaction_smiles: str) -> Tuple[List[str], List[str]]:
+    """
+    Analyzes functional groups
+
+    Parameters:
+    reaction_smiles (str): SMILES string of the reaction
+    Returns:
+    Tuple[List[str], List[str]]: Two lists containing unique functional groups
+    in reactants and products, respectively.
+    """
+    query = FGQuery(use_smiles=True)
+    reactant, product = reaction_smiles.split(">>")
+    fg_reactant = query.get(reactant)
+    fg_product = query.get(product)
+    fg_reactant = [value[0] for value in fg_reactant]
+    fg_product = [value[0] for value in fg_product]
+    reactant_fg, product_fg = list_difference(fg_reactant, fg_product)
+    return list(reactant_fg.keys()), list(product_fg.keys())
