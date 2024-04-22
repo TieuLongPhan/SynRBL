@@ -27,7 +27,7 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
 - scikit_learn==1.4.1.post1
 - imbalanced_learn==0.12.0
 - reportlab==4.1.0
-
+- fgutils==0.0.13
 
 ### Step-by-Step Installation Guide
 
