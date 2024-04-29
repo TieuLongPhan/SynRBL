@@ -65,7 +65,7 @@ class SubstructureAnalyzer:
         return [pair[0] for pair in paired_list]
 
     def identify_optimal_substructure(
-        self, parent_mol: Mol, child_mol: Mol, timeout_sec: int = 3
+        self, parent_mol: Mol, child_mol: Mol, timeout_sec: int = 10
     ) -> Tuple[int, ...]:
         """
         Identifies the most relevant substructure within a parent molecule
@@ -86,9 +86,11 @@ class SubstructureAnalyzer:
         Tuple[int, ...]: The atom indices of the identified substructure in
             the parent molecule.
         """
-        substructures = SubstructureAnalyzer.run_with_timeout(
-            parent_mol, child_mol, timeout_sec
-        )
+        # substructures = SubstructureAnalyzer.run_with_timeout(
+        #     parent_mol, child_mol, timeout_sec
+        # )
+        substructures = parent_mol.GetSubstructMatches(child_mol)
+        # print(substructures)
 
         if len(substructures) > 1:
             fragment_counts = [
