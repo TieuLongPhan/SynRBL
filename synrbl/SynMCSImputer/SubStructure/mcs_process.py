@@ -71,7 +71,9 @@ def single_mcs(
     return mcs_data
 
 
-def ensemble_mcs(data, conditions, id_col="id", issue_col="issue", n_jobs=-1, timeout=1):
+def ensemble_mcs(
+    data, conditions, id_col="id", issue_col="issue", n_jobs=-1, timeout=1
+):
     condition_results = []
     start_time = time.time()
     last_tsmp = start_time
