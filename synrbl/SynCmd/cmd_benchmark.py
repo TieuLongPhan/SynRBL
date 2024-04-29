@@ -152,7 +152,7 @@ def list_of_strings(arg):
 
 def configure_argparser(argparser: argparse._SubParsersAction):
     default_similarity_method = "pathway"
-    default_similarity_threshold = 1 
+    default_similarity_threshold = 1
     default_p = -1
     default_col = "reaction"
     default_result_col = "expected_reaction"
