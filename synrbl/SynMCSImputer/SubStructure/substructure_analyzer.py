@@ -89,7 +89,7 @@ class SubstructureAnalyzer:
         substructures = SubstructureAnalyzer.run_with_timeout(
             parent_mol, child_mol, timeout_sec
         )
-        #substructures = parent_mol.GetSubstructMatches(child_mol)
+        # substructures = parent_mol.GetSubstructMatches(child_mol)
         # print(substructures)
 
         if len(substructures) > 1:
