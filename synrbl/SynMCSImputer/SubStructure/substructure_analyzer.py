@@ -86,10 +86,10 @@ class SubstructureAnalyzer:
         Tuple[int, ...]: The atom indices of the identified substructure in
             the parent molecule.
         """
-        # substructures = SubstructureAnalyzer.run_with_timeout(
-        #     parent_mol, child_mol, timeout_sec
-        # )
-        substructures = parent_mol.GetSubstructMatches(child_mol)
+        substructures = SubstructureAnalyzer.run_with_timeout(
+            parent_mol, child_mol, timeout_sec
+        )
+        #substructures = parent_mol.GetSubstructMatches(child_mol)
         # print(substructures)
 
         if len(substructures) > 1:
@@ -140,4 +140,4 @@ class SubstructureAnalyzer:
                 child_mol, maxMatches=1
             )  # Fallback if timeout is reached
         else:
-            return output.get() if not output.empty() else None
+            return output.get()
