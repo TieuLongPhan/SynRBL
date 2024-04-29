@@ -18,7 +18,7 @@ def single_mcs(
     issue_col="issue",
     RingMatchesRingOnly=True,
     CompleteRingsOnly=True,
-    Timeout=60,
+    timeout=1,
     sort="MCES",
     method="MCES",
     similarityThreshold=0.5,
@@ -52,7 +52,7 @@ def single_mcs(
             sort=sort,
             method=method,
             remove_substructure=remove_substructure,
-            Timeout=Timeout,
+            timeout=timeout,
             similarityThreshold=similarityThreshold,
             ignore_bond_order=ignore_bond_order,
         )
@@ -71,9 +71,7 @@ def single_mcs(
     return mcs_data
 
 
-def ensemble_mcs(
-    data, conditions, id_col="id", issue_col="issue", n_jobs=-1, Timeout=60
-):
+def ensemble_mcs(data, conditions, id_col="id", issue_col="issue", n_jobs=-1, timeout=1):
     condition_results = []
     start_time = time.time()
     last_tsmp = start_time
@@ -86,7 +84,7 @@ def ensemble_mcs(
                 id_col=id_col,
                 issue_col=issue_col,
                 **condition,
-                Timeout=Timeout,
+                timeout=timeout,
             )
             for data_dict in data
         )

@@ -174,7 +174,7 @@ class MCSMissingGraphAnalyzer:
         reaction_dict,
         RingMatchesRingOnly=True,
         CompleteRingsOnly=True,
-        Timeout=60,
+        timeout=1,
         similarityThreshold=0.5,
         sort="MCIS",
         method="MCIS",
@@ -201,7 +201,7 @@ class MCSMissingGraphAnalyzer:
 
         if method == "MCIS":
             params = rdFMCS.MCSParameters()
-            params.Timeout = 1  # Timeout
+            params.Timeout = timeout
             params.BondCompareParameters.RingMatchesRingOnly = RingMatchesRingOnly
             params.BondCompareParameters.CompleteRingsOnly = CompleteRingsOnly
             if ignore_bond_order:
@@ -213,7 +213,7 @@ class MCSMissingGraphAnalyzer:
             params = rdRascalMCES.RascalOptions()
             params.singleLargestFrag = False
             params.returnEmptyMCES = True
-            params.timeout = 1  # Timeout
+            params.timeout = timeout
             params.similarityThreshold = similarityThreshold
 
         else:
