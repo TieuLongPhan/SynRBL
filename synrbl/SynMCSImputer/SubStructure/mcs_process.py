@@ -6,12 +6,14 @@ import rdkit.Chem.rdmolfiles as rdmolfiles
 
 from synrbl.SynMCSImputer.SubStructure.mcs_graph_detector import MCSMissingGraphAnalyzer
 from joblib import Parallel, delayed
+from synrbl.SynUtils.joblib_helper import with_timeout
 
 from rdkit.rdBase import BlockLogs
 
 logger = logging.getLogger("synrbl")
 
 
+@with_timeout(2)
 def single_mcs(
     data_dict,
     id_col="id",
