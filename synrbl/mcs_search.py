@@ -83,6 +83,7 @@ class MCSSearch:
         )
 
         largest_conditions = ExtractMCS.get_largest_condition(*condition_results)
+        print(largest_conditions)
 
         mcs_results = find_graph_dict(largest_conditions)
 

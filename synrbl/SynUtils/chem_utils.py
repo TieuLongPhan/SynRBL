@@ -10,25 +10,6 @@ from collections import Counter
 from typing import List, Dict, Tuple, Optional, Union
 from fgutils import FGQuery
 
-from multiprocessing import Queue
-from rdkit.Chem import Mol
-
-
-def get_substruct_matches(queue: Queue, parent_mol: Mol, child_mol: Mol):
-    """
-    Finds all substructure matches of a child molecule within a parent molecule.
-
-    Parameters:
-    queue (multiprocessing.Queue): Queue to place the result.
-    parent_mol (Mol): The parent molecule.
-    child_mol (Mol): The child molecule.
-
-    Returns:
-    None: The function places results in the provided queue.
-    """
-    result = parent_mol.GetSubstructMatches(child_mol)
-    queue.put(result)
-
 
 class CheckCarbonBalance:
     def __init__(

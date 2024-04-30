@@ -50,6 +50,7 @@ class MCSMissingGraphAnalyzer:
         method="MCIS",
         sort="MCIS",
         remove_substructure=True,
+        maxNodes=80,
     ):
         """
         Find the MCS for each reactant fragment with the product, updating the
@@ -145,7 +146,9 @@ class MCSMissingGraphAnalyzer:
                         # Identify the optimal substructure
                         analyzer = SubstructureAnalyzer()
                         optimal_substructure = analyzer.identify_optimal_substructure(
-                            parent_mol=current_product, child_mol=mcs_mol
+                            parent_mol=current_product,
+                            child_mol=mcs_mol,
+                            maxNodes=maxNodes,
                         )
                         if optimal_substructure:
                             rw_mol = Chem.RWMol(current_product)
@@ -181,6 +184,7 @@ class MCSMissingGraphAnalyzer:
         remove_substructure=True,
         ignore_atom_map=False,
         ignore_bond_order=False,
+        maxNodes=80,
     ):
         """
         Process a reaction dictionary to find MCS, missing parts in reactants
@@ -242,6 +246,7 @@ class MCSMissingGraphAnalyzer:
                 method=method,
                 sort=sort,
                 remove_substructure=remove_substructure,
+                maxNodes=maxNodes,
             )
 
             return mcs_list, sorted_parents, reactant_mol_list, product_mol

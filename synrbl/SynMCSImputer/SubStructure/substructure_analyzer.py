@@ -1,8 +1,6 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from rdkit import Chem
 from rdkit.Chem.rdchem import Mol
-from synrbl.SynUtils.chem_utils import get_substruct_matches
-import multiprocessing
 
 
 class SubstructureAnalyzer:
@@ -65,7 +63,7 @@ class SubstructureAnalyzer:
         return [pair[0] for pair in paired_list]
 
     def identify_optimal_substructure(
-        self, parent_mol: Mol, child_mol: Mol, timeout_sec: int = 10
+        self, parent_mol: Mol, child_mol: Mol, maxNodes: int = 80
     ) -> Tuple[int, ...]:
         """
         Identifies the most relevant substructure within a parent molecule
@@ -86,11 +84,11 @@ class SubstructureAnalyzer:
         Tuple[int, ...]: The atom indices of the identified substructure in
             the parent molecule.
         """
-        # substructures = SubstructureAnalyzer.run_with_timeout(
-        #     parent_mol, child_mol, timeout_sec
-        # )
-        substructures = parent_mol.GetSubstructMatches(child_mol)
-        # print(substructures)
+
+        if child_mol.GetNumAtoms() <= maxNodes:
+            substructures = parent_mol.GetSubstructMatches(child_mol)
+        else:
+            substructures = parent_mol.GetSubstructMatches(child_mol, maxMatches=1)
 
         if len(substructures) > 1:
             fragment_counts = [
@@ -103,41 +101,3 @@ class SubstructureAnalyzer:
             return sorted_substructures[0]
         else:
             return substructures[0] if substructures else ()
-
-    @staticmethod
-    def run_with_timeout(
-        parent_mol: Mol, child_mol: Mol, timeout_sec: int
-    ) -> Optional[List[Tuple[int, ...]]]:
-        """
-        Executes a substructure matching with a timeout limit.
-        This method runs the substructure matching in a separate
-        process to handle timeouts by terminating the process
-        if it exceeds the given time limit. If the operation times out,
-        a fallback search with maxMatches=1 is performed.
-
-        Parameters:
-        parent_mol (Mol): The parent molecule.
-        child_mol (Mol): The child molecule.
-        timeout_sec (int): The number of seconds to allow for the operation
-                            before timing out.
-
-        Returns:
-        Optional[List[Tuple[int, ...]]]: A list of tuples representing the atom
-        indices of the matches found, or None if the operation times out.
-        """
-        output = multiprocessing.Queue()
-        process = multiprocessing.Process(
-            target=get_substruct_matches, args=(output, parent_mol, child_mol)
-        )
-        process.start()
-        process.join(timeout_sec)
-
-        if process.is_alive():
-            process.terminate()
-            process.join()
-            print("Timeout reached, process terminated. Trying with maxMatches=1.")
-            return parent_mol.GetSubstructMatches(
-                child_mol, maxMatches=1
-            )  # Fallback if timeout is reached
-        else:
-            return output.get()
