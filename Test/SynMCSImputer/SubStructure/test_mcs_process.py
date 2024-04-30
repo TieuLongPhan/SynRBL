@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 
 from unittest.mock import patch
-from synrbl.SynMCSImputer.SubStructure.mcs_process import single_mcs
+from synrbl.SynMCSImputer.SubStructure.mcs_process import single_mcs, ensemble_mcs
 
 
 class TestMCSFunctions(unittest.TestCase):
@@ -40,3 +40,27 @@ class TestMCSFunctions(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_timeout():
+    conditions = [
+        {
+            "RingMatchesRingOnly": True,
+            "CompleteRingsOnly": True,
+            "method": "MCIS",
+            "sort": "MCIS",
+            "ignore_bond_order": True,
+        }
+    ]
+    data = [
+        {
+            "id": 0,
+            "carbon_balance_check": "products",
+            "reactants": "[Br]" + 100 * "[Si](C)(C)O" + "[Si][Br]",
+            "products": "O" + 100 * "[Si](C)(C)O" + "[Si]O",
+        }
+    ]
+    result = ensemble_mcs(data, conditions, n_jobs=2)
+    assert "timeout" in result[0][0]["issue"]
+    assert [] == result[0][0]["mcs_results"]
+    assert [] == result[0][0]["sorted_reactants"]
