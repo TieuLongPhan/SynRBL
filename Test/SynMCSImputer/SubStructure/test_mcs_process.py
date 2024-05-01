@@ -50,6 +50,7 @@ def test_timeout():
             "method": "MCIS",
             "sort": "MCIS",
             "ignore_bond_order": True,
+            "maxNodes": 1000,
         }
     ]
     data = [

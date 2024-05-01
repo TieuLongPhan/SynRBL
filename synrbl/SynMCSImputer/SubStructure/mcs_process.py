@@ -26,6 +26,7 @@ def single_mcs(
     similarityThreshold=0.5,
     remove_substructure=True,
     ignore_bond_order=True,
+    maxNodes=100,
 ):
     """
     Performs MCS on a single reaction data entry and captures any issues encountered.
@@ -51,6 +52,7 @@ def single_mcs(
             timeout=timeout,
             similarityThreshold=similarityThreshold,
             ignore_bond_order=ignore_bond_order,
+            maxNodes=maxNodes
         )
 
         if len(reactant_mol_list) != len(sorted_reactants):
