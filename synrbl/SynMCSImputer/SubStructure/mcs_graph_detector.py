@@ -50,6 +50,7 @@ class MCSMissingGraphAnalyzer:
         method="MCIS",
         sort="MCIS",
         remove_substructure=True,
+        maxNodes=80,
     ):
         """
         Find the MCS for each reactant fragment with the product, updating the
@@ -145,7 +146,9 @@ class MCSMissingGraphAnalyzer:
                         # Identify the optimal substructure
                         analyzer = SubstructureAnalyzer()
                         optimal_substructure = analyzer.identify_optimal_substructure(
-                            parent_mol=current_product, child_mol=mcs_mol
+                            parent_mol=current_product,
+                            child_mol=mcs_mol,
+                            maxNodes=maxNodes,
                         )
                         if optimal_substructure:
                             rw_mol = Chem.RWMol(current_product)
@@ -174,13 +177,14 @@ class MCSMissingGraphAnalyzer:
         reaction_dict,
         RingMatchesRingOnly=True,
         CompleteRingsOnly=True,
-        Timeout=60,
+        timeout=1,
         similarityThreshold=0.5,
         sort="MCIS",
         method="MCIS",
         remove_substructure=True,
         ignore_atom_map=False,
         ignore_bond_order=False,
+        maxNodes=80,
     ):
         """
         Process a reaction dictionary to find MCS, missing parts in reactants
@@ -201,7 +205,7 @@ class MCSMissingGraphAnalyzer:
 
         if method == "MCIS":
             params = rdFMCS.MCSParameters()
-            params.Timeout = 1  # Timeout
+            params.Timeout = timeout
             params.BondCompareParameters.RingMatchesRingOnly = RingMatchesRingOnly
             params.BondCompareParameters.CompleteRingsOnly = CompleteRingsOnly
             if ignore_bond_order:
@@ -213,7 +217,7 @@ class MCSMissingGraphAnalyzer:
             params = rdRascalMCES.RascalOptions()
             params.singleLargestFrag = False
             params.returnEmptyMCES = True
-            params.timeout = 1  # Timeout
+            params.timeout = timeout
             params.similarityThreshold = similarityThreshold
 
         else:
@@ -242,6 +246,7 @@ class MCSMissingGraphAnalyzer:
                 method=method,
                 sort=sort,
                 remove_substructure=remove_substructure,
+                maxNodes=maxNodes,
             )
 
             return mcs_list, sorted_parents, reactant_mol_list, product_mol

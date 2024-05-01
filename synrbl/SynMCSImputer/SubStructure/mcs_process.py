@@ -1,6 +1,8 @@
 import datetime
 import time
 import logging
+import multiprocessing
+import multiprocessing.pool
 
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
@@ -14,16 +16,17 @@ logger = logging.getLogger("synrbl")
 
 def single_mcs(
     data_dict,
-    id_col="id",
+    mcs_data,
     issue_col="issue",
     RingMatchesRingOnly=True,
     CompleteRingsOnly=True,
-    Timeout=60,
+    timeout=1,
     sort="MCES",
     method="MCES",
     similarityThreshold=0.5,
     remove_substructure=True,
     ignore_bond_order=True,
+    maxNodes=100,
 ):
     """
     Performs MCS on a single reaction data entry and captures any issues encountered.
@@ -36,12 +39,6 @@ def single_mcs(
     - dict: A dictionary containing MCS results and any sorted reactants encountered.
     """
     block_logs = BlockLogs()
-    mcs_data = {
-        id_col: data_dict[id_col],
-        "mcs_results": [],
-        "sorted_reactants": [],
-        issue_col: "",
-    }
 
     try:
         analyzer = MCSMissingGraphAnalyzer()
@@ -52,13 +49,14 @@ def single_mcs(
             sort=sort,
             method=method,
             remove_substructure=remove_substructure,
-            Timeout=Timeout,
+            timeout=timeout,
             similarityThreshold=similarityThreshold,
             ignore_bond_order=ignore_bond_order,
+            maxNodes=maxNodes
         )
 
         if len(reactant_mol_list) != len(sorted_reactants):
-            mcs_data["issue"] = "Uncertian MCS."
+            mcs_data[issue_col] = "Uncertian MCS."
         else:
             mcs_data["mcs_results"] = [rdmolfiles.MolToSmarts(mol) for mol in mcs_list]
             mcs_data["sorted_reactants"] = [
@@ -71,8 +69,31 @@ def single_mcs(
     return mcs_data
 
 
+def single_mcs_safe(data_dict, job_timeout=2, id_col="id", issue_col="issue", **kwargs):
+    mcs_data = {
+        id_col: data_dict[id_col],
+        "mcs_results": [],
+        "sorted_reactants": [],
+        issue_col: "",
+    }
+    pool = multiprocessing.pool.ThreadPool(1)
+    async_result = pool.apply_async(
+        single_mcs,
+        (
+            data_dict,
+            mcs_data,
+        ),
+        kwargs,
+    )
+    try:
+        return async_result.get(job_timeout)
+    except multiprocessing.TimeoutError:
+        mcs_data[issue_col] = "MCS search terminated by timeout."
+        return mcs_data
+
+
 def ensemble_mcs(
-    data, conditions, id_col="id", issue_col="issue", n_jobs=-1, Timeout=60
+    data, conditions, id_col="id", issue_col="issue", n_jobs=-1, timeout=1
 ):
     condition_results = []
     start_time = time.time()
@@ -81,12 +102,12 @@ def ensemble_mcs(
         all_results = []  # Accumulate results for each condition
 
         p_generator = Parallel(n_jobs=n_jobs, verbose=0, return_as="generator")(
-            delayed(single_mcs)(
+            delayed(single_mcs_safe)(
                 data_dict,
                 id_col=id_col,
                 issue_col=issue_col,
                 **condition,
-                Timeout=Timeout,
+                timeout=timeout,
             )
             for data_dict in data
         )

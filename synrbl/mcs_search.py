@@ -80,10 +80,10 @@ class MCSSearch:
             id_col=self.id_col,
             issue_col=self.issue_col,
             n_jobs=self.n_jobs,
-            Timeout=60,
         )
 
         largest_conditions = ExtractMCS.get_largest_condition(*condition_results)
+        print(largest_conditions)
 
         mcs_results = find_graph_dict(largest_conditions)
 

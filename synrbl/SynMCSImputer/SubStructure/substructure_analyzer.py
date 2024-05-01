@@ -63,22 +63,33 @@ class SubstructureAnalyzer:
         return [pair[0] for pair in paired_list]
 
     def identify_optimal_substructure(
-        self, parent_mol: Mol, child_mol: Mol
+        self, parent_mol: Mol, child_mol: Mol, maxNodes: int = 80
     ) -> Tuple[int, ...]:
         """
         Identifies the most relevant substructure within a parent molecule
-        given a child molecule.
+        given a child molecule, with a timeout feature for the
+        substructure matching process. If the primary matching process times out,
+        a fallback search is attempted with a maximum of one match.
 
         Parameters:
         parent_mol (Mol): The parent molecule.
-        child_mol (Mol): The child molecule whose substructures are to be
-            analyzed.
+        child_mol (Mol): The child molecule whose substructures are to be analyzed.
+        timeout_sec (int): Timeout in seconds for the substructure search process.
+
+        Returns:
+        Tuple[int, ...]: The atom indices of the identified substructure
+        in the parent molecule.
 
         Returns:
         Tuple[int, ...]: The atom indices of the identified substructure in
             the parent molecule.
         """
-        substructures = parent_mol.GetSubstructMatches(child_mol)
+
+        if child_mol.GetNumAtoms() <= maxNodes:
+            substructures = parent_mol.GetSubstructMatches(child_mol)
+        else:
+            substructures = parent_mol.GetSubstructMatches(child_mol, maxMatches=1)
+
         if len(substructures) > 1:
             fragment_counts = [
                 self.remove_substructure_atoms(parent_mol, substructure)
