@@ -52,7 +52,7 @@ def single_mcs(
             timeout=timeout,
             similarityThreshold=similarityThreshold,
             ignore_bond_order=ignore_bond_order,
-            maxNodes=maxNodes
+            maxNodes=maxNodes,
         )
 
         if len(reactant_mol_list) != len(sorted_reactants):
@@ -69,7 +69,7 @@ def single_mcs(
     return mcs_data
 
 
-def single_mcs_safe(data_dict, job_timeout=2, id_col="id", issue_col="issue", **kwargs):
+def single_mcs_safe(data_dict, job_timeout=5, id_col="id", issue_col="issue", **kwargs):
     mcs_data = {
         id_col: data_dict[id_col],
         "mcs_results": [],
