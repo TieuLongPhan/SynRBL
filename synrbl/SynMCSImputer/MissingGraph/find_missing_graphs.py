@@ -41,7 +41,9 @@ class FindMissingGraphs:
 
     @staticmethod
     def find_missing_parts_pairs(
-        mol_list: List[Chem.Mol], mcs_list: Optional[List[Chem.Mol]] = None
+        mol_list: List[Chem.Mol],
+        mcs_list: Optional[List[Chem.Mol]] = None,
+        substructure_optimize: bool = True,
     ) -> Tuple[
         Optional[List[Chem.Mol]], List[List[Dict[str, int]]], List[List[Dict[str, int]]]
     ]:
@@ -93,10 +95,13 @@ class FindMissingGraphs:
                     if not substructure_match:
                         substructure_match = mol.GetSubstructMatch(mcs_mol)
                 else:
-                    analyzer = SubstructureAnalyzer()
-                    substructure_match = analyzer.identify_optimal_substructure(
-                        parent_mol=mol, child_mol=mcs_mol
-                    )
+                    if substructure_optimize:
+                        analyzer = SubstructureAnalyzer()
+                        substructure_match = analyzer.identify_optimal_substructure(
+                            parent_mol=mol, child_mol=mcs_mol
+                        )
+                    else:
+                        substructure_match = mol.GetSubstructMatch(mcs_mol)
 
                 if substructure_match:
                     atoms_to_remove.update(substructure_match)
