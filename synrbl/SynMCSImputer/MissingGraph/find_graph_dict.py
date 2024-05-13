@@ -122,6 +122,9 @@ def find_graph_dict(mcs_dict, n_jobs: int = 4):
     """
     Function to find missing graphs for a given MCS dictionary.
     """
+    if len(mcs_dict) == 0:
+        return []
+
     msc_df = pd.DataFrame(mcs_dict)
 
     mcs_results = msc_df["mcs_results"].to_list()
