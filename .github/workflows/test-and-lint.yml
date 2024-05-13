@@ -7,9 +7,9 @@ name: Test & Lint
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
   pull_request:
-    branches: [ "main", "release" ]
+    branches: [ "main" ]
 
 permissions:
   contents: read
