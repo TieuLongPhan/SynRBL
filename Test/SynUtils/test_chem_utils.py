@@ -78,3 +78,8 @@ class TestNormalizeReaction(unittest.TestCase):
         smiles = "C[C@H][C@@H]"
         result = normalize_smiles(smiles)
         self.assertEqual("CCC", result)
+
+    def test_edge_case_1(self):
+        smiles = "F[Sb@OH12](F)(F)(F)(F)F"
+        result = normalize_smiles(smiles)
+        self.assertEqual("F[Sb](F)(F)(F)(F)F", result)

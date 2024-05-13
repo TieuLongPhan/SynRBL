@@ -141,8 +141,14 @@ def remove_atom_mapping(smiles: str) -> str:
     return smiles
 
 
+def remove_stereo_chemistry(smiles: str) -> str:
+    pattern = re.compile(r"\[(?P<atom>(\w+))@+\w+\]")
+    smiles = pattern.sub(r"[\g<atom>]", smiles)
+    return smiles
+
+
 def normalize_smiles(smiles: str) -> str:
-    smiles = smiles.replace("@", "")
+    smiles = remove_stereo_chemistry(smiles)
     if ">>" in smiles:
         return ">>".join([normalize_smiles(t) for t in smiles.split(">>")])
     elif "." in smiles:
@@ -250,7 +256,6 @@ def count_radical_atoms(smiles: str, atomic_num: int) -> int:
 
     # Iterate over all atoms in the molecule
     for atom in mol.GetAtoms():
-
         if atom.GetAtomicNum() == atomic_num and atom.GetNumRadicalElectrons() > 0:
             # Further check if the atom is isolated (has no neighbors)
             if len(atom.GetNeighbors()) == 0:
