@@ -26,7 +26,8 @@ def single_mcs(
     similarityThreshold=0.5,
     remove_substructure=True,
     ignore_bond_order=True,
-    maxNodes=100,
+    maxNodes=200,
+    substructure_optimize: bool = True,
 ):
     """
     Performs MCS on a single reaction data entry and captures any issues encountered.
@@ -52,7 +53,8 @@ def single_mcs(
             timeout=timeout,
             similarityThreshold=similarityThreshold,
             ignore_bond_order=ignore_bond_order,
-            maxNodes=maxNodes
+            maxNodes=maxNodes,
+            substructure_optimize=substructure_optimize,
         )
 
         if len(reactant_mol_list) != len(sorted_reactants):
@@ -88,6 +90,9 @@ def single_mcs_safe(data_dict, job_timeout=2, id_col="id", issue_col="issue", **
     try:
         return async_result.get(job_timeout)
     except multiprocessing.TimeoutError:
+        mcs_data = single_mcs(
+            data_dict=data_dict, mcs_data=mcs_data, substructure_optimize=False
+        )
         mcs_data[issue_col] = "MCS search terminated by timeout."
         return mcs_data
 

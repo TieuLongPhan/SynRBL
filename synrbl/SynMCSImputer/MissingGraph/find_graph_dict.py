@@ -4,6 +4,8 @@ from rdkit import Chem
 from rdkit.rdBase import BlockLogs
 from joblib import Parallel, delayed
 from typing import List
+import multiprocessing
+import multiprocessing.pool
 from synrbl.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGraphs
 from synrbl.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
 
@@ -86,22 +88,88 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4
     - 'issue' (str): Any issues encountered during processing.
     """
 
-    def process_single_pair(reactant_mol, mcs_mol):
+    # def process_single_pair(reactant_mol, mcs_mol):
+    #     try:
+    #         block = BlockLogs()
+    #         (
+    #             mols,
+    #             boundary_atoms_products,
+    #             nearest_neighbor_products,
+    #         ) = FindMissingGraphs.find_missing_parts_pairs(reactant_mol, mcs_mol)
+    #         del block
+    #         return {
+    #             "smiles": [
+    #                 Chem.MolToSmiles(mol) if mol is not None else None for mol in mols
+    #             ],
+    #             "boundary_atoms_products": boundary_atoms_products,
+    #             "nearest_neighbor_products": nearest_neighbor_products,
+    #             "issue": "",
+    #         }
+    #     except Exception as e:
+    #         return {
+    #             "smiles": [],
+    #             "boundary_atoms_products": [],
+    #             "nearest_neighbor_products": [],
+    #             "issue": str(e),
+    #         }
+
+    # def process_single_pair_safe(reactant_mol, mcs_mol, job_timeout=5):
+    #     pool = multiprocessing.Pool(1)
+    #     async_result = pool.apply_async(
+    #         process_single_pair,
+    #         (
+    #             reactant_mol,
+    #             mcs_mol,
+    #         ),
+    #     )
+    #     try:
+    #         return async_result.get(job_timeout)
+    #     except multiprocessing.TimeoutError:
+    #         return {
+    #             "smiles": [],
+    #             "boundary_atoms_products": [],
+    #             "nearest_neighbor_products": [],
+    #             "issue": "Find Missing Graph terminated by timeout.",
+    #         }
+    #     finally:
+    #         pool.terminate()  # Terminate the pool to release resources
+    def process_single_pair(reactant_mol, mcs_mol, job_timeout=2):
         try:
             block = BlockLogs()
-            (
-                mols,
-                boundary_atoms_products,
-                nearest_neighbor_products,
-            ) = FindMissingGraphs.find_missing_parts_pairs(reactant_mol, mcs_mol)
+            pool = multiprocessing.Pool(1)
+            async_result = pool.apply_async(
+                FindMissingGraphs.find_missing_parts_pairs,
+                (
+                    reactant_mol,
+                    mcs_mol,
+                ),
+            )
+            result = async_result.get(job_timeout)
+            pool.terminate()  # Terminate the pool to release resources
             del block
             return {
                 "smiles": [
-                    Chem.MolToSmiles(mol) if mol is not None else None for mol in mols
+                    Chem.MolToSmiles(mol) if mol is not None else None
+                    for mol in result[0]
                 ],
-                "boundary_atoms_products": boundary_atoms_products,
-                "nearest_neighbor_products": nearest_neighbor_products,
+                "boundary_atoms_products": result[1],
+                "nearest_neighbor_products": result[2],
                 "issue": "",
+            }
+        except multiprocessing.TimeoutError:
+            pool.terminate()  # Terminate the pool in case of timeout
+
+            result = FindMissingGraphs.find_missing_parts_pairs(
+                reactant_mol, mcs_mol, False
+            )
+            return {
+                "smiles": [
+                    Chem.MolToSmiles(mol) if mol is not None else None
+                    for mol in result[0]
+                ],
+                "boundary_atoms_products": result[1],
+                "nearest_neighbor_products": result[2],
+                "issue": "Find Missing Graph terminated by timeout",
             }
         except Exception as e:
             return {
@@ -122,6 +190,9 @@ def find_graph_dict(mcs_dict, n_jobs: int = 4):
     """
     Function to find missing graphs for a given MCS dictionary.
     """
+    if len(mcs_dict) == 0:
+        return []
+
     msc_df = pd.DataFrame(mcs_dict)
 
     mcs_results = msc_df["mcs_results"].to_list()
