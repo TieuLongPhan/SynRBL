@@ -63,7 +63,7 @@ class SubstructureAnalyzer:
         return [pair[0] for pair in paired_list]
 
     def identify_optimal_substructure(
-        self, parent_mol: Mol, child_mol: Mol, maxNodes: int = 80
+        self, parent_mol: Mol, child_mol: Mol, maxNodes: int = 200
     ) -> Tuple[int, ...]:
         """
         Identifies the most relevant substructure within a parent molecule
