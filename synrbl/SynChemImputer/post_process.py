@@ -6,9 +6,13 @@ from joblib import Parallel, delayed
 
 
 class PostProcess:
-
-    def __init__(self, data: List[dict]):
-        self.data = data
+    def __init__(
+        self, id_col="R-id", reaction_col="reactions", n_jobs: int = 4, verbose: int = 1
+    ):
+        self.id_col = id_col
+        self.reaction_col = reaction_col
+        self.n_jobs = n_jobs
+        self.verbose = verbose
 
     @staticmethod
     def label_reactions(
@@ -28,7 +32,7 @@ class PostProcess:
         """
 
         label = "unspecified"
-        r_id = reaction_dict.get("R-id", "N/A")
+        r_id = reaction_dict[id_column]
         new_reaction = reaction_dict.get(reaction_column, "")
 
         try:
@@ -59,7 +63,7 @@ class PostProcess:
 
         return new_dict
 
-    def fit(self, n_jobs: int = 4, verbose: int = 1) -> List[Dict]:
+    def fit(self, data) -> List[Dict]:
         """
         Label reactions and curate data by reaction type.
 
@@ -71,8 +75,9 @@ class PostProcess:
         - List[Dict]: List of dictionaries, each representing a reaction and with
           keys 'R-id', 'new_reaction', 'label', 'reactants', and 'products'.
         """
-        label_data = Parallel(n_jobs=n_jobs, verbose=verbose)(
-            delayed(PostProcess.label_reactions)(d) for d in self.data
+        label_data = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
+            delayed(PostProcess.label_reactions)(d, self.id_col, self.reaction_col)
+            for d in data
         )
 
         reduction_data = [
@@ -86,10 +91,18 @@ class PostProcess:
         curate_reduction = CurationReduction()
         curate_oxidation = CurationOxidation()
         result_reduction = curate_reduction.parallel_curate(
-            reduction_data, n_jobs=n_jobs, verbose=verbose, return_all=False
+            reduction_data,
+            self.reaction_col,
+            n_jobs=self.n_jobs,
+            verbose=self.verbose,
+            return_all=False,
         )
         result_oxidation = curate_oxidation.parallel_curate(
-            oxidation_data, n_jobs=n_jobs, verbose=verbose, return_all=False
+            oxidation_data,
+            self.reaction_col,
+            n_jobs=self.n_jobs,
+            verbose=self.verbose,
+            return_all=False,
         )
         other_data.extend(result_reduction)
         other_data.extend(result_oxidation)

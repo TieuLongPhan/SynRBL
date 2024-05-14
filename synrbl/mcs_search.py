@@ -84,7 +84,7 @@ class MCSSearch:
 
         largest_conditions = ExtractMCS.get_largest_condition(*condition_results)
 
-        mcs_results = find_graph_dict(largest_conditions)
+        mcs_results = find_graph_dict(largest_conditions, n_jobs=self.n_jobs)
 
         assert len(largest_conditions) == len(mcs_results)
         for largest_condition, mcs_result in zip(largest_conditions, mcs_results):

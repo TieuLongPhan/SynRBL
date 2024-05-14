@@ -151,6 +151,7 @@ class CurationReduction:
     def parallel_curate(
         self,
         data: List[Dict],
+        reaction_col="reactions",
         n_jobs: int = 4,
         verbose: int = 1,
         return_all: bool = False,
@@ -174,7 +175,7 @@ class CurationReduction:
         results = Parallel(n_jobs=n_jobs, verbose=verbose)(
             delayed(CurationReduction.process_dict)(
                 reaction,
-                "reactions",
+                reaction_col,
                 self.compounds_template,
                 self.reaction_templates,
                 return_all=return_all,
