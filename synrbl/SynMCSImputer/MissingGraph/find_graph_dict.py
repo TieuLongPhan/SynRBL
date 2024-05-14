@@ -89,7 +89,7 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4
 
     def process_single_pair(reactant_mol, mcs_mol, job_timeout=2):
         try:
-            pool = multiprocessing.Pool(1)
+            pool = multiprocessing.pool.ThreadPool(1)
             async_result = pool.apply_async(
                 FindMissingGraphs.find_missing_parts_pairs,
                 (
