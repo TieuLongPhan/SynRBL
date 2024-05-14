@@ -1,6 +1,7 @@
 import copy
 
 from rdkit import Chem
+from rdkit.rdBase import BlockLogs
 from synrbl.SynMCSImputer.SubStructure.substructure_analyzer import SubstructureAnalyzer
 from synrbl.SynMCSImputer.MissingGraph.molcurator import MoleculeCurator
 from typing import List, Dict, Optional, Tuple
@@ -74,6 +75,7 @@ class FindMissingGraphs:
         - list of lists: Each sublist contains the nearest neighbors of the
             corresponding molecule.
         """
+        block = BlockLogs()
         missing_parts_list = []
         boundary_atoms_lists = []
         nearest_neighbor_lists = []
@@ -198,6 +200,7 @@ class FindMissingGraphs:
                 boundary_atoms_lists.append(None)
                 nearest_neighbor_lists.append(None)
 
+        del block
         return missing_parts_list, boundary_atoms_lists, nearest_neighbor_lists
 
     @staticmethod

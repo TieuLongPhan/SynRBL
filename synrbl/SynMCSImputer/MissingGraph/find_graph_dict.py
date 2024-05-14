@@ -1,7 +1,6 @@
 import pandas as pd
 
 from rdkit import Chem
-from rdkit.rdBase import BlockLogs
 from joblib import Parallel, delayed
 from typing import List
 import multiprocessing
@@ -135,7 +134,6 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4
     #         pool.terminate()  # Terminate the pool to release resources
     def process_single_pair(reactant_mol, mcs_mol, job_timeout=2):
         try:
-            block = BlockLogs()
             pool = multiprocessing.Pool(1)
             async_result = pool.apply_async(
                 FindMissingGraphs.find_missing_parts_pairs,
@@ -146,7 +144,6 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4
             )
             result = async_result.get(job_timeout)
             pool.terminate()  # Terminate the pool to release resources
-            del block
             return {
                 "smiles": [
                     Chem.MolToSmiles(mol) if mol is not None else None
