@@ -152,7 +152,7 @@ class CurationOxidation:
     def parallel_curate(
         self,
         data: List[Dict],
-        reaction_col = "reactions",
+        reaction_col="reactions",
         n_jobs: int = 4,
         verbose: int = 1,
         return_all: bool = False,

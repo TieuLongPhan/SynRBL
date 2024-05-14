@@ -35,7 +35,7 @@ class TestPostProcess(unittest.TestCase):
         self.assertEqual(
             result[2]["curated_reaction"],
             (
-              "CCO.O=[Cr](Cl)(-[O-])=O.c1cc[nH+]cc1>>"
+                "CCO.O=[Cr](Cl)(-[O-])=O.c1cc[nH+]cc1>>"
                 + "CC=O.O=[Cr](O)O.c1cc[nH+]cc1.[Cl-]"
             ),
         )

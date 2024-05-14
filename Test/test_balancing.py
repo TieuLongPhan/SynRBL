@@ -1,3 +1,5 @@
+import pytest
+
 from synrbl import Balancer
 
 
@@ -16,3 +18,20 @@ def test_e2e_1():
 
     result = balancer.rebalance(reaction)
     assert exp_result == result[0]
+
+
+@pytest.mark.parametrize(
+    "smiles,exp_smiles",
+    [
+        ["CC(=O)C>>CC(O)C", "CC(=O)C.[HH]>>CC(O)C"],
+        [
+            "CCO.[O]>>CC=O",
+            "CCO.O=[Cr](Cl)(-[O-])=O.c1cc[nH+]cc1.O>>"
+            + "CC=O.O.O=[Cr](O)O.c1cc[nH+]cc1.[Cl-]",
+        ],
+    ],
+)
+def test_post_process(smiles, exp_smiles):
+    blncer = Balancer(n_jobs=1)
+    result = blncer.rebalance(smiles)
+    assert exp_smiles == result[0]

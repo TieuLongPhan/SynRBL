@@ -7,6 +7,7 @@ from synrbl.postprocess import Validator
 from synrbl.rule_based import RuleBasedMethod
 from synrbl.mcs_search import MCSSearch
 from synrbl.SynMCSImputer.model import MCSBasedMethod
+from synrbl.SynChemImputer.post_process import PostProcess
 from synrbl.confidence_prediction import ConfidencePredictor
 
 logger = logging.getLogger("synrbl")
@@ -87,6 +88,9 @@ class Balancer:
             issue_col=self.__issue_col,
             rules_col=self.__rules_col,
         )
+        self.post_processor = PostProcess(
+            id_col=id_col, reaction_col=reaction_col, n_jobs=n_jobs, verbose=0
+        )
         self.conf_predictor = ConfidencePredictor(
             reaction_col=reaction_col,
             solved_by_method="mcs-based",
@@ -97,6 +101,21 @@ class Balancer:
             issue_col=self.__issue_col,
             mcs_col=self.__mcs_data_col,
         )
+
+    def __post_process(self, reactions):
+        key_index_map = {item[self.__id_col]: idx for idx, item in enumerate(reactions)}
+        pp_data = [
+            r
+            for r in reactions
+            if self.__solved_by_col in r.keys()
+            and r[self.__solved_by_col] != "input-balanced"
+        ]
+        pp_results = self.post_processor.fit(pp_data)
+        print(pp_results)
+        for pp_result in pp_results:
+            if pp_result["label"] != "unspecified":
+                idx = key_index_map[pp_result[self.__id_col]]
+                reactions[idx][self.__reaction_col] = pp_result["curated_reaction"]
 
     def __run_pipeline(self, reactions, stats=None):
         if stats is not None:
@@ -123,6 +142,7 @@ class Balancer:
         logger.info(
             "Run rule-based method again to fix remaining non-carbon imbalance."
         )
+        self.__post_process(reactions)
         self.rb_method.run(reactions)
         self.mcs_validator.check(reactions, override_unsolved=True)
 
