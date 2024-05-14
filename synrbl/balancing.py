@@ -111,7 +111,6 @@ class Balancer:
             and r[self.__solved_by_col] != "input-balanced"
         ]
         pp_results = self.post_processor.fit(pp_data)
-        print(pp_results)
         for pp_result in pp_results:
             if pp_result["label"] != "unspecified":
                 idx = key_index_map[pp_result[self.__id_col]]
