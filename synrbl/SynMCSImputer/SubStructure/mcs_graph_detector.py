@@ -1,3 +1,5 @@
+import gc
+
 from rdkit import Chem
 from rdkit.Chem import rdFMCS
 from rdkit.Chem import rdRascalMCES
@@ -79,6 +81,7 @@ class MCSMissingGraphAnalyzer:
         """
 
         # Sort reactants based on the specified method
+        mcs_results = []
         if sort == "MCIS":
             if params is None:
                 params = rdFMCS.MCSParameters()
@@ -115,6 +118,9 @@ class MCSMissingGraphAnalyzer:
             )
         else:
             raise ValueError("Invalid sort method. Choose 'MCS' or 'Fragments'.")
+
+        del mcs_results
+        gc.collect()
 
         mcs_list = []
         current_product = product_mol
