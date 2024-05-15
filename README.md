@@ -113,7 +113,7 @@ The requirements are automatically installed with the pip package.
   and accuracy rates of your dataset. Keep in mind that an exact comparison 
   between rebalanced and expected reaction is a highly conservative 
   evaluation. An unbalance reaction might have multiple equaly viable 
-  balanced soltions. Besides the exact comparison (default) the benchmark 
+  balanced solutions. Besides the exact comparison (default) the benchmark 
   command supports a few similarity measures like ECFP and pathway 
   fingerprints for the comparison between rebalanced reaction and the 
   expected balanced reaction.
