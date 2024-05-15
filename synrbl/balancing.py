@@ -6,8 +6,9 @@ from synrbl.preprocess import preprocess
 from synrbl.postprocess import Validator
 from synrbl.rule_based import RuleBasedMethod
 from synrbl.mcs_search import MCSSearch
-from synrbl.SynMCSImputer.model import MCSBasedMethod
+from synrbl.SynMCSImputer.mcs_based_method import MCSBasedMethod
 from synrbl.SynChemImputer.post_process import PostProcess
+from synrbl.SynChemImputer.molecule_standardizer import MoleculeStandardizer
 from synrbl.confidence_prediction import ConfidencePredictor
 
 logger = logging.getLogger("synrbl")
@@ -87,6 +88,7 @@ class Balancer:
             mcs_data_col=self.__mcs_data_col,
             issue_col=self.__issue_col,
             rules_col=self.__rules_col,
+            smiles_standardizer=[MoleculeStandardizer()]
         )
         self.post_processor = PostProcess(
             id_col=id_col, reaction_col=reaction_col, n_jobs=n_jobs, verbose=0

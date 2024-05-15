@@ -35,3 +35,11 @@ def test_post_process(smiles, exp_smiles):
     blncer = Balancer(n_jobs=1)
     result = blncer.rebalance(smiles)
     assert exp_smiles == result[0]
+
+
+def test_standardizing_of_merged_compounds():
+    blncer = Balancer(n_jobs=1)
+    smiles = "CC(=O)OC=C>>CC(=O)O"
+    exp_result = "CC(=O)OC=C.O>>CC(=O)O.CC=O"
+    result = blncer.rebalance(smiles)
+    assert exp_result == result[0]

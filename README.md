@@ -124,6 +124,8 @@ The requirements are automatically installed with the pip package.
 
 ### Reproduce benchmark results from validation set
   To test SynRBL on the provided validation set use the following commands.
+  Run these commands from the root of the cloned repository.
+  
   Rebalance the dataset
   
   ```bash

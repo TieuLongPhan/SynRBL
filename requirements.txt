@@ -5,4 +5,4 @@ xgboost==2.0.3
 scikit_learn==1.4.0
 imbalanced_learn==0.12.0
 reportlab==4.1.0
-fgutils==0.0.15
+fgutils==0.0.17

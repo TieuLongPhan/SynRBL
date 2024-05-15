@@ -57,7 +57,12 @@ def build_compounds(data_dict) -> CompoundSet:
 
 
 def impute_reaction(
-    reaction_dict, reaction_col, issue_col, carbon_balance_col, mcs_data_col
+    reaction_dict,
+    reaction_col,
+    issue_col,
+    carbon_balance_col,
+    mcs_data_col,
+    smiles_standardizer=[],
 ):
     issue = reaction_dict[issue_col] if issue_col in reaction_dict.keys() else ""
     if issue != "":
@@ -71,9 +76,10 @@ def impute_reaction(
         # Imputing reactant side carbon imbalance is not (yet) supported
         raise ValueError("Skipped because of reactants imbalance.")
     elif carbon_balance in ["products", "balanced"]:
-        imputed_reaction = "{}.{}".format(
-            reaction_dict[reaction_col], merge_result.smiles
-        )
+        merged_smiles = merge_result.smiles
+        for standardizer in smiles_standardizer:
+            merged_smiles = standardizer(merged_smiles)
+        imputed_reaction = "{}.{}".format(reaction_dict[reaction_col], merged_smiles)
     else:
         raise ValueError(
             "Invalid value '{}' for carbon balance.".format(carbon_balance)
@@ -99,6 +105,7 @@ class MCSBasedMethod:
         issue_col="issue",
         rules_col="rules",
         carbon_balance_col="carbon_balance_check",
+        smiles_standardizer=[],
     ):
         self.reaction_col = reaction_col
         self.output_col = output_col
@@ -106,6 +113,7 @@ class MCSBasedMethod:
         self.issue_col = issue_col
         self.rules_col = rules_col
         self.carbon_balance_col = carbon_balance_col
+        self.smiles_standardizer = smiles_standardizer
 
     def run(self, reactions: list[dict], stats=None):
         mcs_applied = 0
@@ -124,6 +132,7 @@ class MCSBasedMethod:
                     reaction_col=self.reaction_col,
                     issue_col=self.issue_col,
                     carbon_balance_col=self.carbon_balance_col,
+                    smiles_standardizer=self.smiles_standardizer,
                 )
                 reaction[self.output_col] = result
                 reaction[self.rules_col] = rules
