@@ -77,11 +77,6 @@ def impute_reaction(
         raise ValueError("Skipped because of reactants imbalance.")
     elif carbon_balance in ["products", "balanced"]:
         merged_smiles = merge_result.smiles
-        print(
-            "Call {} standardizers on {}".format(
-                len(smiles_standardizer), merged_smiles
-            )
-        )
         for standardizer in smiles_standardizer:
             merged_smiles = standardizer(merged_smiles)
             print(merged_smiles)
