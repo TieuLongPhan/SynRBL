@@ -67,7 +67,7 @@ def output_result(stats, rb_correct, mcs_correct, file=None):
             json.dump(output_stats, f, indent=4)
 
 
-def check_columns(reactions, reaction_col, result_col, required_cols=[]):
+def check_columns(reactions, reaction_col, target_col, required_cols=[]):
     if len(reactions) == 0:
         raise ValueError("No reactions found in input.")
     cols = reactions[0].keys()
@@ -92,8 +92,8 @@ def check_columns(reactions, reaction_col, result_col, required_cols=[]):
                 reactions[0][reaction_col][0:30], reaction_col
             )
         )
-    if result_col not in cols:
-        raise KeyError("No column '{}' found in input.".format(result_col))
+    if target_col not in cols:
+        raise KeyError("No column '{}' found in input.".format(target_col))
     for c in required_cols:
         if c not in reactions[0].keys():
             raise KeyError(
@@ -106,7 +106,7 @@ def run(args):
     dataset = pd.read_csv(args.inputfile).to_dict("records")
     logger.info("Compute benchmark results for {} reactions.".format(len(dataset)))
     check_columns(
-        dataset, args.col, args.result_col, required_cols=["solved", "solved_by"]
+        dataset, args.col, args.target_col, required_cols=["solved", "solved_by"]
     )
 
     stats_file = "{}.stats".format(args.inputfile)
@@ -125,10 +125,10 @@ def run(args):
     for i, entry in enumerate(dataset):
         if not entry["solved"]:
             continue
-        exp = entry[args.result_col]
+        exp = entry[args.target_col]
         if pd.isna(exp):
             logger.warning(
-                "Missing expected reaction ({}) in line {}.".format(args.result_col, i)
+                "Missing expected reaction ({}) in line {}.".format(args.target_col, i)
             )
             continue
         exp_reaction = normalize_smiles(exp)
@@ -165,7 +165,7 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     default_similarity_method = "pathway"
     default_similarity_threshold = 1
     default_col = "reaction"
-    default_result_col = "expected_reaction"
+    default_target_col = "expected_reaction"
     default_min_confidence = 0.5
 
     test_parser = argparser.add_parser(
@@ -197,10 +197,10 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         + "(Default: {})".format(default_col),
     )
     test_parser.add_argument(
-        "--result-col",
-        default=default_result_col,
+        "--target-col",
+        default=default_target_col,
         help="The reactions column name for in the expected output. "
-        + "(Default: {})".format(default_result_col),
+        + "(Default: {})".format(default_target_col),
     )
     test_parser.add_argument(
         "--min-confidence",

@@ -85,13 +85,15 @@ def run(args):
     outputfile = args.o
     if outputfile is None:
         outputfile = "{}_out.csv".format(args.inputfile.split(".")[0])
-    columns = args.columns if isinstance(args.columns, list) else [args.columns]
+    passthrough_cols = (
+        args.out_columns if isinstance(args.out_columns, list) else [args.out_columns]
+    )
 
     impute(
         args.inputfile,
         outputfile,
         reaction_col=args.col,
-        passthrough_cols=columns,
+        passthrough_cols=passthrough_cols,
         min_confidence=args.min_confidence,
         n_jobs=args.p,
     )
@@ -138,7 +140,7 @@ def configure_argparser(argparser: argparse._SubParsersAction):
         + "(Default: 'reaction')",
     )
     test_parser.add_argument(
-        "--columns",
+        "--out-columns",
         default=[],
         type=list_of_strings,
         help="A comma separated list of columns from the input that should "
