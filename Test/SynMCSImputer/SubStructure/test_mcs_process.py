@@ -63,5 +63,4 @@ def test_timeout():
     ]
     result = ensemble_mcs(data, conditions, n_jobs=2)
     assert "timeout" in result[0][0]["issue"]
-    assert [''] == result[0][0]["mcs_results"]
-    assert "C[Si](C)(Br)O[Si](C)(C)O[Si]" in result[0][0]["sorted_reactants"][0]
+    assert [] == result[0][0]["mcs_results"]

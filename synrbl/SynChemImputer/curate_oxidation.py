@@ -52,7 +52,7 @@ class CurationOxidation:
     @staticmethod
     def process_ox_template(
         reaction_smiles: str, compounds_template: Dict, reaction_templates: Dict
-    ) -> Tuple[str, Optional[bool]]:
+    ) -> Tuple[List[str], List[Optional[bool]]]:
         """
         Processes an oxidation template based on the given SMILES string of the reaction.
 
@@ -84,7 +84,6 @@ class CurationOxidation:
             return [reaction_smiles], [None]
 
         for temp in temps:
-
             if cp_temp in [
                 "primary_alcohol>>aldehyde",
                 "secondary_alcohol>>ketone",
@@ -140,6 +139,8 @@ class CurationOxidation:
         new_reaction, stoichiometry = CurationOxidation.process_ox_template(
             reaction, compounds_template, reaction_templates
         )
+        if len(new_reaction) == 0:
+            return reaction_dict
         reaction_dict["curated_reaction"] = (
             new_reaction if return_all else new_reaction[0]
         )

@@ -55,7 +55,7 @@ class CurationReduction:
         compounds_template: Dict,
         reaction_templates: Dict,
         neutralize: bool = False,
-    ) -> Tuple[str, Optional[bool]]:
+    ) -> Tuple[List[str], List[Optional[bool]]]:
         """
         Processes an oxidation template based on the given SMILES string of the reaction.
 
@@ -139,6 +139,8 @@ class CurationReduction:
         new_reaction, stoichiometry = CurationReduction.process_reduct_template(
             reaction, compounds_template, reaction_templates, neutralize
         )
+        if len(new_reaction) == 0:
+            return reaction_dict
         reaction_dict["curated_reaction"] = (
             new_reaction if return_all else new_reaction[0]
         )
