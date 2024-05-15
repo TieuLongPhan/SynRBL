@@ -79,7 +79,6 @@ def impute_reaction(
         merged_smiles = merge_result.smiles
         for standardizer in smiles_standardizer:
             merged_smiles = standardizer(merged_smiles)
-            print(merged_smiles)
         imputed_reaction = "{}.{}".format(reaction_dict[reaction_col], merged_smiles)
     else:
         raise ValueError(
