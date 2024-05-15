@@ -2,7 +2,7 @@ import unittest
 import unittest.mock as mock
 import rdkit.Chem.rdmolfiles as rdmolfiles
 
-from synrbl.SynMCSImputer.model import impute_reaction, build_compounds
+from synrbl.SynMCSImputer.mcs_based_method import impute_reaction, build_compounds
 
 
 class TestBuildCompound(unittest.TestCase):
@@ -84,9 +84,9 @@ class TestImputeReaction(unittest.TestCase):
             "issue": issue,
         }
 
-    @mock.patch("synrbl.SynMCSImputer.model.is_carbon_balanced")
-    @mock.patch("synrbl.SynMCSImputer.model.merge")
-    @mock.patch("synrbl.SynMCSImputer.model.build_compounds")
+    @mock.patch("synrbl.SynMCSImputer.mcs_based_method.is_carbon_balanced")
+    @mock.patch("synrbl.SynMCSImputer.mcs_based_method.merge")
+    @mock.patch("synrbl.SynMCSImputer.mcs_based_method.build_compounds")
     def test_successful_imputation(self, m_bc, m_merge, _):
         old_reaction = "A>>B"
 
@@ -121,9 +121,9 @@ class TestImputeReaction(unittest.TestCase):
         self.assertEqual(1, len(rules))
         self.assertEqual(m_rule.name, rules[0])
 
-    @mock.patch("synrbl.SynMCSImputer.model.is_carbon_balanced")
-    @mock.patch("synrbl.SynMCSImputer.model.merge")
-    @mock.patch("synrbl.SynMCSImputer.model.build_compounds")
+    @mock.patch("synrbl.SynMCSImputer.mcs_based_method.is_carbon_balanced")
+    @mock.patch("synrbl.SynMCSImputer.mcs_based_method.merge")
+    @mock.patch("synrbl.SynMCSImputer.mcs_based_method.build_compounds")
     def test_carbon_check_fails(self, m_bc, m_merge, m_cec):
         old_reaction = "A>>B"
 

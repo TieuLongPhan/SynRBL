@@ -9,37 +9,36 @@ class MoleculeStandardizer:
     more common forms using RDKit for molecule manipulation.
     """
 
-    def __init__(self, smiles: str):
+    def __init__(self):
         """
         Initializes the MoleculeStandardizer with a SMILES string and
         a functional group query object.
-
-        Args:
-            smiles (str): SMILES string of the molecule to be standardized.
         """
-        self.smiles = smiles
         self.query = FGQuery(use_smiles=True)
 
-    def fit(self) -> str:
+    def __call__(self, smiles) -> str:
         """
         Performs the standardization process by converting all relevant
         functional groups to their target forms based on predefined rules
         and updates the SMILES string accordingly.
 
+        Args:
+            smiles (str): SMILES string of the molecule to be standardized.
+
         Returns:
             str: Canonical SMILES string of the standardized molecule.
         """
-        self.fg = self.query.get(self.smiles)
+        self.fg = self.query.get(smiles)
         for dict in self.fg:
             if "hemiketal" in dict:
                 atom_indices = dict[1]
-                self.smiles = self.standardize_hemiketal(self.smiles, atom_indices)
-                self.fg = self.query.get(self.smiles)
+                smiles = self.standardize_hemiketal(smiles, atom_indices)
+                self.fg = self.query.get(smiles)
             elif "enol" in dict:
                 atom_indices = dict[1]
-                self.smiles = self.standardize_enol(self.smiles, atom_indices)
-                self.fg = self.query.get(self.smiles)
-        return Chem.CanonSmiles(self.smiles)
+                smiles = self.standardize_enol(smiles, atom_indices)
+                self.fg = self.query.get(smiles)
+        return Chem.CanonSmiles(smiles)
 
     @staticmethod
     def standardize_enol(smiles: str, atom_indices: List[int] = [0, 1, 2]) -> str:
