@@ -123,6 +123,7 @@ def run(args):
 
     rb_correct = 0
     mcs_correct = 0
+    mcs_cth = 0
     for i, entry in enumerate(dataset):
         if not entry["solved"]:
             continue
@@ -134,6 +135,8 @@ def run(args):
             continue
         exp_reaction = normalize_smiles(exp)
         act_reaction = normalize_smiles(entry[args.col])
+        if entry["confidence"] >= args.min_confidence:
+            mcs_cth += 1
         if (
             wc_similarity(exp_reaction, act_reaction, args.similarity_method)
             >= args.similarity_threshold
@@ -143,6 +146,7 @@ def run(args):
             elif entry["solved_by"] == "mcs-based":
                 mcs_correct += 1
 
+    stats["confident_cnt"] = mcs_cth
     output_result(stats, rb_correct, mcs_correct, file=args.o)
 
 
