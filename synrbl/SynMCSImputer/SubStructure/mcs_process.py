@@ -91,26 +91,11 @@ def single_mcs_safe(data_dict, job_timeout=2, id_col="id", issue_col="issue", **
         result = async_result.get(job_timeout)
         pool.terminate()
         return result
+
     except multiprocessing.TimeoutError:
         pool.terminate()
-        pool = multiprocessing.pool.ThreadPool(1)
-        async_result = pool.apply_async(
-            single_mcs,
-            (
-                data_dict,
-                mcs_data,
-            ),
-            {"substructure_optimize": False},
-        )
-        try:
-            result = async_result.get(job_timeout)
-            result[issue_col] = "MCS search terminated by timeout but can solve."
-            pool.terminate()
-            return async_result.get(job_timeout)
-        except multiprocessing.TimeoutError:
-            pool.terminate()
-            mcs_data[issue_col] = "MCS search terminated by timeout."
-            return mcs_data
+        mcs_data[issue_col] = "MCS search terminated by timeout."
+        return mcs_data
 
 
 def ensemble_mcs(
