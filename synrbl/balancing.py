@@ -88,7 +88,7 @@ class Balancer:
             mcs_data_col=self.__mcs_data_col,
             issue_col=self.__issue_col,
             rules_col=self.__rules_col,
-            smiles_standardizer=[MoleculeStandardizer()]
+            smiles_standardizer=[MoleculeStandardizer()],
         )
         self.post_processor = PostProcess(
             id_col=id_col, reaction_col=reaction_col, n_jobs=n_jobs, verbose=0
@@ -114,7 +114,10 @@ class Balancer:
         ]
         pp_results = self.post_processor.fit(pp_data)
         for pp_result in pp_results:
-            if pp_result["label"] != "unspecified":
+            if (
+                pp_result["label"] != "unspecified"
+                and "curated_reaction" in pp_result.keys()
+            ):
                 idx = key_index_map[pp_result[self.__id_col]]
                 reactions[idx][self.__reaction_col] = pp_result["curated_reaction"]
 
