@@ -1,57 +1,72 @@
+import os
+import json
+import copy
 import argparse
 import logging
 import pandas as pd
 import rdkit.Chem.rdChemReactions as rdChemReactions
 
-from synrbl import Balancer
 from synrbl.SynUtils import normalize_smiles, wc_similarity
 
 logger = logging.getLogger(__name__)
 
 
-def print_result(stats, rb_correct, mcs_correct):
-    def _sr(v, c):
-        return "{:.2%}".format(v / c) if c > 0 else "-"
+def output_result(stats, rb_correct, mcs_correct, file=None):
+    def _r(v, c):
+        return v / c if c > 0 else None
+
+    def _sr(r):
+        return "{:.2%}".format(r) if r is not None else "-"
+
+    output_stats = copy.deepcopy(stats)
 
     rxn_cnt = stats["reaction_cnt"]
     rb_s = stats["rb_solved"]
     rb_a = stats["rb_applied"]
     mcs_a = stats["mcs_applied"]
     mcs_cth = stats["confident_cnt"]
+    total_solved = rb_s + mcs_cth
+    total_correct = rb_correct + mcs_correct
+    output_stats["total_solved"] = total_solved
+    output_stats["total_correct"] = total_correct
+    rb_suc = _r(rb_s, rb_a)
+    mcs_suc = _r(mcs_cth, mcs_a)
+    suc = _r(rb_s + mcs_cth, rxn_cnt)
+    output_stats["rb_suc"] = rb_suc
+    output_stats["mcs_suc"] = mcs_suc
+    output_stats["success"] = suc
+    rb_acc = _r(rb_correct, rb_s)
+    mcs_acc = _r(mcs_correct, mcs_cth)
+    acc = _r(rb_correct + mcs_correct, rb_s + mcs_cth)
+    output_stats["rb_acc"] = rb_acc
+    output_stats["mcs_acc"] = mcs_acc
+    output_stats["accuracy"] = acc
+
     logger.info("{} Summary {}".format("#" * 20, "#" * 20))
     line_fmt = "{:<15} {:>10} {:>10} {:>10}"
     header = line_fmt.format("", "Rule-based", "MCS-based", "SynRBL")
     logger.info(header)
     logger.info("-" * len(header))
+
     logger.info(line_fmt.format("Input", str(rb_a), str(mcs_a), str(rxn_cnt)))
-    logger.info(line_fmt.format("Solved", str(rb_s), str(mcs_cth), str(rb_s + mcs_cth)))
+    logger.info(line_fmt.format("Solved", str(rb_s), str(mcs_cth), str(total_solved)))
     logger.info(
         line_fmt.format(
             "Correct",
             "{}".format(rb_correct),
             "{}".format(mcs_correct),
-            "{}".format(rb_correct + mcs_correct),
+            "{}".format(total_correct),
         )
     )
-    logger.info(
-        line_fmt.format(
-            "Success rate",
-            _sr(rb_s, rb_a),
-            _sr(mcs_cth, mcs_a),
-            _sr(rb_s + mcs_cth, rxn_cnt),
-        )
-    )
-    logger.info(
-        line_fmt.format(
-            "Accuracy",
-            _sr(rb_correct, rb_s),
-            _sr(mcs_correct, mcs_cth),
-            _sr(rb_correct + mcs_correct, rb_s + mcs_cth),
-        )
-    )
+    logger.info(line_fmt.format("Success rate", _sr(rb_suc), _sr(mcs_suc), _sr(suc)))
+    logger.info(line_fmt.format("Accuracy", _sr(rb_acc), _sr(mcs_acc), _sr(acc)))
+
+    if file is not None:
+        with open(file, "w") as f:
+            json.dump(output_stats, f, indent=4)
 
 
-def check_columns(reactions, reaction_col, result_col, passthrouh_columns):
+def check_columns(reactions, reaction_col, target_col, required_cols=[]):
     if len(reactions) == 0:
         raise ValueError("No reactions found in input.")
     cols = reactions[0].keys()
@@ -76,62 +91,59 @@ def check_columns(reactions, reaction_col, result_col, passthrouh_columns):
                 reactions[0][reaction_col][0:30], reaction_col
             )
         )
-    if result_col not in cols:
-        raise KeyError("No column '{}' found in input.".format(result_col))
-    for c in passthrouh_columns:
+    if target_col not in cols:
+        raise KeyError("No column '{}' found in input.".format(target_col))
+    for c in required_cols:
         if c not in reactions[0].keys():
-            raise KeyError("Column '{}' not found.".format(c))
+            raise KeyError(
+                (
+                    "Required column '{}' not found. The input to benchamrk "
+                    + "should be the output from a rebalancing run."
+                ).format(c)
+            )
 
 
 def run(args):
-    columns = args.columns if isinstance(args.columns, list) else [args.columns]
-    synrbl_cols = [c for c in columns if c in ["mcs"]]
-    passthrough_cols = [c for c in columns if c not in synrbl_cols]
-    input_reactions = pd.read_csv(args.inputfile).to_dict("records")
-    logger.info(
-        "Run benchmark on {} containing {} reactions.".format(
-            args.inputfile, len(input_reactions)
-        )
+    dataset = pd.read_csv(args.inputfile).to_dict("records")
+    logger.info("Compute benchmark results for {} reactions.".format(len(dataset)))
+    check_columns(
+        dataset, args.col, args.target_col, required_cols=["solved", "solved_by"]
     )
-    check_columns(input_reactions, args.col, args.result_col, passthrough_cols)
 
-    stats = {}
-    synrbl = Balancer(
-        reaction_col=args.col, confidence_threshold=args.min_confidence, n_jobs=args.p
-    )
-    synrbl.columns.extend(synrbl_cols)
-    rbl_reactions = synrbl.rebalance(input_reactions, output_dict=True, stats=stats)
+    stats_file = "{}.stats".format(args.inputfile)
+    if not os.path.exists(stats_file):
+        raise RuntimeError(
+            (
+                "Stats file {} not found. This is part of the output from "
+                + "the rebalancing run."
+            ).format(stats_file)
+        )
+    with open(stats_file, "r") as f:
+        stats = json.load(f)
 
     rb_correct = 0
     mcs_correct = 0
-    for i, (in_r, out_r) in enumerate(zip(input_reactions, rbl_reactions)):
-        if not out_r["solved"]:
+    for i, entry in enumerate(dataset):
+        if not entry["solved"]:
             continue
-        exp = in_r[args.result_col]
+        exp = entry[args.target_col]
         if pd.isna(exp):
             logger.warning(
-                "Missing expected reaction ({}) in line {}.".format(args.result_col, i)
+                "Missing expected reaction ({}) in line {}.".format(args.target_col, i)
             )
             continue
         exp_reaction = normalize_smiles(exp)
-        act_reaction = normalize_smiles(out_r[args.col])
+        act_reaction = normalize_smiles(entry[args.col])
         if (
             wc_similarity(exp_reaction, act_reaction, args.similarity_method)
             >= args.similarity_threshold
         ):
-            if out_r["solved_by"] == "rule-based":
+            if entry["solved_by"] == "rule-based":
                 rb_correct += 1
-            elif out_r["solved_by"] == "mcs-based":
+            elif entry["solved_by"] == "mcs-based":
                 mcs_correct += 1
-    print_result(stats, rb_correct, mcs_correct)
 
-    if args.o is not None:
-        for in_r, out_r in zip(input_reactions, rbl_reactions):
-            for c in columns + [args.result_col]:
-                if c in in_r.keys():
-                    out_r[c] = in_r[c]
-        df = pd.DataFrame(rbl_reactions)
-        df.to_csv(args.o)
+    output_result(stats, rb_correct, mcs_correct, file=args.o)
 
 
 class Range(object):
@@ -153,48 +165,43 @@ def list_of_strings(arg):
 def configure_argparser(argparser: argparse._SubParsersAction):
     default_similarity_method = "pathway"
     default_similarity_threshold = 1
-    default_p = -1
     default_col = "reaction"
-    default_result_col = "expected_reaction"
+    default_target_col = "expected_reaction"
     default_min_confidence = 0.5
 
     test_parser = argparser.add_parser(
-        "benchmark", description="Benchmark SynRBL on your own dataset."
+        "benchmark",
+        description="Compute benchmark results for an unbalanced "
+        + "dataset with known balanced reactions. "
+        + "Keep in mind that an exact comparison between rebalanced and "
+        + "expected reaction is a highly conservative evaluation. An unbalance "
+        + "reaction might have multiple equaly viable balanced soltions.",
     )
 
     test_parser.add_argument(
         "inputfile",
-        help="Path to file containing reaction SMILES and the expected result.",
+        help="Path to the output file from the rebalancing run "
+        + "with a column for the expected reaction. "
+        + "You can use --columns parameter in run to forward columns from "
+        + "the input to the output file.",
     )
     test_parser.add_argument(
         "-o",
         default=None,
-        help="If set, the detailed results will be written to that file.",
-    )
-    test_parser.add_argument(
-        "-p",
-        default=default_p,
-        type=int,
-        help="The number of parallel process. (Default {})".format(default_p),
+        help="If set, the detailed results will be written to that file. "
+        + "The file will be in json format.",
     )
     test_parser.add_argument(
         "--col",
         default=default_col,
-        help="The reactions column name for in the input .csv file. "
+        help="The (rebalanced) reactions column name for in the input .csv file. "
         + "(Default: {})".format(default_col),
     )
     test_parser.add_argument(
-        "--result-col",
-        default=default_result_col,
+        "--target-col",
+        default=default_target_col,
         help="The reactions column name for in the expected output. "
-        + "(Default: {})".format(default_result_col),
-    )
-    test_parser.add_argument(
-        "--columns",
-        default=[],
-        type=list_of_strings,
-        help="A comma separated list of columns from the input that should "
-        + "be added to the output. (e.g.: col1,col2,col3)",
+        + "(Default: {})".format(default_target_col),
     )
     test_parser.add_argument(
         "--min-confidence",
