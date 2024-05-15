@@ -15,19 +15,25 @@ SynRBL is a toolkit tailored for computational chemistry, aimed at correcting im
 
 ## Installation
 
-To install and set up the SynRBL framework, follow these steps. Please ensure you have Python 3.11 or later installed on your system.
+The easiest way to use SynRBL is by installing the PyPI package 
+[synrbl](https://pypi.org/project/synrbl/). 
+
+Follow these steps to setup a
+working environment. Please ensure you have Python 3.11 or later installed on 
+your system.
 
 ### Prerequisites
+The requirements are automatically installed with the pip package.
 
 - Python 3.11
-- RDKit == 2023.9.4
-- joblib==1.3.2
-- seaborn==0.13.2
-- xgoost==2.0.3
-- scikit_learn==1.4.1.post1
-- imbalanced_learn==0.12.0
-- reportlab==4.1.0
-- fgutils==0.0.13
+- rdkit >= 2023.9.4
+- joblib >= 1.3.2
+- seaborn >= 0.13.2
+- xgboost >= 2.0.3
+- scikit_learn == 1.4.0
+- imbalanced_learn >= 0.12.0
+- reportlab >= 4.1.0
+- fgutils >= 0.0.15
 
 ### Step-by-Step Installation Guide
 
@@ -49,7 +55,6 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   ```
 
 3. **Install with pip:**
-  Clone the SynRBL repository from GitHub and install it:
 
   ```bash
   pip install synrbl
@@ -59,42 +64,77 @@ To install and set up the SynRBL framework, follow these steps. Please ensure yo
   After installation, you can verify that SynRBL is correctly installed by running a simple test.
 
   ```python
-  python -c "from synrbl import Balancer; bal = Balancer(reaction_col='reactions', id_col='id'); print(bal.rebalance(reactions='CCO>>CC=O', output_dict=True))"
+  python -c "from synrbl import Balancer; bal = Balancer(n_jobs=1); print(bal.rebalance('CC(=O)OCC>>CC(=O)O'))"
   ```
 
 ## Usage
-1. **Jupyter Notebook:**
+### Use in script
   ```python
   from synrbl import Balancer
-
-  test = (
-      "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
-      + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O"
+  
+  smiles = (
+    "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
+    + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O"
   )
-  synrbl = Balancer(reaction_col="reactions", id_col="id")
-
-  results = synrbl.rebalance(reactions=test, output_dict=True)
+  synrbl = Balancer()
+  
+  results = synrbl.rebalance(smiles, output_dict=True)
   >> [{
-          "reactions": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O>>"
-          + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O=C(O)OCc1ccccc1",
-          "solved": True,
-          "input_reaction": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
-          + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O",
-          "issue": "",
-          "rules": ["append O when next to O or N", "default single bond"],
-          "solved_by": "mcs-based",
-          "confidence": 0.999,
-      }]
-  ```
-2. **Command line**
-  ```bash
-  python -m synrbl run --help
+        "reaction": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O>>"
+        + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O=C(O)OCc1ccccc1",
+        "solved": True,
+        "input_reaction": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
+        + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O",
+        "issue": "",
+        "rules": ["append O when next to O or N", "default single bond"],
+        "solved_by": "mcs-based",
+        "confidence": 0.999,
+    }]
   ```
 
-3. **Reproduce the experiment**
+### Use in command line
   ```bash
-  python -m synrbl run -o validation_results.csv -p 4 ./Data/Validation_set/validation_set.csv
+  echo "id,reaction\n0,CC(=O)OCC>>CC(=O)O" > unbalanced.csv
+  python -m synrbl run -o balanced.csv unbalanced.csv
   ```
+    
+### Benchmark your own dataset
+  Prepare your dataset as a csv file *datafile* with a column *reaction* of
+  unbalanced reaction SMILES and a column *expected_reaction* containing the
+  expected balanced reactions.    
+  
+  Rebalance the reactions and forward the expected reactions column to the
+  output.
+  ```bash
+  python -m synrbl run -o balanced.csv --col <reaction> --out-columns <expected_reaction> <datafile>
+  ```
+  
+  After rebalancing you can use the benchmark command to compute the success
+  and accuracy rates of your dataset. Keep in mind that an exact comparison 
+  between rebalanced and expected reaction is a highly conservative 
+  evaluation. An unbalance reaction might have multiple equaly viable 
+  balanced solutions. Besides the exact comparison (default) the benchmark 
+  command supports a few similarity measures like ECFP and pathway 
+  fingerprints for the comparison between rebalanced reaction and the 
+  expected balanced reaction.
+  
+  ```bash
+  python -m synrbl benchmark --col <reaction> --target-col <expected_reaction> balanced.csv
+  ```
+
+### Reproduce benchmark results from validation set
+  To test SynRBL on the provided validation set use the following commands.
+  Rebalance the dataset
+  
+  ```bash
+  python -m synrbl run -o validation_set_balanced.csv --out-columns expected_reaction ./Data/Validation_set/validation_set.csv
+  ```
+  
+  and compute the benchmark results
+  ```bash
+  python -m synrbl benchmark validation_set_balanced.csv
+  ```
+    
 
 ## Contributing
 - [Tieu-Long Phan](https://tieulongphan.github.io/)
