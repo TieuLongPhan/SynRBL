@@ -1,3 +1,4 @@
+import json
 import argparse
 import logging
 import pandas as pd
@@ -74,6 +75,9 @@ def impute(
 
     df = pd.DataFrame(rbl_reactions)
     df.to_csv(output_file)
+    with open("{}.stats".format(output_file), "w") as f:
+        json.dump(stats, f, indent=4)
+
     print_result(stats, min_confidence)
 
 
@@ -115,7 +119,10 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     )
 
     test_parser.add_argument(
-        "inputfile", help="Path to file containing reaction SMILES."
+        "inputfile",
+        help="Path to file containing reaction SMILES. "
+        + " The file should be in csv format and the reaction SMILES column "
+        + "can be specified with the --col parameter.",
     )
     test_parser.add_argument("-o", default=None, help="Path to output file.")
     test_parser.add_argument(
@@ -127,7 +134,7 @@ def configure_argparser(argparser: argparse._SubParsersAction):
     test_parser.add_argument(
         "--col",
         default="reaction",
-        help="The reactions column name for in the input .csv file. "
+        help="The reaction SMILES column name for in the input .csv file. "
         + "(Default: 'reaction')",
     )
     test_parser.add_argument(
