@@ -2,6 +2,7 @@ import json
 import argparse
 import logging
 import pandas as pd
+import rdkit.Chem.rdChemReactions as rdChemReactions
 
 from synrbl import Balancer
 
@@ -53,6 +54,42 @@ def print_result(stats, min_confidence=0):
     )
 
 
+def check_columns(reactions, reaction_col, required_cols=[]):
+    if len(reactions) == 0:
+        raise ValueError("No reactions found in input.")
+    cols = reactions[0].keys()
+    if reaction_col not in cols:
+        raise KeyError("No column '{}' found in input.".format(reaction_col))
+    if not isinstance(reactions[0][reaction_col], str):
+        raise TypeError(
+            "Reaction column '{}' must be of type string not '{}'.".format(
+                reaction_col, type(reactions[0][reaction_col])
+            )
+        )
+
+    mol = None
+    try:
+        mol = rdChemReactions.ReactionFromSmarts(
+            reactions[0][reaction_col], useSmiles=True
+        )
+    except Exception:
+        pass
+    if mol is None:
+        raise ValueError(
+            "Value '{}...' in reaction column '{}' is not a valid SMILES.".format(
+                reactions[0][reaction_col][0:30], reaction_col
+            )
+        )
+    for c in required_cols:
+        if c not in reactions[0].keys():
+            raise KeyError(
+                (
+                    "Required column '{}' not found. The input to benchamrk "
+                    + "should be the output from a rebalancing run."
+                ).format(c)
+            )
+
+
 def impute(
     src_file,
     output_file,
@@ -62,6 +99,7 @@ def impute(
     n_jobs=-1,
 ):
     input_reactions = pd.read_csv(src_file).to_dict("records")
+    check_columns(input_reactions, reaction_col, required_cols=passthrough_cols)
 
     synrbl = Balancer(
         reaction_col=reaction_col, confidence_threshold=min_confidence, n_jobs=n_jobs
