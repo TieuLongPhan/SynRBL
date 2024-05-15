@@ -139,7 +139,7 @@ class CurationOxidation:
         new_reaction, stoichiometry = CurationOxidation.process_ox_template(
             reaction, compounds_template, reaction_templates
         )
-        if len(new_reaction) == 0:
+        if len(new_reaction) == 0 or len(stoichiometry) == 0:
             return reaction_dict
         reaction_dict["curated_reaction"] = (
             new_reaction if return_all else new_reaction[0]
