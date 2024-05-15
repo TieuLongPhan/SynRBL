@@ -55,7 +55,6 @@ The requirements are automatically installed with the pip package.
   ```
 
 3. **Install with pip:**
-  Clone the SynRBL repository from GitHub and install it:
 
   ```bash
   pip install synrbl
@@ -70,71 +69,71 @@ The requirements are automatically installed with the pip package.
 
 ## Usage
 ### Use in script
-    ```python
-    from synrbl import Balancer
-
-    smiles = (
-      "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
-      + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O"
-    )
-    synrbl = Balancer()
-
-    results = synrbl.rebalance(smiles, output_dict=True)
-    >> [{
-          "reaction": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O>>"
-          + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O=C(O)OCc1ccccc1",
-          "solved": True,
-          "input_reaction": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
-          + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O",
-          "issue": "",
-          "rules": ["append O when next to O or N", "default single bond"],
-          "solved_by": "mcs-based",
-          "confidence": 0.999,
-      }]
-    ```
+  ```python
+  from synrbl import Balancer
+  
+  smiles = (
+    "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
+    + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O"
+  )
+  synrbl = Balancer()
+  
+  results = synrbl.rebalance(smiles, output_dict=True)
+  >> [{
+        "reaction": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O>>"
+        + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O=C(O)OCc1ccccc1",
+        "solved": True,
+        "input_reaction": "COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O>>"
+        + "COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O",
+        "issue": "",
+        "rules": ["append O when next to O or N", "default single bond"],
+        "solved_by": "mcs-based",
+        "confidence": 0.999,
+    }]
+  ```
 
 ### Use in command line
-    ```bash
-    echo "id,reaction\n0,CC(=O)OCC>>CC(=O)O" > unbalanced.csv
-    python -m synrbl run -o balanced.csv unbalanced.csv
-    ```
+  ```bash
+  echo "id,reaction\n0,CC(=O)OCC>>CC(=O)O" > unbalanced.csv
+  python -m synrbl run -o balanced.csv unbalanced.csv
+  ```
     
 ### Benchmark your own dataset
-    Prepare your dataset as a csv file *datafile* with a column *reaction* of
-    unbalanced reaction SMILES and a column *expected_reaction* containing the
-    expected balanced reactions.    
-    
-    Rebalance the reactions and forward the expected reactions column to the
-    output.
-    ```bash
-    python -m synrbl run -o balanced.csv --col <reaction> --out-columns <expected_reaction> <datafile>
-    ```
-
-    After rebalancing you can use the benchmark command to compute the success
-    and accuracy rates of your dataset. Keep in mind that an exact comparison 
-    between rebalanced and expected reaction is a highly conservative 
-    evaluation. An unbalance reaction might have multiple equaly viable 
-    balanced soltions. Besides the exact comparison (default) the benchmark 
-    command supports a few similarity measures like ECFP and pathway 
-    fingerprints for the comparison between rebalanced reaction and the 
-    expected balanced reaction.
-
-    ```bash
-    python -m synrbl benchmark --col <reaction> --target-col <expected_reaction> balanced.csv
-    ```
+  Prepare your dataset as a csv file *datafile* with a column *reaction* of
+  unbalanced reaction SMILES and a column *expected_reaction* containing the
+  expected balanced reactions.    
+  
+  Rebalance the reactions and forward the expected reactions column to the
+  output.
+  ```bash
+  python -m synrbl run -o balanced.csv --col <reaction> --out-columns <expected_reaction> <datafile>
+  ```
+  
+  After rebalancing you can use the benchmark command to compute the success
+  and accuracy rates of your dataset. Keep in mind that an exact comparison 
+  between rebalanced and expected reaction is a highly conservative 
+  evaluation. An unbalance reaction might have multiple equaly viable 
+  balanced soltions. Besides the exact comparison (default) the benchmark 
+  command supports a few similarity measures like ECFP and pathway 
+  fingerprints for the comparison between rebalanced reaction and the 
+  expected balanced reaction.
+  
+  ```bash
+  python -m synrbl benchmark --col <reaction> --target-col <expected_reaction> balanced.csv
+  ```
 
 ### Reproduce benchmark results from validation set
-    To test SynRBL on the provided validation set use the following commands.
-    Rebalance the dataset
-
-    ```bash
-    python -m synrbl run -o validation_set_balanced.csv --out-columns expected_reaction ./Data/Validation_set/validation_set.csv
-    ```
-    
-    and compute the benchmark results
-    ```bash
-    python -m synrbl benchmark validation_set_balanced.csv
-    ```
+  To test SynRBL on the provided validation set use the following commands.
+  Rebalance the dataset
+  
+  ```bash
+  python -m synrbl run -o validation_set_balanced.csv --out-columns expected_reaction ./Data/Validation_set/validation_set.csv
+  ```
+  
+  and compute the benchmark results
+  ```bash
+  python -m synrbl benchmark validation_set_balanced.csv
+  ```
     
 
 ## Contributing
