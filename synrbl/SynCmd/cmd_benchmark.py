@@ -6,7 +6,6 @@ import logging
 import pandas as pd
 import rdkit.Chem.rdChemReactions as rdChemReactions
 
-from synrbl import Balancer
 from synrbl.SynUtils import normalize_smiles, wc_similarity
 
 logger = logging.getLogger(__name__)
@@ -97,8 +96,10 @@ def check_columns(reactions, reaction_col, target_col, required_cols=[]):
     for c in required_cols:
         if c not in reactions[0].keys():
             raise KeyError(
-                "Required column '{}' not found. The input to benchamrk should "
-                + "be the output from a rebalancing run.".format(c)
+                (
+                    "Required column '{}' not found. The input to benchamrk "
+                    + "should be the output from a rebalancing run."
+                ).format(c)
             )
 
 
