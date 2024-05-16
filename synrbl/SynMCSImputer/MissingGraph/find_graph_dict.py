@@ -57,26 +57,11 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4
                 "issue": "",
             }
         except multiprocessing.TimeoutError:
-            pool.terminate()  # Terminate the pool in case of timeout
-
-            result = FindMissingGraphs.find_missing_parts_pairs(
-                reactant_mol, mcs_mol, False
-            )
-            return {
-                "smiles": [
-                    Chem.MolToSmiles(mol) if mol is not None else None
-                    for mol in result[0]
-                ],
-                "boundary_atoms_products": result[1],
-                "nearest_neighbor_products": result[2],
-                "issue": "Find Missing Graph terminated by timeout",
-            }
-        except Exception as e:
             return {
                 "smiles": [],
                 "boundary_atoms_products": [],
                 "nearest_neighbor_products": [],
-                "issue": str(e),
+                "issue": "Find Missing Graph terminated by timeout",
             }
 
     results = Parallel(n_jobs=n_jobs, verbose=0)(
