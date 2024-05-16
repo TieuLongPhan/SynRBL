@@ -1,7 +1,6 @@
 import unittest
 from rdkit import Chem
 from synrbl.SynMCSImputer.MissingGraph.find_graph_dict import (
-    find_single_graph,
     find_single_graph_parallel,
     convert_smiles_to_mols,
     smiles_to_mol_parallel,
@@ -11,19 +10,13 @@ from synrbl.SynMCSImputer.MissingGraph.find_graph_dict import (
 class TestFindGraphFunctions(unittest.TestCase):
     def setUp(self):
         # Example molecules for testing
-        self.mcs_mol_list = [Chem.MolFromSmiles("CC"), Chem.MolFromSmiles("C")]
+        self.mcs_mol_list = [[Chem.MolFromSmiles("CC"), Chem.MolFromSmiles("C")]]
         self.sorted_reactants_mol_list = [
-            Chem.MolFromSmiles("CCO"),
-            Chem.MolFromSmiles("CO"),
+            [
+                Chem.MolFromSmiles("CCO"),
+                Chem.MolFromSmiles("CO"),
+            ]
         ]
-
-    def test_find_single_graph(self):
-        result = find_single_graph(self.mcs_mol_list, self.sorted_reactants_mol_list)
-        self.assertIsInstance(result, dict)
-        self.assertIn("smiles", result)
-        self.assertIn("boundary_atoms_products", result)
-        self.assertIn("nearest_neighbor_products", result)
-        self.assertIn("issue", result)
 
     def test_find_single_graph_parallel(self):
         result = find_single_graph_parallel(

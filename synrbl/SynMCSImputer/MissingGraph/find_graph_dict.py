@@ -9,58 +9,6 @@ from synrbl.SynMCSImputer.MissingGraph.find_missing_graphs import FindMissingGra
 from synrbl.SynMCSImputer.MissingGraph.uncertainty_graph import GraphMissingUncertainty
 
 
-def find_single_graph(mcs_mol_list, sorted_reactants_mol_list):
-    """
-    Find missing parts, boundary atoms, and nearest neighbors for a list of
-    reactant molecules using a corresponding list of MCS (Maximum Common
-    Substructure) molecules.
-
-    Parameters:
-    - mcs_mol_list (list of rdkit.Chem.Mol): List of RDKit molecule objects
-        representing the MCS, corresponding to each molecule in
-        sorted_reactants_mol_list.
-    - sorted_reactants_mol_list (list of rdkit.Chem.Mol): The list of RDKit
-        molecule objects to analyze.
-
-    Returns:
-    - Dictionary containing:
-    - 'smiles' (list of list of str): SMILES representations of the missing
-        parts for each molecule.
-    - 'boundary_atoms_products' (list of list of dict): Lists of boundary atoms
-        for each molecule.
-    - 'nearest_neighbor_products' (list of list of dict): Lists of nearest
-        neighbors for each molecule.
-    - 'issue' (list): Any issues encountered during processing.
-    """
-    missing_results = {
-        "smiles": [],
-        "boundary_atoms_products": [],
-        "nearest_neighbor_products": [],
-        "issue": [],
-    }
-    for i in zip(sorted_reactants_mol_list, mcs_mol_list):
-        try:
-            (
-                mols,
-                boundary_atoms_products,
-                nearest_neighbor_products,
-            ) = FindMissingGraphs.find_missing_parts_pairs(i[0], i[1])
-            missing_results["smiles"].append([Chem.MolToSmiles(mol) for mol in mols])
-            missing_results["boundary_atoms_products"].append(boundary_atoms_products)
-            missing_results["nearest_neighbor_products"].append(
-                nearest_neighbor_products
-            )
-            missing_results["issue"].append([])
-        except Exception as e:
-            missing_results["smiles"].append([])
-            missing_results["boundary_atoms_products"].append([])
-            missing_results["nearest_neighbor_products"].append([])
-            missing_results["issue"].append(
-                "FindMissingGraphs.find_missing_parts() failed:" + str(e)
-            )
-    return missing_results
-
-
 def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4):
     """
     Find missing parts, boundary atoms, and nearest neighbors for a list of
