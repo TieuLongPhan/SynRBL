@@ -147,19 +147,20 @@ def remove_stereo_chemistry(smiles: str) -> str:
     return smiles
 
 
+def count_atoms(smiles: str) -> int:
+    pattern = re.compile(r"(B|C|N|O|P|S|F|Cl|Br|I|c|n|o)")
+    return len(pattern.findall(smiles))
+
+
 def normalize_smiles(smiles: str) -> str:
     smiles = remove_stereo_chemistry(smiles)
     if ">>" in smiles:
         return ">>".join([normalize_smiles(t) for t in smiles.split(">>")])
     elif "." in smiles:
-        token = sorted(
-            smiles.split("."),
-            key=lambda x: (sum(1 for c in x if c.isupper()), sum(ord(c) for c in x)),
-            reverse=True,
-        )
+        token = smiles.split(".")
         token = [normalize_smiles(t) for t in token]
         token.sort(
-            key=lambda x: (sum(1 for c in x if c.isupper()), sum(ord(c) for c in x)),
+            key=lambda x: (count_atoms(x), sum(ord(c) for c in x)),
             reverse=True,
         )
         return ".".join(token)

@@ -146,6 +146,7 @@ class Rxn2Pdf:
         kwargs = Rxn2Pdf.__override_kwargs(**kwargs)
         fig, _ = self.rxnvis.plot(smiles, **kwargs)
         self.pdf.savefig(fig)
+        plt.close(fig)
 
     def close(self):
         if self.pdf is None:
