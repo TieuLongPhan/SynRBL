@@ -36,6 +36,12 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4
     """
 
     def process_single_pair(reactant_mol, mcs_mol, job_timeout=2):
+        output = {
+            "smiles": [],
+            "boundary_atoms_products": [],
+            "nearest_neighbor_products": [],
+            "issue": "Find Missing Graph terminated by timeout",
+        }
         try:
             pool = multiprocessing.pool.ThreadPool(1)
             async_result = pool.apply_async(
@@ -47,22 +53,16 @@ def find_single_graph_parallel(mcs_mol_list, sorted_reactants_mol_list, n_jobs=4
             )
             result = async_result.get(job_timeout)
             pool.terminate()  # Terminate the pool to release resources
-            return {
-                "smiles": [
-                    Chem.MolToSmiles(mol) if mol is not None else None
-                    for mol in result[0]
-                ],
-                "boundary_atoms_products": result[1],
-                "nearest_neighbor_products": result[2],
-                "issue": "",
-            }
+            output["smiles"] = [
+                Chem.MolToSmiles(mol) if mol is not None else None for mol in result[0]
+            ]
+            output["boundary_atoms_products"] = result[1]
+            output["nearest_neighbor_products"] = result[2]
         except multiprocessing.TimeoutError:
-            return {
-                "smiles": [],
-                "boundary_atoms_products": [],
-                "nearest_neighbor_products": [],
-                "issue": "Find Missing Graph terminated by timeout",
-            }
+            output["issue"] = "Find Missing Graph terminated by timeout"
+        except Exception as e:
+            output["issue"] = "Find MCS failed with exception: {}".format(e)
+        return output
 
     results = Parallel(n_jobs=n_jobs, verbose=0)(
         delayed(process_single_pair)(reactant_mol, mcs_mol)
