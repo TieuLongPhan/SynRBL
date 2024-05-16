@@ -139,7 +139,7 @@ class Rxn2Pdf:
         kwargs["close_fig"] = False
         kwargs["show"] = False
         return kwargs
-    
+
     def add(self, smiles, **kwargs):
         if self.pdf is None:
             raise RuntimeError("Pdf is already closed.")
