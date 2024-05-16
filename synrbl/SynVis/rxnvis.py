@@ -114,9 +114,10 @@ class RxnVis:
                     "[WARN] {} reactions will not be displayed.".format(len(smiles) - i)
                 )
                 break
-            img = self.get_rxn_img(s)
             ax = self.__get_ax(axs, i, title=t)
-            ax.imshow(img)
+            if s is not None and len(s) > 0:
+                img = self.get_rxn_img(s)
+                ax.imshow(img)
         fig.tight_layout()
         if savefig is not None:
             fig.savefig(savefig)
