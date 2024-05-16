@@ -24,20 +24,20 @@ def output_result(stats, rb_correct, mcs_correct, file=None):
     rb_s = stats["rb_solved"]
     rb_a = stats["rb_applied"]
     mcs_a = stats["mcs_applied"]
-    mcs_cth = stats["confident_cnt"]
-    total_solved = rb_s + mcs_cth
+    mcs_s = stats["confident_cnt"]
+    total_solved = rb_s + mcs_s
     total_correct = rb_correct + mcs_correct
     output_stats["total_solved"] = total_solved
     output_stats["total_correct"] = total_correct
     rb_suc = _r(rb_s, rb_a)
-    mcs_suc = _r(mcs_cth, mcs_a)
-    suc = _r(rb_s + mcs_cth, rxn_cnt)
+    mcs_suc = _r(mcs_s, mcs_a)
+    suc = _r(rb_s + mcs_s, rxn_cnt)
     output_stats["rb_suc"] = rb_suc
     output_stats["mcs_suc"] = mcs_suc
     output_stats["success"] = suc
     rb_acc = _r(rb_correct, rb_s)
-    mcs_acc = _r(mcs_correct, mcs_cth)
-    acc = _r(rb_correct + mcs_correct, rb_s + mcs_cth)
+    mcs_acc = _r(mcs_correct, mcs_s)
+    acc = _r(rb_correct + mcs_correct, rb_s + mcs_s)
     output_stats["rb_acc"] = rb_acc
     output_stats["mcs_acc"] = mcs_acc
     output_stats["accuracy"] = acc
@@ -49,7 +49,7 @@ def output_result(stats, rb_correct, mcs_correct, file=None):
     logger.info("-" * len(header))
 
     logger.info(line_fmt.format("Input", str(rb_a), str(mcs_a), str(rxn_cnt)))
-    logger.info(line_fmt.format("Solved", str(rb_s), str(mcs_cth), str(total_solved)))
+    logger.info(line_fmt.format("Solved", str(rb_s), str(mcs_s), str(total_solved)))
     logger.info(
         line_fmt.format(
             "Correct",
@@ -127,24 +127,32 @@ def run(args):
     for i, entry in enumerate(dataset):
         if not entry["solved"]:
             continue
+
+        if (
+            entry["solved_by"] == "mcs-based"
+            and entry["confidence"] >= args.min_confidence
+        ):
+            mcs_cth += 1
+
         exp = entry[args.target_col]
         if pd.isna(exp):
             logger.warning(
                 "Missing expected reaction ({}) in line {}.".format(args.target_col, i)
             )
             continue
+
         exp_reaction = normalize_smiles(exp)
         act_reaction = normalize_smiles(entry[args.col])
-        if entry["confidence"] >= args.min_confidence:
-            mcs_cth += 1
-        if (
-            wc_similarity(exp_reaction, act_reaction, args.similarity_method)
-            >= args.similarity_threshold
-        ):
-            if entry["solved_by"] == "rule-based":
-                rb_correct += 1
-            elif entry["solved_by"] == "mcs-based":
+        wc_sim = wc_similarity(exp_reaction, act_reaction, args.similarity_method)
+        if entry["solved_by"] == "mcs-based":
+            if (
+                entry["confidence"] >= args.min_confidence
+                and wc_sim >= args.similarity_threshold
+            ):
                 mcs_correct += 1
+        elif entry["solved_by"] == "rule-based":
+            if wc_sim >= args.similarity_threshold:
+                rb_correct += 1
 
     stats["confident_cnt"] = mcs_cth
     output_result(stats, rb_correct, mcs_correct, file=args.o)

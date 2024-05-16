@@ -38,7 +38,6 @@ def test_simple_mcs():
     _add(data, "COC(C)=O>>OC(C)=O")
 
     results = mcs.find(data)
-    print(results)
 
     assert 1 == len(results)
     result = results[0]
