@@ -3,6 +3,7 @@ import rdkit.Chem.rdmolfiles as rdmolfiles
 import rdkit.Chem.Draw.rdMolDraw2D as rdMolDraw2D
 import rdkit.Chem.rdChemReactions as rdChemReactions
 import matplotlib.pyplot as plt
+import matplotlib.backends.backend_pdf
 
 from PIL import Image
 from synrbl.SynUtils.chem_utils import remove_atom_mapping, normalize_smiles
@@ -20,6 +21,7 @@ class RxnVis:
         show=True,
         remove_aam=False,
         normalize=False,
+        close_fig=True,
     ):
         self.nrows = nrows
         self.ncols = ncols
@@ -30,6 +32,7 @@ class RxnVis:
         self.show = show
         self.remove_aam = remove_aam
         self.normalize = normalize
+        self.close_fig = close_fig
 
     def get_rxn_img(self, smiles):
         drawer = rdMolDraw2D.MolDraw2DCairo(*self.cairosize)
@@ -91,11 +94,13 @@ class RxnVis:
         show=None,
         remove_aam=None,
         normalize=None,
+        close_fig=None,
     ):
         smiles, titles = self.__parse_input(smiles, titles)
         show = show if show is not None else self.show
         remove_aam = remove_aam if remove_aam is not None else self.remove_aam
         normalize = normalize if normalize is not None else self.normalize
+        close_fig = close_fig if close_fig is not None else self.close_fig
 
         if normalize:
             smiles = [normalize_smiles(s) for s in smiles]
@@ -117,5 +122,33 @@ class RxnVis:
             fig.savefig(savefig)
         if show is True:
             plt.show()
-        else:
+        elif close_fig:
             plt.close(fig)
+            fig = None
+        return fig, axs
+
+
+class Rxn2Pdf:
+    def __init__(self, file, **kwargs):
+        kwargs = Rxn2Pdf.__override_kwargs(**kwargs)
+        self.rxnvis = RxnVis(**kwargs)
+        self.pdf = matplotlib.backends.backend_pdf.PdfPages(file)
+
+    @staticmethod
+    def __override_kwargs(**kwargs):
+        kwargs["close_fig"] = False
+        kwargs["show"] = False
+        return kwargs
+    
+    def add(self, smiles, **kwargs):
+        if self.pdf is None:
+            raise RuntimeError("Pdf is already closed.")
+        kwargs = Rxn2Pdf.__override_kwargs(**kwargs)
+        fig, _ = self.rxnvis.plot(smiles, **kwargs)
+        self.pdf.savefig(fig)
+
+    def close(self):
+        if self.pdf is None:
+            raise RuntimeError("Pdf is already closed.")
+        self.pdf.close()
+        self.pdf = None
