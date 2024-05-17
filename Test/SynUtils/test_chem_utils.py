@@ -1,6 +1,11 @@
+import pytest
 import unittest
 import itertools
-from synrbl.SynUtils.chem_utils import remove_atom_mapping, normalize_smiles
+from synrbl.SynUtils.chem_utils import (
+    remove_atom_mapping,
+    normalize_smiles,
+    count_atoms,
+)
 
 
 class TestRemoveAtomMapping(unittest.TestCase):
@@ -83,3 +88,21 @@ class TestNormalizeReaction(unittest.TestCase):
         smiles = "F[Sb@OH12](F)(F)(F)(F)F"
         result = normalize_smiles(smiles)
         self.assertEqual("F[Sb](F)(F)(F)(F)F", result)
+
+    def test_ordering_of_aromatic_compounds(self):
+        smiles = "[HH].c1ccccc1"
+        result = normalize_smiles(smiles)
+        self.assertEqual("c1ccccc1.[HH]", result)
+
+    def test_ordering_1(self):
+        smiles = "[HH].C=O"
+        result = normalize_smiles(smiles)
+        self.assertEqual("C=O.[HH]", result)
+
+
+@pytest.mark.parametrize(
+    "smiles,exp_atom_cnt", [("O=C", 2), ("CO", 2), ("HH", 0), ("c1ccccc1", 6)]
+)
+def test_count_atoms(smiles, exp_atom_cnt):
+    atom_cnt = count_atoms(smiles)
+    assert exp_atom_cnt == atom_cnt
