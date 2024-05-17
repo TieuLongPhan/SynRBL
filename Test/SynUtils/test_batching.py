@@ -21,10 +21,10 @@ def test_data_loader(data, batch_size, exp_results):
     with pytest.raises(StopIteration):
         next(loader)
 
+
 def test_dataset_init_from_list():
     data = ["A", "B", "C"]
     dataset = Dataset(data)
     assert "A" == next(dataset)
     assert "B" == next(dataset)
     assert "C" == next(dataset)
-

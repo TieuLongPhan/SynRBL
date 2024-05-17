@@ -20,7 +20,8 @@ def json_reader(file):
         json_data = json.load(f)
     if not isinstance(json_data, list):
         raise ValueError(
-            r"Top level json object sould be a list. Expected json structure: [{...},{...}]"
+            "Top level json object sould be a list. "
+            + r"Expected json structure: [{...},{...}]"
         )
     for json_entry in json_data:
         yield json_entry
@@ -113,11 +114,3 @@ class CacheManager:
         with open(file, "w") as f:
             json.dump(data, f)
         return key
-
-
-# dataset = Dataset("test.csv")
-# loader = DataLoader(dataset, batch_size=2)
-# for i in loader:
-#     dhash = hashlib.sha256()
-#     h = dhash.update(json.dumps(i, sort_keys=True).encode())
-#     print(i, dhash.hexdigest())

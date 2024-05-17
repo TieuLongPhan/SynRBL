@@ -1,6 +1,5 @@
 import copy
 import logging
-import pandas as pd
 
 from synrbl.preprocess import preprocess
 from synrbl.postprocess import Validator
@@ -201,21 +200,13 @@ class Balancer:
 
         return reactions
 
-    def rebalance(
-        self,
-        reactions,
-        output_dict=False,
-        stats=None,
-        batch_size=None,
-        cache=None,
-        cache_dir=None,
-    ):
+    def __convert_to_dataset(self, data) -> Dataset:
         dataset = None
-        if isinstance(reactions, str):
-            reactions = [reactions]
-        if isinstance(reactions, list):
+        if isinstance(data, str):
+            data = [data]
+        if isinstance(data, list):
             reaction_data = []
-            for r in reactions:
+            for r in data:
                 if isinstance(r, str):
                     reaction_data.append({self.__reaction_col: r})
                 elif isinstance(r, dict):
@@ -226,17 +217,61 @@ class Balancer:
                         + "Found '{}' instead.".format(type(r))
                     )
             dataset = Dataset(reaction_data)
-        if isinstance(reactions, Dataset):
-            dataset = reactions
+        if isinstance(data, Dataset):
+            dataset = data
         if dataset is None:
             raise ValueError(
-                "Invalid type '{}' of reactions. "
-                + "Use a list of SMILES or a Dataset instead.".format(type(reactions))
+                (
+                    "Invalid type '{}' of reactions. "
+                    + "Use a list of SMILES or a Dataset instead."
+                ).format(type(data))
             )
+        return dataset
 
+    def __try_cache(self, cache_manager, batch):
+        result = None
+        batch_stats = {}
+        cache_key = None
+        if cache_manager:
+            cache_key = cache_manager.get_hash_key(batch)
+            if cache_manager.is_cached(cache_key):
+                logger.info("Load cached results. (Key: {})".format(cache_key[:8]))
+                cache_result = cache_manager.load_cache(cache_key)
+                result = cache_result.get("result", None)
+                batch_stats = cache_result.get("stats", None)
+        return result, batch_stats, cache_key
+
+    def __init_cache(self):
+        cache_manager = None
+        if self.cache:
+            if self.cache_dir is None:
+                raise ValueError(
+                    "Undefined cache directory. "
+                    + "Specify a directory with 'cache_dir' argument."
+                )
+            cache_manager = CacheManager(cache_dir=self.cache_dir)
+        return cache_manager
+
+    def __rebalance_batch(self, batch, cache_manager):
+        result, batch_stats, cache_key = self.__try_cache(cache_manager, batch)
+        if result is None or batch_stats is None:
+            batch_stats = {}
+            try:
+                result = self.__run_pipeline(copy.deepcopy(batch), batch_stats)
+                if cache_manager:
+                    assert cache_key is not None
+                    cache_manager.write_cache(
+                        cache_key, {"stats": batch_stats, "result": result}
+                    )
+                    logger.info("Cached new results. (Key: {})".format(cache_key[:8]))
+            except Exception as e:
+                logger.error("Pipeline execution failed: {}".format(e))
+
+        return result, batch_stats
+
+    def rebalance(self, reactions, output_dict=False, stats=None, batch_size=None):
+        dataset = self.__convert_to_dataset(reactions)
         batch_size = self.batch_size if batch_size is None else batch_size
-        cache = self.cache if cache is None else cache
-        cache_dir = self.cache_dir if cache_dir is None else cache_dir
 
         if batch_size is None:
             dataloader = iter([[e for e in dataset]])
@@ -244,16 +279,8 @@ class Balancer:
             dataloader = DataLoader(dataset, batch_size=batch_size)
 
         results = []
-        failed_batches = []
-        failed_cnt = 0
-        cache_manager = None
-        if cache:
-            if cache_dir is None:
-                raise ValueError(
-                    "Undefined cache directory. "
-                    + "Specify a directory with 'cache_dir' argument."
-                )
-            cache_manager = CacheManager(cache_dir=cache_dir)
+        cache_manager = self.__init_cache()
+
         for batch_i, batch in enumerate(dataloader):
             batch_i = batch_i + 1
             if len(batch) == 0:
@@ -261,31 +288,7 @@ class Balancer:
             if batch_size is not None:
                 logger.info("Start Batch {} | Size: {}".format(batch_i, len(batch)))
 
-            result = None
-            batch_stats = {}
-            cache_key = None
-            if cache_manager:
-                cache_key = cache_manager.get_hash_key(batch)
-                if cache_manager.is_cached(cache_key):
-                    logger.info("Load cached results. (Key: {})".format(cache_key[:8]))
-                    cache_result = cache_manager.load_cache(cache_key)
-                    result = cache_result.get("result", None)
-                    batch_stats = cache_result.get("stats", None)
-
-            if result is None or batch_stats is None:
-                try:
-                    result = self.__run_pipeline(copy.deepcopy(batch), batch_stats)
-                    if cache_manager:
-                        assert cache_key is not None
-                        cache_manager.write_cache(
-                            cache_key, {"stats": batch_stats, "result": result}
-                        )
-                        logger.info(
-                            "Cached new results. (Key: {})".format(cache_key[:8])
-                        )
-                except Exception as e:
-                    logger.error("Pipeline execution failed: {}".format(e))
-                    failed_batches.append((batch_i, e))
+            result, batch_stats = self.__rebalance_batch(batch, cache_manager)
 
             if result is not None:
                 results.extend(result)
@@ -293,17 +296,6 @@ class Balancer:
 
             if batch_size is not None:
                 logger.info("Completed batch {}".format(batch_i))
-
-        if batch_size is not None and len(failed_batches) > 0:
-            logger.info("Failed batches:")
-            for i, e in failed_batches:
-                logger.info("  [{}] Exception: {}".format(i, e))
-            logger.info(
-                "Computation failed for {} batches with a total of {} reactions. "
-                + "These are not part of the result.".format(
-                    len(failed_batches), failed_cnt
-                )
-            )
 
         if output_dict:
             output = []
