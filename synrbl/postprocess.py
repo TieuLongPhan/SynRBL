@@ -48,7 +48,11 @@ class Validator:
 
         if self.check_carbon_balance:
             check = CheckCarbonBalance(
-                reactions, rsmi_col=self.reaction_col, symbol=">>", atom_type="C"
+                reactions,
+                rsmi_col=self.reaction_col,
+                symbol=">>",
+                atom_type="C",
+                n_jobs=self.n_jobs,
             )
             for i, r in enumerate(check.check_carbon_balance()):
                 reactions[i][self.carbon_balance_col] = r["carbon_balance_check"]

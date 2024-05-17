@@ -70,7 +70,7 @@ class ConfidencePredictor:
             confidence = np.round(self.model.predict_proba(X_pred)[:, 1], 3)
             assert len(reactions) == len(confidence)
             for r, c in zip(reactions, confidence):
-                r[self.confidence_col] = c
+                r[self.confidence_col] = c.item()
                 if c >= threshold:
                     conf_success += 1
                 else:
