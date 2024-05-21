@@ -41,6 +41,8 @@ class RxnVis:
             drawer.DrawReaction(rxn)
         else:
             mol = rdmolfiles.MolFromSmiles(smiles)
+            if mol is None:
+                mol = rdmolfiles.MolFromSmarts(smiles)
             drawer.DrawMolecule(mol)
         drawer.FinishDrawing()
         img = Image.open(io.BytesIO(drawer.GetDrawingText()))
