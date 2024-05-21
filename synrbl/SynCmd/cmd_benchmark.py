@@ -1,6 +1,8 @@
 import os
 import json
 import copy
+import time
+import datetime
 import argparse
 import logging
 import pandas as pd
@@ -124,35 +126,55 @@ def run(args):
     rb_correct = 0
     mcs_correct = 0
     mcs_cth = 0
+    start_time = time.time()
+    last_tsmp = 0
     for i, entry in enumerate(dataset):
-        if not entry["solved"]:
-            continue
+        try:
+            if not entry["solved"]:
+                continue
 
-        if (
-            entry["solved_by"] == "mcs-based"
-            and entry["confidence"] >= args.min_confidence
-        ):
-            mcs_cth += 1
-
-        exp = entry[args.target_col]
-        if pd.isna(exp):
-            logger.warning(
-                "Missing expected reaction ({}) in line {}.".format(args.target_col, i)
-            )
-            continue
-
-        exp_reaction = normalize_smiles(exp)
-        act_reaction = normalize_smiles(entry[args.col])
-        wc_sim = wc_similarity(exp_reaction, act_reaction, args.similarity_method)
-        if entry["solved_by"] == "mcs-based":
             if (
-                entry["confidence"] >= args.min_confidence
-                and wc_sim >= args.similarity_threshold
+                entry["solved_by"] == "mcs-based"
+                and entry["confidence"] >= args.min_confidence
             ):
-                mcs_correct += 1
-        elif entry["solved_by"] == "rule-based":
-            if wc_sim >= args.similarity_threshold:
-                rb_correct += 1
+                mcs_cth += 1
+
+            exp = entry[args.target_col]
+            if pd.isna(exp):
+                logger.warning(
+                    "Missing expected reaction ({}) in line {}.".format(
+                        args.target_col, i
+                    )
+                )
+                continue
+
+            exp_reaction = normalize_smiles(exp)
+            act_reaction = normalize_smiles(entry[args.col])
+            wc_sim = wc_similarity(exp_reaction, act_reaction, args.similarity_method)
+            if entry["solved_by"] == "mcs-based":
+                if (
+                    entry["confidence"] >= args.min_confidence
+                    and wc_sim >= args.similarity_threshold
+                ):
+                    mcs_correct += 1
+            elif entry["solved_by"] == "rule-based":
+                if wc_sim >= args.similarity_threshold:
+                    rb_correct += 1
+
+            t = time.time()
+            prg = (i + 1) / len(dataset)
+            if t - last_tsmp > 10:
+                eta = (t - start_time) * (1 / prg - 1)
+                logger.info(
+                    "Evaluation progress {:.2%} ETA {}".format(
+                        prg, datetime.timedelta(seconds=int(eta))
+                    )
+                )
+                last_tsmp = t
+        except Exception as e:
+            logger.warning(
+                ("Failed to evaluate reaction in row {}. " + "({})").format(i, e)
+            )
 
     stats["confident_cnt"] = mcs_cth
     output_result(stats, rb_correct, mcs_correct, file=args.o)
