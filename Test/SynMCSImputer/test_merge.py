@@ -306,3 +306,10 @@ class TestCompounds(unittest.TestCase):
         cm = merge.merge(cset)
         self.assertEqual("remove_water_catalyst", cm.rules[0].name)
         self.assertEqual("CO", cm.smiles)
+
+    def test_catalyst_passthrough(self):
+        cset = CompoundSet()
+        cset.add_compound("C", src_mol="C")
+        cm = merge.merge(cset)
+        self.assertEqual(0, len(cm.rules))
+        self.assertEqual("C", cm.smiles)

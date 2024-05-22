@@ -118,25 +118,28 @@ class MoleculeStandardizer:
         """
         # Load the molecule from SMILES and create an editable molecule object
         mol = Chem.MolFromSmiles(smiles)
-        emol = Chem.EditableMol(mol)
 
         # Initialize indices
         c_idx, o1_idx, o2_idx = None, None, None
         for i in atom_indices:
-            atom_symbol = mol.GetAtomWithIdx(i).GetSymbol()
+            atom = mol.GetAtomWithIdx(i)
+            atom_symbol = atom.GetSymbol()
             if atom_symbol == "C":
                 c_idx = i
             elif atom_symbol == "O":
                 if o1_idx is None:
                     o1_idx = i  # Assume the first oxygen encountered is O1
+                    atom.SetNumExplicitHs(0)
                 else:
                     o2_idx = i  # The next oxygen is O2
+                    atom.SetNumExplicitHs(2)
 
         # Check if all indices are assigned
         if None in [c_idx, o1_idx, o2_idx]:
             return "Invalid atom indices provided. Please check the input."
 
         # Attempt to modify the molecule structure
+        emol = Chem.EditableMol(mol)
         try:
             # Remove existing bonds if they exist
             emol.RemoveBond(c_idx, o1_idx)

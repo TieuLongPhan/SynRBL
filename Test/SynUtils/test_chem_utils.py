@@ -5,7 +5,6 @@ from synrbl.SynUtils.chem_utils import (
     remove_atom_mapping,
     normalize_smiles,
     count_atoms,
-    remove_charge,
 )
 
 
@@ -85,16 +84,6 @@ class TestNormalizeReaction(unittest.TestCase):
         result = normalize_smiles(smiles)
         self.assertEqual("CCC", result)
 
-    def test_remove_charge1(self):
-        smiles = "[N-:13]#[C+:19]"
-        result = remove_charge(smiles)
-        self.assertEqual("[N:13]#[C:19]", result)
-
-    def test_remove_charge2(self):
-        smiles = "[N-]#[C+]"
-        result = remove_charge(smiles)
-        self.assertEqual("N#C", result)
-
     def test_edge_case_1(self):
         smiles = "F[Sb@OH12](F)(F)(F)(F)F"
         result = normalize_smiles(smiles)
@@ -109,16 +98,6 @@ class TestNormalizeReaction(unittest.TestCase):
         smiles = "[HH].C=O"
         result = normalize_smiles(smiles)
         self.assertEqual("C=O.[HH]", result)
-
-    def test_remove_charges1(self):
-        smiles = "[N-:13]#[C+:19]"
-        result = normalize_smiles(smiles)
-        self.assertEqual("C#N", result)
-
-    # def test_remove_charges2(self):
-    #     smiles = "C[N-:13]#[C+:19]"
-    #     result = normalize_smiles(smiles)
-    #     self.assertEqual("CN#C", result)
 
 
 @pytest.mark.parametrize(

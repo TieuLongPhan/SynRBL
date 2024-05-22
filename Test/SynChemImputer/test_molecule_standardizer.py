@@ -23,6 +23,13 @@ class TestMoleculeStandardizer(unittest.TestCase):
             result, expected, "Hemiketal transformation failed or incorrect"
         )
 
+    def test_hemiketal_transformation_with_aam(self):
+        smiles = "[C:1]([O:2])([OH:3])"
+        atom_indices = [0, 1, 2]
+        result = MoleculeStandardizer.standardize_hemiketal(smiles, atom_indices)
+        expected = ["[C:1]=[O:2].[OH2:3]", "[C:1]=[O:3].[OH2:2]"]
+        self.assertIn(result, expected)
+
     def test_MoleculeStandardizer(self):
         smiles = "C(O)(O)C=CO"
         standardizer = MoleculeStandardizer()

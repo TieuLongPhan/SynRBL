@@ -137,7 +137,7 @@ def run(args):
         args.out_columns if isinstance(args.out_columns, list) else [args.out_columns]
     )
     batch_size = None
-    if len(args.batch_size) > 0:
+    if args.batch_size is not None and len(args.batch_size) > 0:
         batch_size = int(args.batch_size)
 
     impute(

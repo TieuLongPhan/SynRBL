@@ -108,7 +108,7 @@ class MCSBasedMethod:
         smiles_standardizer=[],
     ):
         self.reaction_col = reaction_col
-        self.output_col = output_col
+        self.output_col = output_col if isinstance(output_col, list) else [output_col]
         self.mcs_data_col = mcs_data_col
         self.issue_col = issue_col
         self.rules_col = rules_col
@@ -134,7 +134,8 @@ class MCSBasedMethod:
                     carbon_balance_col=self.carbon_balance_col,
                     smiles_standardizer=self.smiles_standardizer,
                 )
-                reaction[self.output_col] = result
+                for col in self.output_col:
+                    reaction[col] = result
                 reaction[self.rules_col] = rules
                 mcs_solved += 1
             except Exception as e:
