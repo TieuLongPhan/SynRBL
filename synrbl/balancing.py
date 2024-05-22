@@ -189,7 +189,6 @@ class Balancer:
         )
         self.__post_process(reactions)
         self.rb_method.run(reactions)
-        self.mcs_validator.check(reactions, override_unsolved=True)
         self.mcs_validator.check(
             reactions,
             override_unsolved=True,
