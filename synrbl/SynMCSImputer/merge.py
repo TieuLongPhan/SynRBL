@@ -102,7 +102,9 @@ def merge(compound_set: CompoundSet) -> Compound:
         else:
             comps_with_boundaries.append(c)
 
-    if len(comps_with_boundaries) == 1:
+    if len(comps_with_boundaries) == 0 and len(comps_without_boundaries) > 0:
+        merged_compound = comps_without_boundaries.pop()
+    elif len(comps_with_boundaries) == 1:
         merged_compound = _merge_one_compound(comps_with_boundaries[0])
     elif len(comps_with_boundaries) == 2:
         merged_compound = _merge_two_compounds(
