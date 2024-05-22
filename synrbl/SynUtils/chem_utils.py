@@ -133,6 +133,12 @@ def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
     return total_charge
 
 
+def remove_unnecessary_brackets(smiles: str) -> str:
+    pattern = re.compile(r"\[(?P<atom>(B|C|N|O|P|S|F|Cl|Br|I){1,2})\]")
+    smiles = pattern.sub(r"\g<atom>", smiles)
+    return smiles
+
+
 def remove_atom_mapping(smiles: str) -> str:
     pattern = re.compile(r":\d+")
     smiles = pattern.sub("", smiles)
@@ -147,6 +153,13 @@ def remove_stereo_chemistry(smiles: str) -> str:
     return smiles
 
 
+def remove_charge(smiles: str) -> str:
+    smiles = smiles.replace("+", "")
+    smiles = smiles.replace("-", "")
+    smiles = remove_unnecessary_brackets(smiles)
+    return smiles
+
+
 def count_atoms(smiles: str) -> int:
     pattern = re.compile(r"(B|C|N|O|P|S|F|Cl|Br|I|c|n|o)")
     return len(pattern.findall(smiles))
@@ -154,6 +167,7 @@ def count_atoms(smiles: str) -> int:
 
 def normalize_smiles(smiles: str) -> str:
     smiles = remove_stereo_chemistry(smiles)
+    smiles = remove_charge(smiles)
     if ">>" in smiles:
         return ">>".join([normalize_smiles(t) for t in smiles.split(">>")])
     elif "." in smiles:

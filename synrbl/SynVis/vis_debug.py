@@ -123,7 +123,7 @@ class MCSDebug:
         ax3.imshow(img)
         ax3.set_title(
             "Result (Confidence: {:.1%})\nRules: {}\nIssue: {}".format(
-                result["confidence"], result["rules"], result["issue"]
+                result.get("confidence", 0), result.get("rules", None), result["issue"]
             ),
             fontsize=self.fontsize,
         )
