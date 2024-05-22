@@ -53,7 +53,7 @@ class PostProcess:
             reactants_smiles = Chem.CanonSmiles(reactants)
             products_smiles = Chem.CanonSmiles(products)
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"An error occurred in smiles parsing in PostProcess: {e}")
             reactants_smiles = reactants
             products_smiles = products
 
