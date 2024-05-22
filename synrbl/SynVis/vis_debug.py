@@ -45,7 +45,8 @@ class MCSDebug:
     def __init__(self):
         self.fontsize = 9
         self.balancer = synrbl.Balancer()
-        self.balancer.columns.append("mcs")
+        self.balancer.columns.extend(["mcs", "mcs_based_result"])
+        self.balancer.mcs_method.output_col.append("mcs_based_result")
         self.cairosize = (1600, 900)
         self.highlight_color = (0.4, 0.9, 0.6, 1)
 
@@ -70,10 +71,18 @@ class MCSDebug:
         )
 
         fig = plt.figure()
-        gs = fig.add_gridspec(3, len(mols))
-        ax1 = fig.add_subplot(gs[0, :])
-        axs2 = [fig.add_subplot(gs[1, i]) for i in range(len(mols))]
-        ax3 = fig.add_subplot(gs[2, :])
+        ax_mcs = None
+        if "mcs_based_result" in result.keys():
+            gs = fig.add_gridspec(4, len(mols))
+            ax1 = fig.add_subplot(gs[0, :])
+            axs2 = [fig.add_subplot(gs[1, i]) for i in range(len(mols))]
+            ax_mcs = fig.add_subplot(gs[2, :])
+            ax_final = fig.add_subplot(gs[3, :])
+        else:
+            gs = fig.add_gridspec(3, len(mols))
+            ax1 = fig.add_subplot(gs[0, :])
+            axs2 = [fig.add_subplot(gs[1, i]) for i in range(len(mols))]
+            ax_final = fig.add_subplot(gs[2, :])
 
         rxnvis = RxnVis(cairosize=self.cairosize)
         img = rxnvis.get_rxn_img(result["input_reaction"])
@@ -119,15 +128,25 @@ class MCSDebug:
             ax.set_title(title, fontsize=self.fontsize)
 
         rxnvis = RxnVis(cairosize=self.cairosize)
+        if ax_mcs is not None:
+            img = rxnvis.get_rxn_img(result["mcs_based_result"])
+            ax_mcs.imshow(img)
+            ax_mcs.set_title(
+                "MCS-Based Result\nRules: {}".format(result.get("rules", None)),
+                fontsize=self.fontsize,
+            )
+            ax_mcs.axis("off")
+
+        rxnvis = RxnVis(cairosize=self.cairosize)
         img = rxnvis.get_rxn_img(result["reaction"])
-        ax3.imshow(img)
-        ax3.set_title(
-            "Result (Confidence: {:.1%})\nRules: {}\nIssue: {}".format(
-                result.get("confidence", 0), result.get("rules", None), result["issue"]
+        ax_final.imshow(img)
+        ax_final.set_title(
+            "Result (Confidence: {:.1%})\nIssue: {}".format(
+                result.get("confidence", 0), result["issue"]
             ),
             fontsize=self.fontsize,
         )
-        ax3.axis("off")
+        ax_final.axis("off")
 
         plt.tight_layout()
         plt.show()
