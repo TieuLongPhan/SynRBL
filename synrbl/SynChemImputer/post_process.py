@@ -49,9 +49,13 @@ class PostProcess:
             if marker in reactants:
                 label = reaction_label
                 break
-
-        reactants_smiles = Chem.CanonSmiles(reactants) if reactants else ""
-        products_smiles = Chem.CanonSmiles(products) if products else ""
+        try:
+            reactants_smiles = Chem.CanonSmiles(reactants)
+            products_smiles = Chem.CanonSmiles(products)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            reactants_smiles = reactants
+            products_smiles = products
 
         new_dict = {
             id_column: r_id,
