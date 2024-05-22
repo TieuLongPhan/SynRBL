@@ -5,7 +5,7 @@ from synrbl import Balancer
 
 def test_e2e_1():
     n = 100
-    reactant = "[Br]" + n * "[Si](C)(C)O" + "[Si](C)(C)[Br]"
+    reactant = "Br" + n * "[Si](C)(C)O" + "[Si](C)(C)Br"
     product = "O" + n * "[Si](C)(C)O" + "[Si](C)(C)O"
     reaction = "{}>>{}".format(reactant, product)
     exp_result = "{}.{}>>{}.{}".format(reactant, "O.O", product, "Br.Br")
@@ -26,8 +26,8 @@ def test_e2e_1():
         ["CC(=O)C>>CC(O)C", "CC(=O)C.[HH]>>CC(O)C"],
         [
             "CCO.[O]>>CC=O",
-            "CCO.O=[Cr](Cl)(-[O-])=O.c1cc[nH+]cc1.O>>"
-            + "CC=O.O.O=[Cr](O)O.c1cc[nH+]cc1.[Cl-]",
+            "CCO.O.O=[Cr](Cl)(-[O-])=O.c1cc[nH+]cc1.O>>"
+            + "CC=O.O.O.O=[Cr](O)O.c1cc[nH+]cc1.[Cl-]",
         ],
     ],
 )
