@@ -1,9 +1,21 @@
 import pandas as pd
 
 from synrbl.SynProcessor import RSMIProcessing
+from synrbl.SynUtils import remove_atom_mapping
 
 
-def preprocess(reactions, reaction_col, index_col, solved_col, input_col, n_jobs=1):
+def preprocess(
+    reactions,
+    reaction_col,
+    index_col,
+    solved_col,
+    input_col,
+    n_jobs=1,
+    remove_aam=False,
+):
+    if remove_aam:
+        for r in reactions:
+            r[reaction_col] = remove_atom_mapping(r[reaction_col])
     df = pd.DataFrame(reactions)
     df[solved_col] = False
 

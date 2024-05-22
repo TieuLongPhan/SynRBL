@@ -52,6 +52,7 @@ class Balancer:
         self.__issue_col = "issue"
         self.__n_jobs = n_jobs
 
+        self.remove_aam = True
         self.batch_size = batch_size
         self.cache = cache
         self.cache_dir = cache_dir
@@ -171,6 +172,7 @@ class Balancer:
             self.__id_col,
             self.__solved_col,
             self.__input_col,
+            remove_aam=self.remove_aam,
         )
         rxn_cnt = len(reactions)
         self.input_validator.check(reactions)
