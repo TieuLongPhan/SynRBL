@@ -1,5 +1,6 @@
 import copy
 import logging
+import traceback
 
 from synrbl.preprocess import preprocess
 from synrbl.postprocess import Validator
@@ -189,6 +190,11 @@ class Balancer:
         self.__post_process(reactions)
         self.rb_method.run(reactions)
         self.mcs_validator.check(reactions, override_unsolved=True)
+        self.mcs_validator.check(
+            reactions,
+            override_unsolved=True,
+            override_issue_msg="Final reaction is unbalanced.",
+        )
 
         self.conf_predictor.predict(
             reactions, stats=stats, threshold=self.confidence_threshold
@@ -265,7 +271,8 @@ class Balancer:
                     )
                     logger.info("Cached new results. (Key: {})".format(cache_key[:8]))
             except Exception as e:
-                logger.error("Pipeline execution failed: {}".format(e))
+                traceback.print_exc()
+                logger.error("Pipeline execution failed: {}".format(type(e)))
 
         return result, batch_stats
 

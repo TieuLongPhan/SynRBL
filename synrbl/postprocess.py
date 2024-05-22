@@ -25,7 +25,7 @@ class Validator:
         self.issue_col = issue_col
         self.n_jobs = n_jobs
 
-    def check(self, reactions, override_unsolved=False):
+    def check(self, reactions, override_unsolved=False, override_issue_msg=None):
         update_reactants_and_products(reactions, self.reaction_col)
         decompose = RSMIDecomposer(
             smiles=None,  # type: ignore
@@ -69,4 +69,6 @@ class Validator:
                 reaction[self.solved_method_col] = self.method
             if override_unsolved and not reaction[self.solved_col]:
                 reaction[self.reaction_col] = reaction["input_reaction"]
+                if override_issue_msg is not None and reaction[self.issue_col] == "":
+                    reaction[self.issue_col] = override_issue_msg
         return reactions
