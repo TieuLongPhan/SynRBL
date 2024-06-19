@@ -23,6 +23,7 @@ def output_result(stats, rb_correct, mcs_correct, file=None):
     output_stats = copy.deepcopy(stats)
 
     rxn_cnt = stats["reaction_cnt"]
+    balanced_cnt = stats["balanced_cnt"]
     rb_s = stats["rb_solved"]
     rb_a = stats["rb_applied"]
     mcs_a = stats["mcs_applied"]
@@ -33,7 +34,7 @@ def output_result(stats, rb_correct, mcs_correct, file=None):
     output_stats["total_correct"] = total_correct
     rb_suc = _r(rb_s, rb_a)
     mcs_suc = _r(mcs_s, mcs_a)
-    suc = _r(rb_s + mcs_s, rxn_cnt)
+    suc = _r(rb_s + mcs_s, rxn_cnt - balanced_cnt)
     output_stats["rb_suc"] = rb_suc
     output_stats["mcs_suc"] = mcs_suc
     output_stats["success"] = suc
@@ -50,7 +51,9 @@ def output_result(stats, rb_correct, mcs_correct, file=None):
     logger.info(header)
     logger.info("-" * len(header))
 
-    logger.info(line_fmt.format("Input", str(rb_a), str(mcs_a), str(rxn_cnt)))
+    logger.info(
+        line_fmt.format("Input", str(rb_a), str(mcs_a), str(rxn_cnt - balanced_cnt))
+    )
     logger.info(line_fmt.format("Solved", str(rb_s), str(mcs_s), str(total_solved)))
     logger.info(
         line_fmt.format(
