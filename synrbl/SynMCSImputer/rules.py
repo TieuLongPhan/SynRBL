@@ -214,7 +214,44 @@ class ChangeBondAction(Action):
         boundary.compound.mol = emol.GetMol()
 
 
+class ChangeChargeAction(Action):
+    def __init__(self, charge=None, relative=False, **kwargs):
+        _check_config(ChangeChargeAction, ignore=["type"], **kwargs)
+        self.charge = kwargs.get("charge", charge)
+        self.relative = kwargs.get("relative", charge)
+
+        if self.charge is None:
+            raise ValueError("Missing required parameter 'charge'.")
+
+        self.charge = int(self.charge)
+
+    def apply(self, boundary: Boundary):
+        atom = boundary.compound.mol.GetAtomWithIdx(boundary.index)
+        atom.SetFormalCharge(self.charge)
+
+
+class ReplaceAction(Action):
+    def __init__(self, pattern=None, value=None, **kwargs):
+        _check_config(ReplaceAction, ignore=["type"], **kwargs)
+        self.pattern = kwargs.get("pattern", pattern)
+        self.value = kwargs.get("value", value)
+
+    def apply(self, boundary: Boundary):
+        smiles = boundary.compound.smiles
+        smiles.replace(self.pattern, self.value)
+        mol = rdmolfiles.MolFromSmiles(smiles)
+        new_symbol = mol.GetAtomWithIdx(boundary.index).GetSymbol()
+        if boundary.symbol != new_symbol:
+            raise ValueError(
+                ("Replace action changed boundary atom type from {} to {}. "
+                + "This is not allowed.").format(boundary.symbol, new_symbol)
+            )
+        boundary.compound.mol = mol
+
+
 Action.register("change_bond", ChangeBondAction)
+Action.register("change_charge", ChangeChargeAction)
+Action.register("replace", ReplaceAction)
 
 
 class CompoundAction:

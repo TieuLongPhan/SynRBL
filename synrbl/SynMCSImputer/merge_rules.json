@@ -27,6 +27,13 @@
         "condition2": {"atom": ["P"]},
         "bond": "single"
     },
+	{
+		"name": "nitrogen double bond",
+		"condition1": {"atom": ["C"], "src_pattern": "C=C"},
+		"condition2": {"atom": ["N"], "pattern": "N#N"},
+		"action2": {"type": "replace", "pattern": "N#N", "value": "[N+][N-]"},
+		"bond": "double"
+	},
     {
         "name": "S bond restriction",
         "condition1": {"atom": ["S"]},
