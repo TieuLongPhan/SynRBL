@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import inspect
+import logging
 import numpy as np
 import importlib.resources
 import rdkit.Chem as Chem
@@ -15,6 +16,8 @@ import synrbl.SynMCSImputer.utils as utils
 
 from synrbl.SynUtils.chem_utils import remove_atom_mapping
 from .structure import Boundary, Compound
+
+logger = logging.getLogger("synrbl")
 
 
 def _check_config(init, ignore=[], **kwargs):
@@ -243,8 +246,10 @@ class ReplaceAction(Action):
         new_symbol = mol.GetAtomWithIdx(boundary.index).GetSymbol()
         if boundary.symbol != new_symbol:
             raise ValueError(
-                ("Replace action changed boundary atom type from {} to {}. "
-                + "This is not allowed.").format(boundary.symbol, new_symbol)
+                (
+                    "Replace action changed boundary atom type from {} to {}. "
+                    + "This is not allowed."
+                ).format(boundary.symbol, new_symbol)
             )
         boundary.compound.mol = mol
 
@@ -714,9 +719,18 @@ class MergeRule:
         Returns:
             bool: True if the rule can be applied, false otherwise.
         """
-        return (self.condition1(boundary1) and self.condition2(boundary2)) or (
-            self.condition1(boundary2) and self.condition2(boundary1)
-        )
+        try:
+            return (self.condition1(boundary1) and self.condition2(boundary2)) or (
+                self.condition1(boundary2) and self.condition2(boundary1)
+            )
+        except Exception as e:
+            logger.warning(
+                (
+                    "Applicability check for rule '{}' failed with "
+                    + "the following exception: {}"
+                ).format(self.name, str(e))
+            )
+            return False
 
     def apply(self, boundary1: Boundary, boundary2: Boundary) -> Compound | None:
         def _fix_Hs(atom, bond_nr):

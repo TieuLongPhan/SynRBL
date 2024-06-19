@@ -53,7 +53,7 @@
 	},
     {
         "name": "append O when next to O or N",
-        "condition": {"atom": ["!O", "!N", "!S"], "neighbor_atom": ["O", "N"]},
+        "condition": {"atom": ["!O", "!N"], "neighbor_atom": ["O", "N"]},
         "compound": {"smiles": "O", "index": 0}
     },
     {

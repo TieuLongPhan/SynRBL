@@ -23,13 +23,13 @@ for k, v in db_splits.items():
     df.to_csv(file, index=False)
 
 for f in data_files:
-   run_cmd = ["python3", "-m", "synrbl", "run"]
-   run_cmd.extend(["--out-columns", "expected_reaction"])
-   run_cmd.extend(["--cache"])
-   synrbl_p = subprocess.Popen(run_cmd + [f])
-   rcode = synrbl_p.wait()
-   if rcode != 0:
-       raise RuntimeError("SynRBL returned with exit code {}".format(rcode))
+    run_cmd = ["python3", "-m", "synrbl", "run"]
+    run_cmd.extend(["--out-columns", "expected_reaction"])
+    run_cmd.extend(["--cache"])
+    synrbl_p = subprocess.Popen(run_cmd + [f])
+    rcode = synrbl_p.wait()
+    if rcode != 0:
+        raise RuntimeError("SynRBL returned with exit code {}".format(rcode))
 
 benchmark_files = []
 for ds in dataset_names:
