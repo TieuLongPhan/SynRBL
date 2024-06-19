@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import inspect
+import logging
 import numpy as np
 import importlib.resources
 import rdkit.Chem as Chem
@@ -15,6 +16,8 @@ import synrbl.SynMCSImputer.utils as utils
 
 from synrbl.SynUtils.chem_utils import remove_atom_mapping
 from .structure import Boundary, Compound
+
+logger = logging.getLogger("synrbl")
 
 
 def _check_config(init, ignore=[], **kwargs):
@@ -214,7 +217,46 @@ class ChangeBondAction(Action):
         boundary.compound.mol = emol.GetMol()
 
 
+class ChangeChargeAction(Action):
+    def __init__(self, charge=None, relative=False, **kwargs):
+        _check_config(ChangeChargeAction, ignore=["type"], **kwargs)
+        self.charge = kwargs.get("charge", charge)
+        self.relative = kwargs.get("relative", charge)
+
+        if self.charge is None:
+            raise ValueError("Missing required parameter 'charge'.")
+
+        self.charge = int(self.charge)
+
+    def apply(self, boundary: Boundary):
+        atom = boundary.compound.mol.GetAtomWithIdx(boundary.index)
+        atom.SetFormalCharge(self.charge)
+
+
+class ReplaceAction(Action):
+    def __init__(self, pattern=None, value=None, **kwargs):
+        _check_config(ReplaceAction, ignore=["type"], **kwargs)
+        self.pattern = kwargs.get("pattern", pattern)
+        self.value = kwargs.get("value", value)
+
+    def apply(self, boundary: Boundary):
+        smiles = boundary.compound.smiles
+        smiles.replace(self.pattern, self.value)
+        mol = rdmolfiles.MolFromSmiles(smiles)
+        new_symbol = mol.GetAtomWithIdx(boundary.index).GetSymbol()
+        if boundary.symbol != new_symbol:
+            raise ValueError(
+                (
+                    "Replace action changed boundary atom type from {} to {}. "
+                    + "This is not allowed."
+                ).format(boundary.symbol, new_symbol)
+            )
+        boundary.compound.mol = mol
+
+
 Action.register("change_bond", ChangeBondAction)
+Action.register("change_charge", ChangeChargeAction)
+Action.register("replace", ReplaceAction)
 
 
 class CompoundAction:
@@ -677,9 +719,18 @@ class MergeRule:
         Returns:
             bool: True if the rule can be applied, false otherwise.
         """
-        return (self.condition1(boundary1) and self.condition2(boundary2)) or (
-            self.condition1(boundary2) and self.condition2(boundary1)
-        )
+        try:
+            return (self.condition1(boundary1) and self.condition2(boundary2)) or (
+                self.condition1(boundary2) and self.condition2(boundary1)
+            )
+        except Exception as e:
+            logger.warning(
+                (
+                    "Applicability check for rule '{}' failed with "
+                    + "the following exception: {}"
+                ).format(self.name, str(e))
+            )
+            return False
 
     def apply(self, boundary1: Boundary, boundary2: Boundary) -> Compound | None:
         def _fix_Hs(atom, bond_nr):

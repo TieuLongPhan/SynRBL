@@ -87,6 +87,16 @@ class TestMergeRule(unittest.TestCase):
         self.assertEqual("phosphor double bond change", cm.rules[0].name)  # type: ignore
         self.assertEqual("[O:3]=[P:5]([OH:6])([OH:7])[O:8]", cm.smiles)  # type: ignore
 
+    def test_nitrogen_bond1(self):
+        c1 = Compound("C", src_mol="C=C")
+        c2 = Compound("N#N", src_mol="CS(=O)(=O)N=[N+]=[N-]")
+        b1 = c1.add_boundary(0, "C", 1, "C")
+        b2 = c2.add_boundary(0, "N", 5, "N")
+        cm = merge.merge_boundaries(b1, b2)
+        self.assertEqual(1, len(cm.rules))  # type: ignore
+        self.assertEqual("nitrogen double bond", cm.rules[0].name)  # type: ignore
+        self.assertEqual("C=[N+]=[N-]", cm.smiles)  # type: ignore
+
 
 class TestExpansion(unittest.TestCase):
     @mock.patch("synrbl.SynMCSImputer.merge.ExpandRule")
