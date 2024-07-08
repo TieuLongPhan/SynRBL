@@ -2,7 +2,7 @@
 
 SynRBL is a toolkit tailored for computational chemistry, aimed at correcting imbalances in chemical reactions. It employs a dual strategy: a rule-based method for adjusting non-carbon elements and an mcs-based (maximum common substructure) technique for carbon element adjustments.
 
-![screenshot](./Docs/Images/Flowchart.png)
+![screenshot](./Docs/Images/flowchart_overview.png)
 
 
 ## Table of Contents
@@ -143,6 +143,12 @@ The requirements are automatically installed with the pip package.
 - [Klaus Weinbauer](https://github.com/klausweinbauer)
 
 ## License
+
+This project is licensed under MIT License - see the [License](LICENSE) file for details.
+
+## Publication
+
+[Reaction Rebalancing: A Novel Approach to Curating Reaction Databases](https://chemrxiv.org/engage/chemrxiv/article-details/65faab36e9ebbb4db917b2cf)
 
 This project is licensed under MIT License - see the [License](LICENSE) file for details.
 
