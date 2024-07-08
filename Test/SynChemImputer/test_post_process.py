@@ -31,7 +31,7 @@ class TestPostProcess(unittest.TestCase):
     def test_fit(self):
         post_process = PostProcess(n_jobs=4, verbose=1)
         result = post_process.fit(self.data)
-        self.assertEqual(result[1]["curated_reaction"], "CC(=O)C.[HH]>>CC(O)C")
+        self.assertEqual(result[1]["curated_reaction"], "CC(=O)C.[H][H]>>CC(O)C")
         self.assertEqual(
             result[2]["curated_reaction"],
             (

@@ -23,7 +23,7 @@ def test_e2e_1():
 @pytest.mark.parametrize(
     "smiles,exp_smiles",
     [
-        ["CC(=O)C>>CC(O)C", "CC(=O)C.[HH]>>CC(O)C"],
+        ["CC(=O)C>>CC(O)C", "CC(=O)C.[H][H]>>CC(O)C"],
         [
             "CCO.[O]>>CC=O",
             "CCO.O.O=[Cr](Cl)(-[O-])=O.c1cc[nH+]cc1.O>>"

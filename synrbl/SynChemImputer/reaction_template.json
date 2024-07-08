@@ -2,12 +2,12 @@
     "reduction":{
         "template_1": {
             "neutral": {
-                "reactants": ["[HH]"],
+                "reactants": ["[H][H]"],
                 "products": [],
                 "stoichiometric": [1]
             },
             "ion": {
-                "reactants": ["[HH]"],
+                "reactants": ["[H][H]"],
                 "products": [],
                 "stoichiometric": [1]
             }
