@@ -69,28 +69,28 @@ class RuleBasedMethod:
         for index, formula in enumerate(diff_formula):
             if unbalance[index] == "Both":
                 # Extract oxygen ratio if present, or skip to next iteration if absent.
-                water_ratio = formula.get("O")
+                water_ratio = formula.get('O')
                 if water_ratio is None:
                     continue
 
                 hydrogen_change = 2 * water_ratio
-                additional_oxygen = ".O" * water_ratio
+                additional_oxygen = '.O' * water_ratio
 
                 # Update the reactions list with additional oxygen on both specified keys.
-                reactions[index]["products"] += additional_oxygen
+                reactions[index]['products'] += additional_oxygen
                 reactions[index][self.reaction_col] += additional_oxygen
 
                 # Remove the 'O' key as it's processed now.
-                del formula["O"]
-
-                formula["H"] = formula.get("H", 0) - hydrogen_change
+                del formula['O']
+                
+                formula['H'] = formula.get('H', 0) - hydrogen_change
 
                 # Check the new hydrogen count to update balance status.
-                if formula["H"] >= 0:
-                    unbalance[index] = "Products"
+                if formula['H'] >= 0:
+                    unbalance[index] = 'Products'
                 else:
-                    formula["H"] = -formula["H"]
-                    unbalance[index] = "Reactants"
+                    formula['H'] = -formula['H']
+                    unbalance[index] = 'Reactants'
 
         _reactions = pd.concat(
             [
