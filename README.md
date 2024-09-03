@@ -148,7 +148,7 @@ This project is licensed under MIT License - see the [License](LICENSE) file for
 
 ## Publication
 
-[Reaction rebalancing: a novel approach to curating reaction databases](https://link.springer.com/article/10.1186/s13321-024-00875-4#citeas)
+[Reaction rebalancing: a novel approach to curating reaction databases](https://link.springer.com/article/10.1186/s13321-024-00875-4)
 
 ### Citation
 ```
