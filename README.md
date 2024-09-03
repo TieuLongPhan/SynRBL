@@ -148,7 +148,26 @@ This project is licensed under MIT License - see the [License](LICENSE) file for
 
 ## Publication
 
-[Reaction Rebalancing: A Novel Approach to Curating Reaction Databases](https://chemrxiv.org/engage/chemrxiv/article-details/65faab36e9ebbb4db917b2cf)
+[Reaction rebalancing: a novel approach to curating reaction databases](https://link.springer.com/article/10.1186/s13321-024-00875-4#citeas)
+
+### Citation
+```
+@Article{Phan2024,
+  author={Phan, Tieu-Long and Weinbauer, Klaus and G{\"a}rtner, Thomas and Merkle, 
+    Daniel and Andersen, Jakob L. and Fagerberg, Rolf and Stadler, Peter F.},
+  title={Reaction rebalancing: a novel approach to curating reaction databases},
+  journal={Journal of Cheminformatics},
+  year={2024},
+  month={Jul},
+  day={19},
+  volume={16},
+  number={1},
+  pages={82},
+  issn={1758-2946},
+  doi={10.1186/s13321-024-00875-4},
+  url={https://doi.org/10.1186/s13321-024-00875-4}
+}
+```
 
 ## Acknowledgments
 
