@@ -14,7 +14,7 @@ class MoleculeStandardizer:
         Initializes the MoleculeStandardizer with a SMILES string and
         a functional group query object.
         """
-        self.query = FGQuery(use_smiles=True)
+        self.query = FGQuery()
 
     def __call__(self, smiles) -> str:
         """

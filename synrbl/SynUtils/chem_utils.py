@@ -309,7 +309,7 @@ def find_functional_reactivity(reaction_smiles: str) -> Tuple[List[str], List[st
     Tuple[List[str], List[str]]: Two lists containing unique functional groups
     in reactants and products, respectively.
     """
-    query = FGQuery(use_smiles=True)
+    query = FGQuery()
     reactant, product = reaction_smiles.split(">>")
     fg_reactant = query.get(reactant)
     fg_product = query.get(product)
