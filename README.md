@@ -2,7 +2,7 @@
 
 SynRBL is a toolkit tailored for computational chemistry, aimed at correcting imbalances in chemical reactions. It employs a dual strategy: a rule-based method for adjusting non-carbon elements and an mcs-based (maximum common substructure) technique for carbon element adjustments.
 
-![screenshot](./Docs/Images/flowchart_overview.png)
+![screenshot](https://raw.githubusercontent.com/TieuLongPhan/SynRBL/main/Docs/Images/flowchart_overview.png)
 
 
 ## Table of Contents
@@ -33,7 +33,7 @@ The requirements are automatically installed with the pip package.
 - scikit_learn == 1.4.0
 - imbalanced_learn >= 0.12.0
 - reportlab >= 4.1.0
-- fgutils >= 0.0.15
+- fgutils >= 0.1.3
 
 ### Step-by-Step Installation Guide
 
