@@ -61,7 +61,7 @@ class RuleConstraint:
 
     @staticmethod
     def reduction_oxidation_rules_modify(
-        data: List[Dict[str, str]]
+        data: List[Dict[str, str]],
     ) -> List[Dict[str, str]]:
         """
         Modify the oxidation rules in the given data.

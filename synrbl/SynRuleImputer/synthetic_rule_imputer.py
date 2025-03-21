@@ -124,7 +124,7 @@ class SyntheticRuleImputer(SyntheticRuleMatcher):
 
     @staticmethod
     def get_and_validate_smiles(
-        solution: List[Dict[str, Union[str, int]]]
+        solution: List[Dict[str, Union[str, int]]],
     ) -> Optional[str]:
         """
         Concatenate smiles strings based on their ratios and validate the

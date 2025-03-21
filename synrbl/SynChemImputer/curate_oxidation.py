@@ -6,7 +6,7 @@ from synrbl.SynUtils.chem_utils import (
 )
 from joblib import Parallel, delayed
 import synrbl.SynChemImputer
-from synrbl.SynUtils.rsmi_utils import load_database
+from synkit.IO.data_io import load_database
 import rdkit.RDLogger as RDLogger
 import importlib.resources
 
