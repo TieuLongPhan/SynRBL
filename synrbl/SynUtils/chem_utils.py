@@ -133,6 +133,15 @@ def calculate_net_charge(sublist: list[dict[str, Union[str, int]]]) -> int:
     return total_charge
 
 
+def canon_smiles(smiles: str):
+    mol = Chem.MolFromSmiles(smiles, sanitize=False)
+    try:
+        Chem.SanitizeMol(mol)
+        return Chem.MolToSmiles(mol)
+    except Exception:
+        return Chem.MolToSmiles(mol)
+
+
 def remove_atom_mapping(smiles: str) -> str:
     pattern = re.compile(r":\d+")
     smiles = pattern.sub("", smiles)
@@ -165,7 +174,8 @@ def normalize_smiles(smiles: str) -> str:
         )
         return ".".join(token)
     else:
-        return Chem.CanonSmiles(remove_atom_mapping(smiles))
+        smiles = remove_atom_mapping(smiles)
+        return canon_smiles(smiles)
 
 
 def _get_diff_mol(smiles1, smiles2):

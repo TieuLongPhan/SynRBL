@@ -210,7 +210,7 @@ class SyntheticRuleMatcher:
 
     @staticmethod
     def remove_overlapping_solutions(
-        solutions: List[List[Dict[str, str]]]
+        solutions: List[List[Dict[str, str]]],
     ) -> List[List[Dict[str, str]]]:
         """
         Remove overlapping solutions from the list of solutions.

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from synrbl.rsmi_utils import load_database
+from synkit.IO.data_io import load_database
 from synrbl.SynAnalysis.analysis_utils import (
     remove_atom_mapping_from_reaction_smiles,
     calculate_chemical_properties,
