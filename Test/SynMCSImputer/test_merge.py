@@ -240,7 +240,7 @@ class TestCompounds(unittest.TestCase):
         compound2 = cset.add_compound("[MgH+]", src_mol="C[Mg+]")
         compound2.add_boundary(0, symbol="Mg", neighbor_index=0, neighbor_symbol="C")
         cm = merge.merge(cset)
-        self.assertEqual("CON(C)[Mg+]", cm.smiles)
+        self.assertEqual("CO[N](C)[Mg+]", cm.smiles)
 
     def test_merge_with_explicit_H_1(self):
         cset = CompoundSet()
