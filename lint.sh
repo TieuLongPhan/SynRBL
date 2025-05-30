@@ -5,6 +5,6 @@ flake8 . --count --max-complexity=13 --max-line-length=90 \
 		mcs_graph_detector.py:C901 \
 		eda_analysis.py:C901 \
 		find_missing_graphs.py:C901 \
-		validation_set_interface.py:F824" \
+		Scripts/validation_set_interface.py:F824" \
 	--exclude venv,Scripts \
 	--statistics
