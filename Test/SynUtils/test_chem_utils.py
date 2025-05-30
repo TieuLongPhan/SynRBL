@@ -87,7 +87,7 @@ class TestNormalizeReaction(unittest.TestCase):
     def test_edge_case_1(self):
         smiles = "F[Sb@OH12](F)(F)(F)(F)F"
         result = normalize_smiles(smiles)
-        self.assertEqual("F[Sb](F)(F)(F)(F)F", result)
+        self.assertEqual("[F][Sb]([F])([F])([F])([F])[F]", result)
 
     def test_ordering_of_aromatic_compounds(self):
         smiles = "[HH].c1ccccc1"

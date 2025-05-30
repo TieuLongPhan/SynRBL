@@ -161,9 +161,8 @@ class ReactionVisualizer:
         drawer = rdMolDraw2D.MolDraw2DCairo(2000, 600)  # Adjust canvas size as needed
         opts = drawer.drawOptions()
         opts.bondLineWidth = self.bond_line_width  # Increase bond line width
-        opts.atomLabelFontSize = (
-            self.atom_label_font_size
-        )  # Increase font size for atom labels
+        opts.minFontSize = self.atom_label_font_size
+        opts.maxFontSize = self.atom_label_font_size
         opts.padding = self.padding  # Adjust padding around the drawing
 
         drawer.DrawReaction(rxn)
