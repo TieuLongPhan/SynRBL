@@ -38,6 +38,7 @@ class Balancer:
         batch_size=None,
         cache=False,
         cache_dir: str | None = "./cache",
+        use_default_reduction: bool = False,
     ):
         self.__reaction_col = reaction_col
         self.__id_col = id_col
@@ -51,6 +52,8 @@ class Balancer:
         self.__rules_col = "rules"
         self.__issue_col = "issue"
         self.__n_jobs = n_jobs
+
+        self.use_default_reduction = use_default_reduction
 
         self.remove_aam = True
         self.batch_size = batch_size
@@ -118,7 +121,11 @@ class Balancer:
             smiles_standardizer=[MoleculeStandardizer()],
         )
         self.post_processor = PostProcess(
-            id_col=id_col, reaction_col=reaction_col, n_jobs=n_jobs, verbose=0
+            id_col=id_col,
+            reaction_col=reaction_col,
+            n_jobs=n_jobs,
+            verbose=0,
+            use_default=self.use_default_reduction,
         )
         self.conf_predictor = ConfidencePredictor(
             reaction_col=reaction_col,

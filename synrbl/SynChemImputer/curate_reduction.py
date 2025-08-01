@@ -55,6 +55,7 @@ class CurationReduction:
         compounds_template: Dict,
         reaction_templates: Dict,
         neutralize: bool = False,
+        use_default: bool = False,
     ) -> Tuple[List[str], List[Optional[bool]]]:
         """
         Processes an oxidation template based on the given SMILES string of the reaction.
@@ -70,7 +71,10 @@ class CurationReduction:
         """
         reaction_list = []
         stoichiometry_list = []
-        compounds_template = compounds_template["reduction"]
+        if use_default:
+            compounds_template = compounds_template["reduction_default"]
+        else:
+            compounds_template = compounds_template["reduction"]
         reaction_templates = reaction_templates["reduction"]
         try:
             cp_temp = CurationReduction.find_reduction_pattern(reaction_smiles)[0]
@@ -117,6 +121,7 @@ class CurationReduction:
         reaction_templates: Dict = None,
         return_all: bool = False,
         neutralize: bool = False,
+        use_default: bool = False,
     ) -> Dict:
         """
         Processes a single reaction dictionary and updates it with the results of
@@ -137,7 +142,7 @@ class CurationReduction:
         """
         reaction = reaction_dict[reaction_columns]
         new_reaction, stoichiometry = CurationReduction.process_reduct_template(
-            reaction, compounds_template, reaction_templates, neutralize
+            reaction, compounds_template, reaction_templates, neutralize, use_default
         )
         if len(new_reaction) == 0 or len(stoichiometry) == 0:
             return reaction_dict
@@ -158,6 +163,7 @@ class CurationReduction:
         verbose: int = 1,
         return_all: bool = False,
         neutralize: bool = False,
+        use_default: bool = False,
     ) -> List[Dict]:
         """
         Curates a list of oxidation reaction dictionaries in parallel.
@@ -182,6 +188,7 @@ class CurationReduction:
                 self.reaction_templates,
                 return_all=return_all,
                 neutralize=neutralize,
+                use_default=use_default,
             )
             for reaction in data
         )

@@ -8,6 +8,15 @@
         "carboxylic_acid": ["template_4"],
         "other": ["template_1"]
     },
+    "reduction_default": {
+        "aldehyde": ["template_1"],
+        "ketone": ["template_1"],
+        "ester": ["template_1"],
+        "acyl_chloride": ["template_1"],
+        "amid": ["template_1"],
+        "carboxylic_acid": ["template_1"],
+        "other": ["template_1"]
+    },
     "oxidation": {
         "primary_alcohol>>aldehyde": ["template_1"],
         "secondary_alcohol>>ketone": ["template_1"],

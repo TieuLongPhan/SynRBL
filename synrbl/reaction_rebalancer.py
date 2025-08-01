@@ -48,6 +48,7 @@ class RebalanceConfig:
     batch_size: int = 1000
     raise_on_error: bool = False
     enable_logging: bool = True
+    use_default_reduction: bool = False
 
 
 class ReactionRebalancer:
@@ -185,6 +186,7 @@ class ReactionRebalancer:
                 id_col=int_id,
                 n_jobs=self.config.n_jobs,
                 batch_size=self.config.batch_size,
+                use_default_reduction=self.config.use_default_reduction,
             )
             return balancer.rebalance(reactions=data, output_dict=True)
         except Exception:
@@ -199,7 +201,10 @@ class ReactionRebalancer:
         self.logger.info("Post-processing.")
         try:
             post = PostProcess(
-                id_col=int_id, reaction_col=rxn_col, n_jobs=self.config.n_jobs
+                id_col=int_id,
+                reaction_col=rxn_col,
+                n_jobs=self.config.n_jobs,
+                use_default=self.config.use_default_reduction,
             )
             proc = post.fit(data)
         except Exception:
