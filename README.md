@@ -1,4 +1,10 @@
 # SynRBL: Synthesis Rebalancing Framework
+[![PyPI version](https://img.shields.io/pypi/v/synrbl.svg)](https://pypi.org/project/synrbl/)
+[![License](https://img.shields.io/github/license/tieulongphan/synrbl.svg)](https://github.com/tieulongphan/synrbl/blob/main/LICENSE)
+[![Release](https://img.shields.io/github/v/release/tieulongphan/synrbl.svg)](https://github.com/tieulongphan/synrbl/releases)
+[![CI](https://github.com/tieulongphan/synrbl/actions/workflows/test-and-lint.yml/badge.svg?branch=main)](https://github.com/tieulongphan/synrbl/actions/workflows/test-and-lint.yml)
+[![Dependency PRs](https://img.shields.io/github/issues-pr-raw/tieulongphan/synrbl?label=dependency%20PRs)](https://github.com/tieulongphan/synrbl/pulls?q=is%3Apr+label%3Adependencies)
+[![Stars](https://img.shields.io/github/stars/tieulongphan/synrbl.svg?style=social&label=Star)](https://github.com/tieulongphan/synrbl/stargazers)
 
 SynRBL is a toolkit tailored for computational chemistry, aimed at correcting imbalances in chemical reactions. It employs a dual strategy: a rule-based method for adjusting non-carbon elements and an mcs-based (maximum common substructure) technique for carbon element adjustments.
 
@@ -90,6 +96,37 @@ The requirements are automatically installed with the pip package.
         "solved_by": "mcs-based",
         "confidence": 0.999,
     }]
+  ```
+### New config
+  ```python
+  from synrbl import Balancer
+  
+  smiles = 'CC(=O)O>>CCO'
+  synrbl = Balancer(use_default_reduction=True) # we try to match correct reduction agent
+  results = synrbl.rebalance(smiles, output_dict=True)
+  >> 'CC(=O)O.[AlH4-].[Li+].[H+].[AlH4-].[Li+].[H+]>>CCO.O.[AlH3].[Li+].[AlH3].[Li+]'
+  
+  synrbl = Balancer(use_default_reduction=True) # leave hydrogen
+  results = synrbl.rebalance(smiles, output_dict=True)
+  >> 'CC(=O)O.[H][H].[H][H]>>CCO.O'
+  ```
+
+### Batch Process
+  ```python
+  from synrbl import ReactionRebalancer, RebalanceConfig
+
+  data = [{'id':1, 'rxn':'CC(=O)O>>CCO'},
+          {'id':2, 'rxn':('COC(=O)[C@H](CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)'
+          +'(C)C)c1O>>COC(=O)[C@H](CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O')}]
+
+  config = RebalanceConfig(reaction_col="rxn", id_col="id", n_jobs=2, batch_size=500,
+                           enable_logging=False, use_default_reduction=True)
+  rebalancer = ReactionRebalancer(config=config, user_logger=None)
+  result = rebalancer.rebalance(data, keep_extra=False)
+  result
+  >> [{'id': 2,
+      'rxn': 'COC(=O)C(CCCCNC(=O)OCc1ccccc1)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O>>COC(=O)C(CCCCN)NC(=O)Nc1cc(OC)cc(C(C)(C)C)c1O.O=C(O)OCc1ccccc1'},
+      {'id': 1, 'rxn': 'CC(=O)O.[H][H].[H][H]>>CCO.O'}]
   ```
 
 ### Use in command line

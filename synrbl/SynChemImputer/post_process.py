@@ -7,12 +7,18 @@ from joblib import Parallel, delayed
 
 class PostProcess:
     def __init__(
-        self, id_col="R-id", reaction_col="reactions", n_jobs: int = 4, verbose: int = 1
+        self,
+        id_col="R-id",
+        reaction_col="reactions",
+        n_jobs: int = 4,
+        verbose: int = 1,
+        use_default: bool = False,
     ):
         self.id_col = id_col
         self.reaction_col = reaction_col
         self.n_jobs = n_jobs
         self.verbose = verbose
+        self.use_default = use_default
 
     @staticmethod
     def label_reactions(
@@ -100,6 +106,7 @@ class PostProcess:
             n_jobs=self.n_jobs,
             verbose=self.verbose,
             return_all=False,
+            use_default=self.use_default,
         )
         result_oxidation = curate_oxidation.parallel_curate(
             oxidation_data,
