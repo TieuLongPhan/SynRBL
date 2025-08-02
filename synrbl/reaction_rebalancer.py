@@ -2,9 +2,8 @@
 reaction_rebalancer.py
 
 Provides ReactionRebalancer for rebalancing chemical reactions pipeline: standardization,
-balancing,
-postprocessing, neutralization, and deionization. Uses internal 'R-id' copied f
-rom external id_col when they differ.
+balancing (which includes its own post-processing), neutralization, and deionization.
+Uses internal 'R-id' copied from external id_col when they differ.
 """
 
 import logging
@@ -13,7 +12,6 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 from synrbl import Balancer
-from synrbl.SynChemImputer.post_process import PostProcess
 from synkit.IO.debug import setup_logging
 from synkit.Chem.Reaction.standardize import Standardize
 from synkit.Chem.Reaction.deionize import Deionize
@@ -40,6 +38,8 @@ class RebalanceConfig:
     :type raise_on_error: bool
     :param enable_logging: Whether to enable logging output.
     :type enable_logging: bool
+    :param use_default_reduction: Passed to Balancer to control reduction behavior.
+    :type use_default_reduction: bool
     """
 
     reaction_col: str = "reactions"
@@ -54,7 +54,8 @@ class RebalanceConfig:
 class ReactionRebalancer:
     """
     Orchestrates the pipeline for rebalancing chemical reactions:
-    standardization, balancing, post-processing, neutralization, deionization.
+    standardization, balancing (including its internal post-processing),
+    neutralization, and deionization.
     Uses an internal 'R-id' field, initially copied from the external id_col,
     and writes back at the end. Logging can be toggled via config.
 
@@ -130,8 +131,7 @@ class ReactionRebalancer:
         std_data = self._standardize_records(records, rxn_col)
         balanced = self._balance_reactions(std_data, rxn_col, int_id)
         restored = self._restore_internal_id(std_data, balanced)
-        processed = self._postprocess(restored, rxn_col, int_id)
-        fixed = self._neutralize_deionize(processed, rxn_col)
+        fixed = self._neutralize_deionize(restored, rxn_col)
         return self._extract_results(fixed, ext_id, int_id, rxn_col, keep_extra)
 
     def _load_records(
@@ -195,26 +195,6 @@ class ReactionRebalancer:
                 raise
             return []
 
-    def _postprocess(
-        self, data: List[Dict[str, Any]], rxn_col: str, int_id: str
-    ) -> List[Dict[str, Any]]:
-        self.logger.info("Post-processing.")
-        try:
-            post = PostProcess(
-                id_col=int_id,
-                reaction_col=rxn_col,
-                n_jobs=self.config.n_jobs,
-                use_default=self.config.use_default_reduction,
-            )
-            proc = post.fit(data)
-        except Exception:
-            self.logger.exception("PostProcess failed.")
-            proc = data
-        for e in proc:
-            if "curated_reaction" in e:
-                e[rxn_col] = e["curated_reaction"]
-        return proc
-
     def _neutralize_deionize(
         self, data: List[Dict[str, Any]], rxn_col: str
     ) -> List[Dict[str, Any]]:
@@ -272,7 +252,8 @@ class ReactionRebalancer:
         :type processed_list: List[Dict[str, Any]]
         :returns: New list with consistent internal 'R-id'.
         :rtype: List[Dict[str, Any]]
-        :raises ValueError: If input lists are not lists of dicts.
+        :raises ValueError: If input lists are not lists of dicts or
+        if required keys missing.
         """
         if not all(isinstance(x, dict) for x in original_list + processed_list):
             raise ValueError(
@@ -288,12 +269,25 @@ class ReactionRebalancer:
             mapping.setdefault(std_rxn, []).append(entry)
 
         out_list: List[Dict[str, Any]] = []
+        std_obj = Standardize()
         for entry in processed_list:
             if "input_reaction" not in entry:
                 raise ValueError(f"Processed entry missing 'input_reaction': {entry}")
             new_entry = entry.copy()
-            input_rxn = entry["input_reaction"]
-            originals = mapping.get(input_rxn, [])
+            input_raw = entry["input_reaction"]
+
+            # First try a direct lookup (maybe already standardized)
+            originals = mapping.get(input_raw, [])
+            if not originals:
+                # Fallback: standardize then lookup
+                try:
+                    standardized_input = std_obj.fit(input_raw, remove_aam=True)
+                    originals = mapping.get(standardized_input, [])
+                except Exception:
+                    logger.exception(
+                        "Standardization of input_reaction failed: %s", input_raw
+                    )
+
             if originals:
                 new_entry[int_id] = originals[0].get(int_id)
             out_list.append(new_entry)
