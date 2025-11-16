@@ -1,4 +1,4 @@
-synkit>=0.0.14
+synkit>=1.0.1
 xgboost>=2.0.3
 scikit_learn==1.4.0
 imbalanced_learn>=0.12.0
