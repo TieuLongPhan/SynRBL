@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "synrbl"
-version = "1.0.4"
+version = "1.0.5"
 authors = [
 	{name="Tieu Long Phan", email="long.tieu_phan@uni-leipzig.de"}, 
 	{name="Klaus Weinbauer", email="klaus@bioinf.uni-leipzig.de"}
@@ -20,9 +20,10 @@ classifiers = [
 dependencies = [
     "synkit>=1.0.1",
     "xgboost>=2.0.3,<=3.0.0",
-    "imbalanced_learn>=0.12.0,<0.13.0",
+    "imbalanced_learn>=0.14.0",
     "reportlab>=4.1.0",
     "fgutils>=0.1.3,<=0.2.3",
+	"scikit_learn==1.7.2",
 ]
 
 
