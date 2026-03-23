@@ -1,4 +1,4 @@
-synkit>=1.0.1
+synkit>=1.1.2
 xgboost>=2.0.3
 imbalanced_learn>=0.14.0
 reportlab>=4.1.0

@@ -129,6 +129,8 @@ The requirements are automatically installed with the pip package.
       {'id': 1, 'rxn': 'CC(=O)O.[H][H].[H][H]>>CCO.O'}]
   ```
 
+If you want to keep metadata, use `keep_extra=True`
+
 ### Use in command line
   ```bash
   echo "id,reaction\n0,CC(=O)OCC>>CC(=O)O" > unbalanced.csv
